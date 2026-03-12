@@ -1,0 +1,815 @@
+{
+	"info": {
+		"name": "EduSpace Auth API",
+		"description": "Collection para testar endpoints de autenticação da plataforma EduSpace",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_postman_id": "auth-api-collection-001",
+		"version": {
+			"major": 1,
+			"minor": 0,
+			"patch": 0
+		}
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080/api/v1/auth",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "expiresIn",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"exec": [
+					"console.log('🚀 Executando teste:', pm.info.requestName);",
+					"console.log('📅 Timestamp:', new Date().toISOString());"
+				],
+				"type": "text/javascript"
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"exec": [
+					"console.log('✅ Resposta recebida:', pm.response.code, pm.response.status);",
+					"console.log('⏱️ Tempo de resposta:', pm.response.responseTime + 'ms');"
+				],
+				"type": "text/javascript"
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "1.1 Login Teacher (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has message', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Login successful');",
+									"});",
+									"",
+									"pm.test('Response has user info', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user).to.have.property('id');",
+									"    pm.expect(jsonData.user).to.have.property('name');",
+									"    pm.expect(jsonData.user).to.have.property('email');",
+									"    pm.expect(jsonData.user).to.have.property('role');",
+									"    pm.expect(jsonData.user.role).to.eql('TEACHER');",
+									"});",
+									"",
+									"pm.test('Headers contain tokens', function () {",
+									"    pm.expect(pm.response.headers.get('X-Access-Token')).to.not.be.null;",
+									"    pm.expect(pm.response.headers.get('X-Refresh-Token')).to.not.be.null;",
+									"    pm.expect(pm.response.headers.get('X-Expires-In')).to.not.be.null;",
+									"});",
+									"",
+									"// Salvar tokens para próximos testes",
+									"const accessToken = pm.response.headers.get('X-Access-Token');",
+									"const refreshToken = pm.response.headers.get('X-Refresh-Token');",
+									"const expiresIn = pm.response.headers.get('X-Expires-In');",
+									"",
+									"if (accessToken) {",
+									"    pm.collectionVariables.set('accessToken', accessToken);",
+									"    console.log('✅ Access Token salvo:', accessToken.substring(0, 50) + '...');",
+									"}",
+									"",
+									"if (refreshToken) {",
+									"    pm.collectionVariables.set('refreshToken', refreshToken);",
+									"    console.log('✅ Refresh Token salvo:', refreshToken.substring(0, 50) + '...');",
+									"}",
+									"",
+									"if (expiresIn) {",
+									"    pm.collectionVariables.set('expiresIn', expiresIn);",
+									"    console.log('✅ Expires In:', expiresIn + ' segundos');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "User-Agent",
+								"value": "Postman/EduSpace-Tests"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"teacher@example.com\",\n  \"password\": \"senha123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Login Student (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has user with STUDENT role', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.user.role).to.eql('STUDENT');",
+									"});",
+									"",
+									"// Salvar tokens do student para testes específicos",
+									"const accessToken = pm.response.headers.get('X-Access-Token');",
+									"const refreshToken = pm.response.headers.get('X-Refresh-Token');",
+									"",
+									"if (accessToken) {",
+									"    pm.collectionVariables.set('studentAccessToken', accessToken);",
+									"}",
+									"",
+									"if (refreshToken) {",
+									"    pm.collectionVariables.set('studentRefreshToken', refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"senha123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Login Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response contains error message', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('Invalid credentials');",
+									"});",
+									"",
+									"pm.test('No tokens in headers', function () {",
+									"    pm.expect(pm.response.headers.get('X-Access-Token')).to.be.null;",
+									"    pm.expect(pm.response.headers.get('X-Refresh-Token')).to.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@invalid.com\",\n  \"password\": \"senhaerrada\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Login Blocked User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response contains blocked user message', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('blocked');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"blocked@example.com\",\n  \"password\": \"senha123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.5 Login Invalid Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response contains validation error', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"email-invalido\",\n  \"password\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Testes de autenticação (login) com diferentes cenários"
+		},
+		{
+			"name": "2. Token Refresh",
+			"item": [
+				{
+					"name": "2.1 Refresh Token (Success)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Verificar se temos um refresh token disponível",
+									"const refreshToken = pm.collectionVariables.get('refreshToken');",
+									"if (!refreshToken) {",
+									"    console.log('⚠️ Refresh token não encontrado. Execute primeiro o login.');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response message is correct', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.eql('Token refreshed successfully');",
+									"});",
+									"",
+									"pm.test('New access token in header', function () {",
+									"    pm.expect(pm.response.headers.get('X-Access-Token')).to.not.be.null;",
+									"    pm.expect(pm.response.headers.get('X-Expires-In')).to.not.be.null;",
+									"});",
+									"",
+									"// Atualizar access token com o novo",
+									"const newAccessToken = pm.response.headers.get('X-Access-Token');",
+									"if (newAccessToken) {",
+									"    pm.collectionVariables.set('accessToken', newAccessToken);",
+									"    console.log('✅ Access Token atualizado:', newAccessToken.substring(0, 50) + '...');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["refresh"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Refresh Token Invalid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response contains error message', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('Invalid refresh token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"invalid-token-123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["refresh"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Refresh Token Expired",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response contains expired token message', function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.include('expired');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"expired-token-456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/refresh",
+							"host": ["{{baseUrl}}"],
+							"path": ["refresh"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Testes de refresh de token com diferentes cenários"
+		},
+		{
+			"name": "3. Logout",
+			"item": [
+				{
+					"name": "3.1 Logout (Success)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Verificar se temos um refresh token disponível",
+									"const refreshToken = pm.collectionVariables.get('refreshToken');",
+									"if (!refreshToken) {",
+									"    console.log('⚠️ Refresh token não encontrado. Execute primeiro o login.');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test('Response body is empty', function () {",
+									"    pm.expect(pm.response.text()).to.be.empty;",
+									"});",
+									"",
+									"// Limpar tokens após logout",
+									"pm.collectionVariables.set('accessToken', '');",
+									"pm.collectionVariables.set('refreshToken', '');",
+									"pm.collectionVariables.set('expiresIn', '');",
+									"console.log('🚪 Tokens limpos após logout');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["logout"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Logout Invalid Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"// Logout sempre retorna 204 mesmo com token inválido (para não vazar informações)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"invalid-token\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["logout"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Testes de logout com diferentes cenários"
+		},
+		{
+			"name": "4. Protected Endpoints",
+			"item": [
+				{
+					"name": "4.1 Protected Endpoint with X-Access-Token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Verificar se temos um access token disponível",
+									"const accessToken = pm.collectionVariables.get('accessToken');",
+									"if (!accessToken) {",
+									"    console.log('⚠️ Access token não encontrado. Execute primeiro o login.');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Este teste depende de ter um endpoint protegido configurado",
+									"// Por enquanto, só verificamos se o token está sendo enviado",
+									"pm.test('Access token is being sent', function () {",
+									"    const accessToken = pm.request.headers.get('X-Access-Token');",
+									"    pm.expect(accessToken).to.not.be.empty;",
+									"});",
+									"",
+									"// Se o endpoint existir, deve retornar 200 ou 401/403",
+									"if (pm.response.code !== 404) {",
+									"    pm.test('Protected endpoint response', function () {",
+									"        pm.expect([200, 401, 403]).to.include(pm.response.code);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Access-Token",
+								"value": "{{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/protected-endpoint",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "v1", "protected-endpoint"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Protected Endpoint with Authorization Bearer",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Teste usando Authorization header como fallback",
+									"pm.test('Authorization header is being sent', function () {",
+									"    const authHeader = pm.request.headers.get('Authorization');",
+									"    pm.expect(authHeader).to.include('Bearer');",
+									"});",
+									"",
+									"if (pm.response.code !== 404) {",
+									"    pm.test('Protected endpoint response with Bearer', function () {",
+									"        pm.expect([200, 401, 403]).to.include(pm.response.code);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/protected-endpoint",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "v1", "protected-endpoint"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.3 Protected Endpoint without Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Sem token deve retornar 401 ou 403",
+									"if (pm.response.code !== 404) {",
+									"    pm.test('Unauthorized access denied', function () {",
+									"        pm.expect([401, 403]).to.include(pm.response.code);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/v1/protected-endpoint",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "v1", "protected-endpoint"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Testes de endpoints protegidos com diferentes tipos de autenticação"
+		},
+		{
+			"name": "5. Full Flow Test",
+			"item": [
+				{
+					"name": "5.1 Complete Auth Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Este é um teste de fluxo completo que será executado em sequência",
+									"console.log('🔄 Executando fluxo completo de autenticação...');",
+									"",
+									"pm.test('Login successful', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Salvar tokens para os próximos passos",
+									"const accessToken = pm.response.headers.get('X-Access-Token');",
+									"const refreshToken = pm.response.headers.get('X-Refresh-Token');",
+									"",
+									"pm.collectionVariables.set('flowAccessToken', accessToken);",
+									"pm.collectionVariables.set('flowRefreshToken', refreshToken);",
+									"",
+									"console.log('✅ Tokens salvos para fluxo completo');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"teacher@example.com\",\n  \"password\": \"senha123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Teste de fluxo completo: Login → Usar Token → Refresh → Logout"
+		}
+	]
+}

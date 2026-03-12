@@ -1,0 +1,62 @@
+services:
+
+  # ══════════════════════════════════════════════
+  # POSTGRESQL 16
+  # ══════════════════════════════════════════════
+  postgres:
+    image: postgres:16-alpine
+    container_name: study_postgres
+    environment:
+      POSTGRES_DB: study
+      POSTGRES_USER: study
+      POSTGRES_PASSWORD: study123
+    ports:
+      - "5432:5432"
+    volumes:
+      - study_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U track_user -d track_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # ══════════════════════════════════════════════
+  # REDIS 7
+  # ══════════════════════════════════════════════
+  redis:
+    image: redis:7-alpine
+    container_name: eduspace_redis
+    restart: unless-stopped
+    command: redis-server --requirepass redis123 --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ══════════════════════════════════════════════
+  # REDIS COMMANDER (UI web para inspecionar Redis)
+  # Acesse: http://localhost:8081
+  # ══════════════════════════════════════════════
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: eduspace_redis_ui
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS:     local:redis:6379:0:redis123
+      HTTP_USER:       admin
+      HTTP_PASSWORD:   admin
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  study_postgres:
+  redis_data:
