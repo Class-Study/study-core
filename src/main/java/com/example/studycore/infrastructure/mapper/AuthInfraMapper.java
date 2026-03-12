@@ -13,8 +13,8 @@ import com.example.studycore.infrastructure.api.controllers.auth.request.Refresh
 import com.example.studycore.infrastructure.api.controllers.auth.response.AuthResponse;
 import com.example.studycore.infrastructure.api.controllers.auth.response.LoginResponse;
 import com.example.studycore.infrastructure.api.controllers.auth.response.TokenResponse;
-import com.example.studycore.infrastructure.persistence.refreshtoken.RefreshTokenEntity;
 import com.example.studycore.infrastructure.persistence.auth.UserEntity;
+import com.example.studycore.infrastructure.persistence.refreshtoken.RefreshTokenEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -58,7 +58,7 @@ public interface AuthInfraMapper {
     TokenResponse toTokenResponse(TokenOutput output);
 
     // ===== ENTITY ↔ DOMAIN MAPPINGS =====
-    // Entity → Domain using factory methods
+    // Entity → Domain using factory methods (leveraging domain model patterns)
     default User userFromEntity(UserEntity entity) {
         if (entity == null) return null;
         return User.with(
@@ -70,7 +70,6 @@ public interface AuthInfraMapper {
                 UserStatus.valueOf(entity.getStatus()),
                 entity.getAvatarUrl(),
                 entity.getPhone(),
-                entity.getTimezone(),
                 entity.getLastSeenAt(),
                 entity.getCreatedAt()
         );
@@ -101,4 +100,5 @@ public interface AuthInfraMapper {
     default String uuidToString(java.util.UUID uuid) {
         return uuid != null ? uuid.toString() : null;
     }
+
 }

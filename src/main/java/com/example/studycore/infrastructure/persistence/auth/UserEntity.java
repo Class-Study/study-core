@@ -1,6 +1,7 @@
 package com.example.studycore.infrastructure.persistence.auth;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,22 +41,19 @@ public class UserEntity {
     @Column(length = 20)
     private String phone;
 
-    @Column(nullable = false, length = 60)
-    private String timezone;
-
     @Column(nullable = false, length = 20)
     private String status;
 
     @Column(name = "last_seen_at")
-    private Instant lastSeenAt;
+    private OffsetDateTime lastSeenAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 
     @PrePersist
     void prePersist() {
         if (createdAt == null) {
-            createdAt = Instant.now();
+            createdAt = OffsetDateTime.now();
         }
     }
 }

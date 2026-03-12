@@ -103,7 +103,7 @@ public class AuthController implements AuthApi {
     private HttpHeaders createTokenHeaders(String accessToken, String refreshToken, long expiresIn) {
         final var headers = new HttpHeaders();
 
-        headers.set(ACCESS_TOKEN_HEADER, accessToken);
+        headers.set(ACCESS_TOKEN_HEADER, "Bearer " + accessToken);
         headers.set(EXPIRES_IN_HEADER, String.valueOf(expiresIn));
 
         if (refreshToken != null) {

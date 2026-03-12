@@ -180,19 +180,18 @@
         </dependency>
 
         <!-- ─────────────────────────────────────────
-             5. EMAIL
+             5. MESSAGING - RABBITMQ
         ───────────────────────────────────────────── -->
 
         <!--
-            Spring Mail — disparo de e-mails via SMTP.
-            Usado para: notificações de cobrança mensal,
-                        e-mail de boas-vindas ao novo aluno,
-                        recuperação de senha.
-            Configurar: spring.mail.host, port, username, password.
+            Spring AMQP — integração com RabbitMQ.
+            Usado para: envio de notificações via fila,
+                        comunicação assíncrona com ms-notification.
+            Inclui: RabbitTemplate, @RabbitListener, configurações de exchange/queue.
         -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
         <!--

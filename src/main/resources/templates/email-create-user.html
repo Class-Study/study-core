@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao EduSpace</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            color: #2c5aa0;
+            margin-bottom: 30px;
+        }
+        .credentials {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .credential-item {
+            margin: 10px 0;
+        }
+        .credential-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .credential-value {
+            font-family: monospace;
+            background-color: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Bem-vindo ao EduSpace!</h2>
+        </div>
+
+        <p>Olá, <strong th:text="${name}">Nome</strong>!</p>
+
+        <p>Sua conta foi criada com sucesso na plataforma EduSpace. Agora você pode acessar nossa plataforma de ensino de inglês online.</p>
+
+        <div class="credentials">
+            <h3>Suas credenciais de acesso:</h3>
+
+            <div class="credential-item">
+                <span class="credential-label">E-mail:</span>
+                <span class="credential-value" th:text="${email}">email@example.com</span>
+            </div>
+
+            <div class="credential-item">
+                <span class="credential-label">Senha temporária:</span>
+                <span class="credential-value" th:text="${password}">senha123</span>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Importante:</strong> Por motivos de segurança, recomendamos que você altere sua senha no primeiro acesso ao sistema.
+        </div>
+
+        <p>Para acessar a plataforma, clique no link abaixo:</p>
+        <p style="text-align: center;">
+            <a href="http://localhost:3000/login"
+               style="background-color: #2c5aa0; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Acessar EduSpace
+            </a>
+        </p>
+
+        <p>Se você tiver alguma dúvida ou precisar de ajuda, entre em contato com nossa equipe de suporte.</p>
+
+        <div class="footer">
+            <p>Atenciosamente,<br>
+            <strong>Equipe EduSpace</strong></p>
+
+            <p><small>Este é um e-mail automático, não responda esta mensagem.</small></p>
+        </div>
+    </div>
+</body>
+</html>

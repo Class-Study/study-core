@@ -18,6 +18,11 @@ spring:
       port: 6379
       password: redis123
 
+  rabbitmq:
+    host:     ${RABBITMQ_HOST:localhost}
+    port:     ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
 
   jpa:
     hibernate:
@@ -48,3 +53,10 @@ jwt:
     expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:15}
   refresh-token:
     expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:30}
+
+amqp:
+  queue:
+    notify-user:      ${AMQP_QUEUE_NOTIFY_USER:notify.user.queue}
+  dlq:
+    notify-user-dlq:  ${AMQP_DLQ_NOTIFY_USER:notify.user.queue.dlq}
+
