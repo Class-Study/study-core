@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>EduSpace - Lembrete de pagamento</title>
+</head>
+<body>
+  <h2>Ola, <span th:text="${name}"></span>!</h2>
+  <p>Este e um lembrete sobre sua mensalidade no EduSpace.</p>
+  <p><strong>Referencia:</strong> <span th:text="${referenceMonth}"></span></p>
+  <p><strong>Valor:</strong> R$ <span th:text="${amount}"></span></p>
+  <p>Caso o pagamento ja tenha sido realizado, desconsidere esta mensagem.</p>
+</body>
+</html>
+

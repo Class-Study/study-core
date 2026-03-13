@@ -1,0 +1,477 @@
+{
+  "info": {
+    "_postman_id": "5a3e4d6e-1c73-4fb4-90d3-billing-notification-flow",
+    "name": "EduSpace Billing & Notification Flow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection para consultar billing, atualizar rate, marcar cobrança como paga e disparar notificação de pendências no EduSpace. Usa Authorization: Bearer {{teacherToken}} nos endpoints protegidos."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{teacherToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1"
+    },
+    {
+      "key": "teacherEmail",
+      "value": "teacher@example.com"
+    },
+    {
+      "key": "teacherPassword",
+      "value": "senha123"
+    },
+    {
+      "key": "teacherToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "teacherUserId",
+      "value": ""
+    },
+    {
+      "key": "studentId",
+      "value": ""
+    },
+    {
+      "key": "studentName",
+      "value": ""
+    },
+    {
+      "key": "billingRecordId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login Teacher",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{teacherEmail}}\",\n  \"password\": \"{{teacherPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Autentica o professor e salva token/refresh token nas variáveis da collection."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "const authorizationHeader = pm.response.headers.get('Authorization') || pm.response.headers.get('X-Access-Token');",
+                  "let accessToken = authorizationHeader;",
+                  "",
+                  "if (accessToken && accessToken.startsWith('Bearer ')) {",
+                  "    accessToken = accessToken.substring(7);",
+                  "}",
+                  "",
+                  "if (!accessToken && responseJson && responseJson.accessToken) {",
+                  "    accessToken = responseJson.accessToken;",
+                  "}",
+                  "",
+                  "const refreshTokenHeader = pm.response.headers.get('X-Refresh-Token');",
+                  "const refreshTokenBody = responseJson && responseJson.refreshToken ? responseJson.refreshToken : null;",
+                  "const refreshToken = refreshTokenHeader || refreshTokenBody;",
+                  "",
+                  "if (accessToken) {",
+                  "    pm.collectionVariables.set('teacherToken', accessToken);",
+                  "}",
+                  "",
+                  "if (refreshToken) {",
+                  "    pm.collectionVariables.set('refreshToken', refreshToken);",
+                  "}",
+                  "",
+                  "if (responseJson && responseJson.user && responseJson.user.id) {",
+                  "    pm.collectionVariables.set('teacherUserId', responseJson.user.id);",
+                  "}",
+                  "",
+                  "if (responseJson && responseJson.user && responseJson.user.name) {",
+                  "    console.log('Professor autenticado:', responseJson.user.name);",
+                  "}",
+                  "",
+                  "pm.test('teacherToken deve ter sido salvo', function () {",
+                  "    pm.expect(pm.collectionVariables.get('teacherToken')).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Atualiza o access token usando o refresh token salvo anteriormente."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Refresh deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "const authorizationHeader = pm.response.headers.get('Authorization') || pm.response.headers.get('X-Access-Token');",
+                  "let accessToken = authorizationHeader;",
+                  "",
+                  "if (accessToken && accessToken.startsWith('Bearer ')) {",
+                  "    accessToken = accessToken.substring(7);",
+                  "}",
+                  "",
+                  "if (!accessToken && responseJson && responseJson.accessToken) {",
+                  "    accessToken = responseJson.accessToken;",
+                  "}",
+                  "",
+                  "if (accessToken) {",
+                  "    pm.collectionVariables.set('teacherToken', accessToken);",
+                  "}",
+                  "",
+                  "pm.test('Novo teacherToken deve ter sido salvo', function () {",
+                  "    pm.expect(pm.collectionVariables.get('teacherToken')).to.not.be.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Helper - List Students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students"
+              ]
+            },
+            "description": "Helper para preencher studentId automaticamente a partir do primeiro aluno retornado."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Listagem de alunos deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "const students = responseJson && responseJson.students ? responseJson.students : [];",
+                  "",
+                  "if (students.length > 0) {",
+                  "    pm.collectionVariables.set('studentId', students[0].id);",
+                  "    pm.collectionVariables.set('studentName', students[0].name || '');",
+                  "    console.log('studentId salvo:', students[0].id);",
+                  "}",
+                  "",
+                  "pm.test('Ao menos um aluno deve existir para o fluxo completo', function () {",
+                  "    pm.expect(students.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Current Month Billing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/billing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "billing"
+              ]
+            },
+            "description": "Consulta o resumo do mês atual e salva o primeiro billingRecordId para os próximos requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Billing do mês atual deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "const records = responseJson && responseJson.records ? responseJson.records : [];",
+                  "",
+                  "if (records.length > 0) {",
+                  "    pm.collectionVariables.set('billingRecordId', records[0].id);",
+                  "    if (records[0].studentId) {",
+                  "        pm.collectionVariables.set('studentId', records[0].studentId);",
+                  "    }",
+                  "    if (records[0].studentName) {",
+                  "        pm.collectionVariables.set('studentName', records[0].studentName);",
+                  "    }",
+                  "    console.log('billingRecordId salvo:', records[0].id);",
+                  "}",
+                  "",
+                  "pm.test('Resposta deve conter campo referenceMonth', function () {",
+                  "    pm.expect(responseJson.referenceMonth).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Student Billing History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/billing/students/{{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "billing",
+                "students",
+                "{{studentId}}"
+              ]
+            },
+            "description": "Retorna o histórico de billing do aluno salvo em studentId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Histórico do aluno deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "if (Array.isArray(responseJson) && responseJson.length > 0) {",
+                  "    pm.collectionVariables.set('billingRecordId', responseJson[0].id);",
+                  "}",
+                  "",
+                  "pm.test('Resposta deve ser uma lista', function () {",
+                  "    pm.expect(Array.isArray(responseJson)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Update Student Rate",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classRate\": 150.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/billing/students/{{studentId}}/rate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "billing",
+                "students",
+                "{{studentId}}",
+                "rate"
+              ]
+            },
+            "description": "Atualiza o valor/aula do aluno. Não altera cobranças já geradas."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Atualização de rate deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Mark Billing As Paid",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/billing/{{billingRecordId}}/pay",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "billing",
+                "{{billingRecordId}}",
+                "pay"
+              ]
+            },
+            "description": "Marca o billing selecionado como pago."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Marcação como paga deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "pm.test('Status deve ser PAID', function () {",
+                  "    pm.expect(responseJson.status).to.eql('PAID');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Notify Pending Billings",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/billing/notify-pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "billing",
+                "notify-pending"
+              ]
+            },
+            "description": "Envia notificação para billing pendente/atrasado e retorna a quantidade publicada na fila."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Notificação de pendentes deve retornar 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const responseJson = pm.response.json();",
+                  "pm.test('Resposta deve conter notificationsSent', function () {",
+                  "    pm.expect(responseJson.notificationsSent).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

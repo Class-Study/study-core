@@ -4,48 +4,86 @@ import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.DomainException;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.exception.UnauthorizedException;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final int NOT_FOUND = HttpStatus.NOT_FOUND.value();
+    private static final int UNPROCESSABLE_ENTITY = HttpStatus.UNPROCESSABLE_ENTITY.value();
+    private static final int BAD_REQUEST = HttpStatus.BAD_REQUEST.value();
+    private static final int UNAUTHORIZED = HttpStatus.UNAUTHORIZED.value();
+    private static final int INTERNAL_SERVER_ERROR = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
-        return ResponseEntity.badRequest().body(new ErrorResponse(Instant.now(), HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage(), null));
+        return ResponseEntity.badRequest().body(new ErrorResponse(
+                Instant.now(),
+                UNPROCESSABLE_ENTITY,
+                ex.getMessage(),
+                null)
+        );
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(Instant.now(), HttpStatus.NOT_FOUND.value(), ex.getMessage(), null));
+        return ResponseEntity.status(NOT_FOUND)
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        NOT_FOUND,
+                        ex.getMessage(),
+                        null)
+                );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
-                .body(new ErrorResponse(Instant.now(), HttpStatus.BAD_REQUEST.value(), ex.getMessage(), null));
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(new ErrorResponse(
+                                Instant.now(),
+                                BAD_REQUEST,
+                                ex.getMessage(),
+                                null
+                        )
+                );
     }
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ErrorResponse> handleDomainException(DomainException ex) {
-        return ResponseEntity.badRequest().body(new ErrorResponse(Instant.now(), HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage(), null));
+        return ResponseEntity.badRequest().body(new ErrorResponse(
+                Instant.now(),
+                UNAUTHORIZED,
+                ex.getMessage(),
+                null)
+        );
     }
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse(Instant.now(), HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), null));
+        return ResponseEntity.status(UNAUTHORIZED)
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        UNAUTHORIZED,
+                        ex.getMessage(),
+                        null)
+                );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -58,7 +96,12 @@ public class GlobalExceptionHandler {
                 ));
 
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(Instant.now(), 400, "Validation failed.", errors));
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        BAD_REQUEST,
+                        "Validation failed.",
+                        errors)
+                );
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -76,7 +119,12 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(Instant.now(), 400, message, null));
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        BAD_REQUEST,
+                        message,
+                        null)
+                );
     }
 
     @ExceptionHandler(TypeMismatchException.class)
@@ -93,7 +141,12 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(Instant.now(), 400, message, null));
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        BAD_REQUEST,
+                        message,
+                        null)
+                );
     }
 
     @ExceptionHandler(ConversionFailedException.class)
@@ -109,13 +162,100 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(Instant.now(), 400, message, null));
+                .body(new ErrorResponse(
+                                Instant.now(),
+                                BAD_REQUEST,
+                                message,
+                                null
+                        )
+                );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(
+            NoResourceFoundException ex,
+            HttpServletRequest request
+    ) {
+
+        log.warn(
+                "Recurso não encontrado | method={} | path={}",
+                request.getMethod(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        HttpStatus.NOT_FOUND.value(),
+                        "Resource not found",
+                        null
+                ));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleJsonParseError(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+
+        String message = "Invalid request body.";
+
+        Throwable cause = ex.getCause();
+
+        if (cause != null && cause.getMessage() != null) {
+
+            if (cause.getMessage().contains("UUID")) {
+                message = "Invalid UUID format in request body.";
+            }
+
+            if (cause.getMessage().contains("Cannot deserialize")) {
+                message = "Invalid field format in request body.";
+            }
+        }
+
+        log.warn(
+                "Erro de parse JSON | method={} | path={} | message={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                message
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        HttpStatus.BAD_REQUEST.value(),
+                        message,
+                        null
+                ));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(Instant.now(), 500, ex.getMessage() == null ? "Unexpected error." : ex.getMessage(), null));
+    public ResponseEntity<ErrorResponse> handleException(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+
+        StackTraceElement origin = ex.getStackTrace()[0];
+
+        log.error(
+                "Erro inesperado | method={} | path={} | class={} | methodOrigin={} | line={} | message={}",
+                request.getMethod(),
+                request.getRequestURI(),
+                origin.getClassName(),
+                origin.getMethodName(),
+                origin.getLineNumber(),
+                ex.getMessage()
+        );
+
+        String message = ex.getMessage() == null ? "Unexpected error." : ex.getMessage();
+
+        return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        INTERNAL_SERVER_ERROR,
+                        message,
+                        null
+                ));
     }
 
     public record ErrorResponse(

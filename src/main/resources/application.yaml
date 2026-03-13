@@ -42,6 +42,7 @@ spring:
       hibernate:
         format_sql: false
         default_schema: study
+        show_sql: false
 
   flyway:
     enabled: true
@@ -64,4 +65,11 @@ amqp:
   dlq:
     user-created-dlq: user-created.dlq
     notify-user-dlq: notify-user.dlq
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.type.descriptor.sql: TRACE
+    com.seu.pacote: DEBUG
 

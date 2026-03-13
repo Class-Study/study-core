@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Slf4j
@@ -19,8 +20,8 @@ public class NotifyEmailService {
     public void sendWelcomeTeacher(String toEmail, String name, String temporaryPassword) {
         try {
             final var variables = Map.<String, Object>of(
-                    "name",     name,
-                    "email",    toEmail,
+                    "name", name,
+                    "email", toEmail,
                     "password", temporaryPassword
             );
 
@@ -68,10 +69,10 @@ public class NotifyEmailService {
     public void sendPasswordReset(String toEmail, String name, String resetToken) {
         try {
             final var variables = Map.<String, Object>of(
-                    "name",       name,
-                    "email",      toEmail,
+                    "name", name,
+                    "email", toEmail,
                     "resetToken", resetToken,
-                    "resetUrl",   "http://localhost:3000/reset-password?token=" + resetToken
+                    "resetUrl", "http://localhost:3000/reset-password?token=" + resetToken
             );
 
             final var body = emailTemplateService.render("email-password-reset", variables);
@@ -89,19 +90,24 @@ public class NotifyEmailService {
         }
     }
 
-    public void sendBillingNotification(String toEmail, String name, String billingDetails) {
+    public void sendBillingNotification(
+            String toEmail,
+            String studentName,
+            BigDecimal amount,
+            String referenceMonth
+    ) {
         try {
             final var variables = Map.<String, Object>of(
-                    "name",           name,
-                    "email",          toEmail,
-                    "billingDetails", billingDetails
+                    "name", studentName,
+                    "amount", amount,
+                    "referenceMonth", referenceMonth
             );
 
             final var body = emailTemplateService.render("email-billing-notification", variables);
 
             messageFacade.sendMessage(new NotifyUserMessage(
                     toEmail,
-                    "EduSpace — Notificação de cobrança",
+                    "EduSpace — Lembrete de pagamento",
                     body
             ));
 
