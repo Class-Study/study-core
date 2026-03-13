@@ -10,11 +10,13 @@ import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.domain.port.TeacherGateway;
 import com.example.studycore.infrastructure.service.email.NotifyEmailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class CreateTeacherUseCase {
@@ -34,10 +36,10 @@ public class CreateTeacherUseCase {
                 });
 
         final var temporaryPassword = RandomStringUtils.randomAlphanumeric(TEMPORARY_PASSWORD_LENGTH);
-        final var passwordHash = passwordEncoder.encode(temporaryPassword);
 
-        System.out.println("SENHA TEMPORARIA: " + temporaryPassword);
-        System.out.println("EMAIL: " + input.email().trim());
+        log.info("EMAIL E SENHA PROFESSOR: {}: {}", input.email(), temporaryPassword);
+
+        final var passwordHash = passwordEncoder.encode(temporaryPassword);
 
         final var teacher = User.create(
                 input.name(),

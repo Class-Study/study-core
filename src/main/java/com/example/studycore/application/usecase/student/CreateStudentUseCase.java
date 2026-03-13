@@ -6,18 +6,17 @@ import com.example.studycore.application.usecase.student.output.GetStudentOutput
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.model.Student;
-import com.example.studycore.domain.model.User;
-import com.example.studycore.domain.model.enums.UserRole;
-import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.domain.port.StudentGateway;
 import com.example.studycore.domain.port.UserGateway;
 import com.example.studycore.infrastructure.service.email.NotifyEmailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class CreateStudentUseCase {
@@ -36,6 +35,9 @@ public class CreateStudentUseCase {
         });
 
         final var temporaryPassword = RandomStringUtils.randomAlphanumeric(10);
+
+        log.info("EMAIL E SENHA ALUNO: {}: {}", input.email(), temporaryPassword);
+
         final var passwordHash = passwordEncoder.encode(temporaryPassword);
 
         final var teacher = userGateway.findById(input.teacherId())
