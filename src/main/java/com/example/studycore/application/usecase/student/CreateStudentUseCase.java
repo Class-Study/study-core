@@ -41,13 +41,10 @@ public class CreateStudentUseCase {
         final var teacher = userGateway.findById(input.teacherId())
                 .orElseThrow(() -> new NotFoundException("Authenticated teacher not found."));
 
-        final Student student = Student.with(
-                null,
-                input.name().trim(),
-                input.email().trim().toLowerCase(),
+        final Student student = Student.create(
+                input.name(),
+                input.email(),
                 passwordHash,
-                UserRole.STUDENT,
-                UserStatus.ACTIVE,
                 input.avatarUrl(),
                 input.phone(),
                 input.teacherId(),
@@ -57,10 +54,7 @@ public class CreateStudentUseCase {
                 input.classDuration(),
                 input.classRate(),
                 input.meetPlatform(),
-                input.meetLink(),
-                input.startDate(),
-                null,
-                null
+                input.meetLink()
         );
 
         final var saved = studentGateway.save(student);

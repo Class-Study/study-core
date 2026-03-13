@@ -82,8 +82,6 @@ public class Student {
             String name,
             String email,
             String passwordHash,
-            UserRole role,
-            UserStatus status,
             String avatarUrl,
             String phone,
             UUID teacherId,
@@ -93,21 +91,21 @@ public class Student {
             Integer classDuration,
             BigDecimal classRate,
             String meetPlatform,
-            String meetLink,
-            LocalDate startDate,
-            String notesPrivate
+            String meetLink
     ) {
         final var id = UUID.randomUUID();
         final var createdAt = OffsetDateTime.now();
+        final var startDate = LocalDate.now();
+
         return new Student(
                 id,
-                name,
-                email,
+                normalize(name),
+                normalize(email).toLowerCase(),
                 passwordHash,
-                role,
-                status,
+                UserRole.STUDENT,
+                UserStatus.ACTIVE,
                 avatarUrl,
-                phone,
+                normalizePhone(phone),
                 teacherId,
                 levelProfileId,
                 classDays,
@@ -117,7 +115,7 @@ public class Student {
                 meetPlatform,
                 meetLink,
                 startDate,
-                notesPrivate,
+                null,
                 createdAt
         );
     }
@@ -179,6 +177,15 @@ public class Student {
         if (role == null) {
             throw new IllegalArgumentException("Role cannot be null");
         }
+    }
+
+    private static String normalize(String s) {
+        return s.trim();
+    }
+
+    private static String normalizePhone(String p) {
+        if (p == null) return null;
+        return p.replaceAll("\\D", "");
     }
 }
 

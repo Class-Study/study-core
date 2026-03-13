@@ -1,10 +1,9 @@
 package com.example.studycore.infrastructure.api;
 
-import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
-import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.example.studycore.infrastructure.api.controllers.levelprofile.request.CreateLevelProfileRequest;
+import com.example.studycore.infrastructure.api.controllers.levelprofile.request.UpdateLevelProfileRequest;
+import com.example.studycore.infrastructure.api.controllers.levelprofile.response.GetLevelProfileResponse;
+import com.example.studycore.infrastructure.api.controllers.levelprofile.response.ListLevelProfilesResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -17,28 +16,27 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/students")
-@SecurityRequirement(name = "bearerAuth")
-public interface StudentApi {
+@RequestMapping("/level-profiles")
+public interface LevelProfileApi {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<GetStudentResponse> create(@RequestBody @Valid CreateStudentRequest request);
+    ResponseEntity<GetLevelProfileResponse> create(@RequestBody @Valid CreateLevelProfileRequest request);
 
     @GetMapping
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<ListStudentsResponse> list();
+    ResponseEntity<ListLevelProfilesResponse> list();
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<GetStudentResponse> getById(@PathVariable UUID id);
+    ResponseEntity<GetLevelProfileResponse> getById(@PathVariable UUID id);
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<GetStudentResponse> update(@PathVariable UUID id, @RequestBody @Valid UpdateStudentRequest request);
+    ResponseEntity<GetLevelProfileResponse> update(@PathVariable UUID id, @RequestBody @Valid UpdateLevelProfileRequest request);
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<Void> block(@PathVariable UUID id);
+    ResponseEntity<Void> delete(@PathVariable UUID id);
 }
 
