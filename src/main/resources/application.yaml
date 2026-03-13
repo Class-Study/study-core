@@ -19,10 +19,20 @@ spring:
       password: redis123
 
   rabbitmq:
-    host:     ${RABBITMQ_HOST:localhost}
-    port:     ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    publisher-returns: true
+    publisher-confirm-type: correlated
+    host: ${HOST_RABBIT:localhost}
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 5000
+    template:
+      retry:
+        enabled: false
+        max-attempts: 3
+        initial-interval: 1000
+        multiplier: 2
+        max-interval: 10000
 
   jpa:
     hibernate:
@@ -56,7 +66,9 @@ jwt:
 
 amqp:
   queue:
-    notify-user:      ${AMQP_QUEUE_NOTIFY_USER:notify.user.queue}
+    user-created: user-created.queue
+    notify-user: notify-user.queue
   dlq:
-    notify-user-dlq:  ${AMQP_DLQ_NOTIFY_USER:notify.user.queue.dlq}
+    user-created-dlq: user-created.dlq
+    notify-user-dlq: notify-user.dlq
 

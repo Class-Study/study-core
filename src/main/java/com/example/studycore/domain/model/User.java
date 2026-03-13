@@ -120,6 +120,7 @@ public class User {
     }
 
     private static String normalizePhone(String p) {
+        if (p == null) return null;
         return p.replaceAll("\\D", "");
     }
 }

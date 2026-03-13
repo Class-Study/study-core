@@ -22,7 +22,7 @@ public class RabbitConfig {
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());
-        template.setChannelTransacted(true);
+        // Removed channelTransacted=true - incompatible with publisher confirms
         return template;
     }
 
@@ -36,6 +36,20 @@ public class RabbitConfig {
                 .withArgument("x-dead-letter-routing-key", notifyUserDlq)
                 .build();
         final Queue dlq = QueueBuilder.durable(notifyUserDlq).build();
+
+        return new Declarables(mainQueue, dlq);
+    }
+
+    @Bean
+    public Declarables declarableUserCreated(
+            @Value("${amqp.queue.user-created}") String userCreatedQueue,
+            @Value("${amqp.dlq.user-created-dlq}") String userCreatedDlq) {
+
+        final Queue mainQueue = QueueBuilder.durable(userCreatedQueue)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", userCreatedDlq)
+                .build();
+        final Queue dlq = QueueBuilder.durable(userCreatedDlq).build();
 
         return new Declarables(mainQueue, dlq);
     }

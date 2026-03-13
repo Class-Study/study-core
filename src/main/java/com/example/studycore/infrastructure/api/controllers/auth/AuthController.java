@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController implements AuthApi {
 
     private static final AuthInfraMapper AUTH_INFRA_MAPPER = AuthInfraMapper.INSTANCE;
-    private static final String ACCESS_TOKEN_HEADER = "X-Access-Token";
+    private static final String AUTHORIZATION = "Authorization";
     private static final String REFRESH_TOKEN_HEADER = "X-Refresh-Token";
     private static final String EXPIRES_IN_HEADER = "X-Expires-In";
 
@@ -103,7 +103,7 @@ public class AuthController implements AuthApi {
     private HttpHeaders createTokenHeaders(String accessToken, String refreshToken, long expiresIn) {
         final var headers = new HttpHeaders();
 
-        headers.set(ACCESS_TOKEN_HEADER, "Bearer " + accessToken);
+        headers.set(AUTHORIZATION, "Bearer " + accessToken);
         headers.set(EXPIRES_IN_HEADER, String.valueOf(expiresIn));
 
         if (refreshToken != null) {
