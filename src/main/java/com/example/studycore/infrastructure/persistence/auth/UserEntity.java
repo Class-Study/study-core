@@ -1,6 +1,5 @@
 package com.example.studycore.infrastructure.persistence.auth;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import jakarta.persistence.Column;
@@ -16,7 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "users", schema = "study")
+@Table(name = "users")
 public class UserEntity {
 
     @Id

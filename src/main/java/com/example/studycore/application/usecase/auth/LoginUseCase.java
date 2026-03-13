@@ -14,8 +14,7 @@ import com.example.studycore.infrastructure.config.JwtTokenProvider;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.OffsetDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -50,10 +49,10 @@ public class LoginUseCase {
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String refreshTokenRaw = UUID.randomUUID().toString();
-        RefreshToken refreshToken = RefreshToken.newToken(
+        RefreshToken refreshToken = RefreshToken.create(
                 user.getId(),
                 sha256(refreshTokenRaw),
-                Instant.now().plus(REFRESH_TOKEN_EXPIRATION_DAYS, ChronoUnit.DAYS),
+                OffsetDateTime.now().plusDays(REFRESH_TOKEN_EXPIRATION_DAYS),
                 input.userAgent()
         );
         refreshTokenGateway.save(refreshToken);

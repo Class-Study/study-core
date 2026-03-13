@@ -32,12 +32,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
             String userId = jwtTokenProvider.extractUserId(token).toString();
-            String email = jwtTokenProvider.extractEmail(token);
             String role = jwtTokenProvider.extractRole(token);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    email,
                     userId,
+                    null,
                     List.of(new SimpleGrantedAuthority("ROLE_" + role))
             );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -48,13 +47,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private String extractToken(HttpServletRequest request) {
-        // First try X-Access-Token header
         String accessTokenHeader = request.getHeader(ACCESS_TOKEN_HEADER);
-        if (accessTokenHeader != null && !accessTokenHeader.trim().isEmpty()) {
-            return accessTokenHeader.trim();
+        if (accessTokenHeader != null && accessTokenHeader.startsWith(BEARER_PREFIX)) {
+            return accessTokenHeader.substring(BEARER_PREFIX.length()).trim();
         }
 
-        // Fallback to Authorization header with Bearer prefix
         String authorizationHeader = request.getHeader(AUTHORIZATION_HEADER);
         if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
             return authorizationHeader.substring(BEARER_PREFIX.length()).trim();

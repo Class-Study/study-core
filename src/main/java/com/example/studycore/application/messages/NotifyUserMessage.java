@@ -8,3 +8,4 @@ public record NotifyUserMessage(
         String body
 ) implements Serializable {
 }
+

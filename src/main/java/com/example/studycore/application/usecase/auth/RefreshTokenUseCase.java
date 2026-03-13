@@ -13,7 +13,7 @@ import com.example.studycore.infrastructure.config.JwtTokenProvider;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.HexFormat;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class RefreshTokenUseCase {
         RefreshToken refreshToken = refreshTokenGateway.findByTokenHash(sha256(refreshTokenRaw))
                 .orElseThrow(() -> new BusinessException("Invalid refresh token."));
 
-        if (refreshToken.isRevoked() || refreshToken.isExpired(Instant.now())) {
+        if (refreshToken.isRevoked() || refreshToken.isExpired(OffsetDateTime.now())) {
             throw new BusinessException("Refresh token is invalid or expired.");
         }
 

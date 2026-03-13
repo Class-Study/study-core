@@ -41,12 +41,13 @@ public class NotifyEmailService {
         }
     }
 
-    public void sendWelcomeStudent(String toEmail, String name, String temporaryPassword) {
+    public void sendWelcomeStudent(String toEmail, String name, String teacherName, String temporaryPassword) {
         try {
             final var variables = Map.<String, Object>of(
-                    "name",     name,
-                    "email",    toEmail,
-                    "password", temporaryPassword
+                    "name", name,
+                    "email", toEmail,
+                    "password", temporaryPassword,
+                    "teacherName", teacherName
             );
 
             final var body = emailTemplateService.render("email-create-user", variables);

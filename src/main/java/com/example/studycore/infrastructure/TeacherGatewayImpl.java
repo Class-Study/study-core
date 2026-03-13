@@ -1,4 +1,4 @@
-package com.example.studycore.infrastructure.persistence.teacher;
+package com.example.studycore.infrastructure;
 
 import com.example.studycore.domain.model.User;
 import com.example.studycore.domain.model.enums.UserRole;

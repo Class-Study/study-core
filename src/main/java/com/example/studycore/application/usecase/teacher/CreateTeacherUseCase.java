@@ -36,10 +36,12 @@ public class CreateTeacherUseCase {
         final var temporaryPassword = RandomStringUtils.randomAlphanumeric(TEMPORARY_PASSWORD_LENGTH);
         final var passwordHash = passwordEncoder.encode(temporaryPassword);
 
-        // Criar professor usando User.create
+        System.out.println("SENHA TEMPORARIA: " + temporaryPassword);
+        System.out.println("EMAIL: " + input.email().trim());
+
         final var teacher = User.create(
-                input.name().trim(),
-                input.email().trim().toLowerCase(),
+                input.name(),
+                input.email(),
                 passwordHash,
                 UserRole.TEACHER,
                 UserStatus.ACTIVE,
