@@ -5,9 +5,10 @@ import com.example.studycore.application.usecase.levelprofile.output.LevelFolder
 import com.example.studycore.application.usecase.levelprofile.output.ListLevelProfilesOutput;
 import com.example.studycore.domain.model.LevelFolder;
 import com.example.studycore.domain.model.LevelProfile;
-import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 @Mapper
 public interface LevelProfileOutputMapper {
@@ -46,15 +47,6 @@ public interface LevelProfileOutputMapper {
         return new ListLevelProfilesOutput(items);
     }
 
-    default List<LevelFolderOutput> toFolderOutputs(List<LevelFolder> folders) {
-        return folders == null ? List.of() : folders.stream()
-                .map(folder -> new LevelFolderOutput(
-                        folder.getId(),
-                        folder.getName(),
-                        folder.getPosition(),
-                        folder.getInitialFiles()
-                ))
-                .toList();
-    }
+    List<LevelFolderOutput> toFolderOutputs(List<LevelFolder> folders);
 }
 
