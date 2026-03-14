@@ -10,7 +10,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*") // Use allowedOriginPatterns instead of allowedOrigins for cookies
+                .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders(
@@ -19,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "X-Expires-In",
                         "Authorization"
                 )
-                .allowCredentials(true); // Required for cookies
+                .allowCredentials(true);
     }
 }
 

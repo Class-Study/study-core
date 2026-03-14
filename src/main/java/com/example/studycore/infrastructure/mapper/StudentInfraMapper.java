@@ -1,16 +1,20 @@
 package com.example.studycore.infrastructure.mapper;
 
+import com.example.studycore.application.usecase.activity.output.StudentActivityOutput;
 import com.example.studycore.application.usecase.student.input.CreateStudentInput;
 import com.example.studycore.application.usecase.student.input.UpdateStudentInput;
 import com.example.studycore.application.usecase.student.output.GetStudentOutput;
 import com.example.studycore.application.usecase.student.output.ListStudentsOutput;
+import com.example.studycore.application.usecase.student.output.StudentStatsOutput;
 import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
+import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.StudentStatsResponse;
 import com.example.studycore.infrastructure.persistence.auth.UserEntity;
 import com.example.studycore.infrastructure.persistence.student.StudentEntity;
 import java.util.Arrays;
@@ -114,4 +118,8 @@ public interface StudentInfraMapper {
     GetStudentResponse toGetStudentResponse(GetStudentOutput output);
 
     ListStudentsResponse toListStudentsResponse(ListStudentsOutput output);
+
+    StudentActivityResponse toStudentActivityResponse(StudentActivityOutput output);
+
+    StudentStatsResponse toStudentStatsResponse(StudentStatsOutput output);
 }

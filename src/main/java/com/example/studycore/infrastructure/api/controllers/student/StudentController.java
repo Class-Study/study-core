@@ -1,16 +1,21 @@
 package com.example.studycore.infrastructure.api.controllers.student;
 
+import com.example.studycore.application.usecase.activity.ListStudentActivitiesUseCase;
 import com.example.studycore.application.usecase.student.BlockStudentUseCase;
 import com.example.studycore.application.usecase.student.CreateStudentUseCase;
 import com.example.studycore.application.usecase.student.GetStudentByIdUseCase;
 import com.example.studycore.application.usecase.student.ListStudentsUseCase;
 import com.example.studycore.application.usecase.student.UpdateStudentUseCase;
+import com.example.studycore.application.usecase.student.GetStudentStatsUseCase;
 import com.example.studycore.infrastructure.api.StudentApi;
+import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.StudentStatsResponse;
 import com.example.studycore.infrastructure.mapper.StudentInfraMapper;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,14 +34,15 @@ public class StudentController implements StudentApi {
     private final ListStudentsUseCase listStudentsUseCase;
     private final UpdateStudentUseCase updateStudentUseCase;
     private final BlockStudentUseCase blockStudentUseCase;
+    private final ListStudentActivitiesUseCase listStudentActivitiesUseCase;
+    private final GetStudentStatsUseCase getStudentStatsUseCase;
 
     @Override
-    public ResponseEntity<GetStudentResponse> create(CreateStudentRequest request) {
+    public ResponseEntity<Void> create(CreateStudentRequest request) {
         final var teacherId = getAuthenticatedUserId();
         final var input = STUDENT_INFRA_MAPPER.toCreateStudentInput(teacherId, request);
-        final var output = createStudentUseCase.execute(input);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(STUDENT_INFRA_MAPPER.toGetStudentResponse(output));
+        createStudentUseCase.execute(input);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @Override
@@ -65,9 +71,20 @@ public class StudentController implements StudentApi {
         return ResponseEntity.noContent().build();
     }
 
+    @Override
+    public ResponseEntity<List<StudentActivityResponse>> listActivities(UUID id) {
+        final var output = listStudentActivitiesUseCase.execute(getAuthenticatedUserId(), id);
+        return ResponseEntity.ok(output.stream().map(STUDENT_INFRA_MAPPER::toStudentActivityResponse).toList());
+    }
+
+    @Override
+    public ResponseEntity<StudentStatsResponse> getStats(UUID id) {
+        final var output = getStudentStatsUseCase.execute(getAuthenticatedUserId(), id);
+        return ResponseEntity.ok(STUDENT_INFRA_MAPPER.toStudentStatsResponse(output));
+    }
+
     private UUID getAuthenticatedUserId() {
         final var authentication = SecurityContextHolder.getContext().getAuthentication();
         return UUID.fromString((String) authentication.getPrincipal());
     }
 }
-
