@@ -5,6 +5,7 @@ import com.example.studycore.infrastructure.api.controllers.folder.request.Creat
 import com.example.studycore.infrastructure.api.controllers.folder.request.UpdateFolderRequest;
 import com.example.studycore.infrastructure.api.controllers.folder.response.GetFolderResponse;
 import com.example.studycore.infrastructure.api.controllers.folder.response.ListFoldersResponse;
+import com.example.studycore.infrastructure.api.controllers.folder.response.WorkspaceResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/students")
 public interface FolderApi {
+
+    @GetMapping("/{studentId}/workspace")
+    @PreAuthorize("hasRole('TEACHER')")
+    ResponseEntity<WorkspaceResponse> getWorkspace(@PathVariable UUID studentId);
 
     @PostMapping("/{studentId}/folders")
     @PreAuthorize("hasRole('TEACHER')")

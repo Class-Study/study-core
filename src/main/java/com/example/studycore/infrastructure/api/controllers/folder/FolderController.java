@@ -3,6 +3,7 @@ package com.example.studycore.infrastructure.api.controllers.folder;
 import com.example.studycore.application.usecase.folder.AssignLevelFoldersUseCase;
 import com.example.studycore.application.usecase.folder.CreateFolderUseCase;
 import com.example.studycore.application.usecase.folder.DeleteFolderUseCase;
+import com.example.studycore.application.usecase.folder.GetStudentWorkspaceUseCase;
 import com.example.studycore.application.usecase.folder.ListFoldersByStudentUseCase;
 import com.example.studycore.application.usecase.folder.UpdateFolderUseCase;
 import com.example.studycore.infrastructure.api.FolderApi;
@@ -11,6 +12,7 @@ import com.example.studycore.infrastructure.api.controllers.folder.request.Creat
 import com.example.studycore.infrastructure.api.controllers.folder.request.UpdateFolderRequest;
 import com.example.studycore.infrastructure.api.controllers.folder.response.GetFolderResponse;
 import com.example.studycore.infrastructure.api.controllers.folder.response.ListFoldersResponse;
+import com.example.studycore.infrastructure.api.controllers.folder.response.WorkspaceResponse;
 import com.example.studycore.infrastructure.mapper.FolderInfraMapper;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +29,16 @@ public class FolderController implements FolderApi {
 
     private final CreateFolderUseCase createFolderUseCase;
     private final AssignLevelFoldersUseCase assignLevelFoldersUseCase;
+    private final GetStudentWorkspaceUseCase getStudentWorkspaceUseCase;
     private final ListFoldersByStudentUseCase listFoldersByStudentUseCase;
     private final UpdateFolderUseCase updateFolderUseCase;
     private final DeleteFolderUseCase deleteFolderUseCase;
+
+    @Override
+    public ResponseEntity<WorkspaceResponse> getWorkspace(UUID studentId) {
+        final var output = getStudentWorkspaceUseCase.execute(studentId, getAuthenticatedUserId());
+        return ResponseEntity.ok(FOLDER_INFRA_MAPPER.toWorkspaceResponse(output));
+    }
 
     @Override
     public ResponseEntity<GetFolderResponse> createFolder(UUID studentId, CreateFolderRequest request) {

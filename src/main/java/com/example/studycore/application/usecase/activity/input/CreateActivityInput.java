@@ -6,7 +6,8 @@ public record CreateActivityInput(
         UUID teacherId,
         UUID folderId,
         String title,
-        String type
+        String type,
+        String contentHtml
 ) {
 }
 

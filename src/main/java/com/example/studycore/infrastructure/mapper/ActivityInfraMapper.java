@@ -47,7 +47,7 @@ public interface ActivityInfraMapper {
     ActivityEntity toEntity(Activity activity);
 
     default CreateActivityInput toCreateActivityInput(UUID teacherId, UUID folderId, CreateActivityRequest request) {
-        return new CreateActivityInput(teacherId, folderId, request.title(), request.type());
+        return new CreateActivityInput(teacherId, folderId, request.title(), request.type(), request.contentHtml());
     }
 
     default UpdateActivityInput toUpdateActivityInput(UUID teacherId, UUID activityId, UpdateActivityRequest request) {

@@ -2,6 +2,7 @@ package com.example.studycore.application.mapper;
 
 import com.example.studycore.application.usecase.activity.output.GetActivityOutput;
 import com.example.studycore.application.usecase.activity.output.ListActivitiesOutput;
+import com.example.studycore.application.usecase.folder.output.WorkspaceOutput;
 import com.example.studycore.domain.model.Activity;
 import java.util.List;
 import org.mapstruct.Mapper;
@@ -39,6 +40,18 @@ public interface ActivityOutputMapper {
                 ))
                 .toList();
         return new ListActivitiesOutput(items);
+    }
+
+    default WorkspaceOutput.WorkspaceActivityOutput toOutput(Activity activity) {
+        if (activity == null) return null;
+        return new WorkspaceOutput.WorkspaceActivityOutput(
+                activity.getId(),
+                activity.getTitle(),
+                activity.getType(),
+                activity.getContentHtml(),
+                activity.getFolderId(),
+                activity.getCreatedAt() != null ? activity.getCreatedAt().toString() : ""
+        );
     }
 }
 

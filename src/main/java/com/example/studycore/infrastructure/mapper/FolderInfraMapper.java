@@ -5,12 +5,14 @@ import com.example.studycore.application.usecase.folder.input.CreateFolderInput;
 import com.example.studycore.application.usecase.folder.input.UpdateFolderInput;
 import com.example.studycore.application.usecase.folder.output.GetFolderOutput;
 import com.example.studycore.application.usecase.folder.output.ListFoldersOutput;
+import com.example.studycore.application.usecase.folder.output.WorkspaceOutput;
 import com.example.studycore.domain.model.Folder;
 import com.example.studycore.infrastructure.api.controllers.folder.request.AssignLevelFoldersRequest;
 import com.example.studycore.infrastructure.api.controllers.folder.request.CreateFolderRequest;
 import com.example.studycore.infrastructure.api.controllers.folder.request.UpdateFolderRequest;
 import com.example.studycore.infrastructure.api.controllers.folder.response.GetFolderResponse;
 import com.example.studycore.infrastructure.api.controllers.folder.response.ListFoldersResponse;
+import com.example.studycore.infrastructure.api.controllers.folder.response.WorkspaceResponse;
 import com.example.studycore.infrastructure.persistence.folder.FolderEntity;
 import java.util.UUID;
 import org.mapstruct.Mapper;
@@ -49,5 +51,26 @@ public interface FolderInfraMapper {
     GetFolderResponse toGetFolderResponse(GetFolderOutput output);
 
     ListFoldersResponse toListFoldersResponse(ListFoldersOutput output);
+
+    default WorkspaceResponse toWorkspaceResponse(WorkspaceOutput output) {
+        final var folders = output.folders().stream()
+                .map(f -> new WorkspaceResponse.WorkspaceFolderResponse(
+                        f.id(),
+                        f.name(),
+                        f.position(),
+                        f.activities().stream()
+                                .map(a -> new WorkspaceResponse.WorkspaceActivityResponse(
+                                        a.id(),
+                                        a.title(),
+                                        a.type(),
+                                        a.contentHtml(),
+                                        a.folderId(),
+                                        a.createdAt()
+                                ))
+                                .toList()
+                ))
+                .toList();
+        return new WorkspaceResponse(output.studentId(), folders);
+    }
 }
 

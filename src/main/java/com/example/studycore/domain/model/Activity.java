@@ -41,14 +41,14 @@ public class Activity {
         validate();
     }
 
-    public static Activity create(UUID folderId, String title, String type, UUID createdBy) {
+    public static Activity create(UUID folderId, String title, String type, String contentHtml, UUID createdBy) {
         final var now = OffsetDateTime.now();
         return new Activity(
                 UUID.randomUUID(),
                 folderId,
                 title,
                 type,
-                "",
+                contentHtml,
                 createdBy,
                 now,
                 now
