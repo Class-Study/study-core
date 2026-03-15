@@ -215,6 +215,15 @@
         ───────────────────────────────────────────── -->
 
         <!--
+            Spring AOP — AspectJ para criar Aspectos.
+            Usado para logging de requisições bem-sucedidas.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!--
             Mammoth — converte arquivos .docx para HTML limpo.
             Usado quando o professor faz upload de um exercício Word.
             Preserva: parágrafos, negrito, itálico, listas, headings.

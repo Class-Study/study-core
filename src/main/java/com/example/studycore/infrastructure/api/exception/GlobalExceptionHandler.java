@@ -34,6 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        log.warn("✗ BUSINESS_EXCEPTION | status=422 | message={}", ex.getMessage());
         return ResponseEntity.badRequest().body(new ErrorResponse(
                 Instant.now(),
                 UNPROCESSABLE_ENTITY,
@@ -44,6 +45,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
+        log.warn("✗ NOT_FOUND_EXCEPTION | status=404 | message={}", ex.getMessage());
         return ResponseEntity.status(NOT_FOUND)
                 .body(new ErrorResponse(
                         Instant.now(),
@@ -55,6 +57,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("✗ ILLEGAL_ARGUMENT_EXCEPTION | status=400 | message={}", ex.getMessage());
         return ResponseEntity.status(BAD_REQUEST)
                 .body(new ErrorResponse(
                                 Instant.now(),
@@ -67,6 +70,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ErrorResponse> handleDomainException(DomainException ex) {
+        log.warn("✗ DOMAIN_EXCEPTION | status=401 | message={}", ex.getMessage());
         return ResponseEntity.badRequest().body(new ErrorResponse(
                 Instant.now(),
                 UNAUTHORIZED,
@@ -77,6 +81,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        log.warn("✗ UNAUTHORIZED_EXCEPTION | status=401 | message={}", ex.getMessage());
         return ResponseEntity.status(UNAUTHORIZED)
                 .body(new ErrorResponse(
                         Instant.now(),
@@ -95,6 +100,7 @@ public class GlobalExceptionHandler {
                         (first, second) -> first
                 ));
 
+        log.warn("✗ VALIDATION_EXCEPTION | status=400 | errors={}", errors);
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(
                         Instant.now(),
@@ -118,6 +124,7 @@ public class GlobalExceptionHandler {
                     parameterName, invalidValue, parameterType);
         }
 
+        log.warn("✗ TYPE_MISMATCH_EXCEPTION | status=400 | param={} | value={} | message={}", parameterName, invalidValue, message);
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(
                         Instant.now(),
@@ -140,6 +147,7 @@ public class GlobalExceptionHandler {
                     invalidValue, parameterType);
         }
 
+        log.warn("✗ TYPE_MISMATCH_EXCEPTION | status=400 | type={} | value={} | message={}", parameterType, invalidValue, message);
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(
                         Instant.now(),
@@ -161,6 +169,7 @@ public class GlobalExceptionHandler {
             message = String.format("Invalid format: '%s'. Expected valid %s.", invalidValue, targetType);
         }
 
+        log.warn("✗ CONVERSION_FAILED_EXCEPTION | status=400 | type={} | value={} | message={}", targetType, invalidValue, message);
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(
                                 Instant.now(),
@@ -178,7 +187,7 @@ public class GlobalExceptionHandler {
     ) {
 
         log.warn(
-                "Recurso não encontrado | method={} | path={}",
+                "✗ NO_RESOURCE_FOUND_EXCEPTION | status=404 | method={} | path={}",
                 request.getMethod(),
                 request.getRequestURI()
         );
@@ -214,7 +223,7 @@ public class GlobalExceptionHandler {
         }
 
         log.warn(
-                "Erro de parse JSON | method={} | path={} | message={}",
+                "✗ JSON_PARSE_EXCEPTION | status=400 | method={} | path={} | message={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 message
@@ -238,13 +247,14 @@ public class GlobalExceptionHandler {
         StackTraceElement origin = ex.getStackTrace()[0];
 
         log.error(
-                "Erro inesperado | method={} | path={} | class={} | methodOrigin={} | line={} | message={}",
+                "✗ UNEXPECTED_EXCEPTION | status=500 | method={} | path={} | class={} | methodOrigin={} | line={} | message={} | exception={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 origin.getClassName(),
                 origin.getMethodName(),
                 origin.getLineNumber(),
-                ex.getMessage()
+                ex.getMessage(),
+                ex.getClass().getSimpleName()
         );
 
         String message = ex.getMessage() == null ? "Unexpected error." : ex.getMessage();
