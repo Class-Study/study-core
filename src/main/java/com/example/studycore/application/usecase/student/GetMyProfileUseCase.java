@@ -6,6 +6,7 @@ import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.domain.port.LevelProfileGateway;
 import com.example.studycore.domain.port.StudentGateway;
+import com.example.studycore.domain.port.TeacherGateway;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ public class GetMyProfileUseCase {
 
     private final StudentGateway studentGateway;
     private final LevelProfileGateway levelProfileGateway;
+    private final TeacherGateway teacherGateway;
 
     public GetMyProfileOutput execute(UUID studentId) {
         final var student = studentGateway.findById(studentId)
@@ -39,6 +41,20 @@ public class GetMyProfileUseCase {
             );
         }
 
+        // Buscar informações do professor
+        GetMyProfileOutput.TeacherInfo teacherInfo = null;
+        if (student.getTeacherId() != null) {
+            final var teacher = teacherGateway.findById(student.getTeacherId())
+                    .orElseThrow(() -> new NotFoundException("Professor não encontrado."));
+
+            teacherInfo = new GetMyProfileOutput.TeacherInfo(
+                    teacher.getId(),
+                    teacher.getName(),
+                    teacher.getEmail(),
+                    teacher.getPhone()
+            );
+        }
+
         return new GetMyProfileOutput(
                 student.getId(),
                 student.getName(),
@@ -53,7 +69,8 @@ public class GetMyProfileUseCase {
                 student.getMeetPlatform(),
                 student.getMeetLink(),
                 student.getStartDate(),
-                student.getCreatedAt()
+                student.getCreatedAt(),
+                teacherInfo
         );
     }
 }

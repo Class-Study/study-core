@@ -2,10 +2,12 @@ package com.example.studycore.infrastructure.api.controllers.student;
 
 import com.example.studycore.application.usecase.activity.GetMyActivitiesUseCase;
 import com.example.studycore.application.usecase.student.GetMyProfileUseCase;
+import com.example.studycore.application.usecase.student.GetMyStatsUseCase;
 import com.example.studycore.application.usecase.studentnote.GetMyNotesUseCase;
 import com.example.studycore.infrastructure.api.StudentSelfServiceApi;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyActivitiesResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import com.example.studycore.infrastructure.mapper.StudentMeResponseMapper;
 import java.util.List;
@@ -23,6 +25,7 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
 
     private final GetMyProfileUseCase getMyProfileUseCase;
     private final GetMyActivitiesUseCase getMyActivitiesUseCase;
+    private final GetMyStatsUseCase getMyStatsUseCase;
     private final GetMyNotesUseCase getMyNotesUseCase;
 
     @Override
@@ -37,6 +40,13 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
         final var studentId = getAuthenticatedUserId();
         final var output = getMyActivitiesUseCase.execute(studentId);
         return ResponseEntity.ok(MAPPER.toGetMyActivitiesResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<GetMyStatsResponse> getMyStats() {
+        final var studentId = getAuthenticatedUserId();
+        final var output = getMyStatsUseCase.execute(studentId);
+        return ResponseEntity.ok(MAPPER.toGetMyStatsResponse(output));
     }
 
     @Override

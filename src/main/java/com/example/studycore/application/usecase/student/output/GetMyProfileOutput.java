@@ -21,12 +21,21 @@ public record GetMyProfileOutput(
         String meetPlatform,
         String meetLink,
         LocalDate startDate,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        TeacherInfo teacher
 ) {
     public record LevelProfileMinimal(
             UUID id,
             String name,
             String code
+    ) {
+    }
+
+    public record TeacherInfo(
+            UUID id,
+            String name,
+            String email,
+            String phone
     ) {
     }
 }
