@@ -9,5 +9,7 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID> {
     Optional<StudentEntity> findById(UUID id);
 
     List<StudentEntity> findByTeacherId(UUID teacherId);
+
+    List<StudentEntity> findByLevelProfileId(UUID levelProfileId);
 }
 

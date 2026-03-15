@@ -10,6 +10,7 @@ public interface StudentGateway {
     Optional<Student> findById(UUID id);
     Optional<Student> findByEmail(String email);
     List<Student> findAllByTeacherId(UUID teacherId);
+    List<Student> findByLevelProfileId(UUID levelProfileId);
     void block(UUID id);
     void unblock(UUID id);
 }

@@ -91,6 +91,17 @@ public class StudentGatewayImpl implements StudentGateway {
     }
 
     @Override
+    public List<Student> findByLevelProfileId(UUID levelProfileId) {
+        return studentRepository.findByLevelProfileId(levelProfileId).stream()
+                .map(studentEntity -> userRepository.findById(studentEntity.getId())
+                        .filter(user -> UserRole.STUDENT.name().equals(user.getRole()))
+                        .map(user -> STUDENT_INFRA_MAPPER.fromUserAndStudentEntity(user, studentEntity))
+                        .orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    @Override
     public void block(UUID id) {
         userRepository.findById(id)
                 .filter(user -> UserRole.STUDENT.name().equals(user.getRole()))

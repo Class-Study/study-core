@@ -9,6 +9,7 @@ public record CreateLevelFolderTemplateInput(
         String title,
         String type,
         String originalFilename,
-        String convertedHtml
+        String convertedHtml,
+        Boolean propagateToStudents
 ) {}
 

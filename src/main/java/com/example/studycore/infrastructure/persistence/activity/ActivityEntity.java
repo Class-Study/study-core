@@ -32,7 +32,7 @@ public class ActivityEntity {
     @Column(nullable = false, length = 20)
     private String type;
 
-    @Column(name = "content_html", nullable = false)
+    @Column(name = "content_html", nullable = false, columnDefinition = "TEXT")
     private String contentHtml;
 
     @Column(name = "created_by")

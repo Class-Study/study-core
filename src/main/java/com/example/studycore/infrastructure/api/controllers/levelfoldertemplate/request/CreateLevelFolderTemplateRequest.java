@@ -6,6 +6,7 @@ public record CreateLevelFolderTemplateRequest(
         @NotBlank String title,
         @NotBlank String type,
         String originalFilename,
-        @NotBlank String convertedHtml
+        @NotBlank String convertedHtml,
+        Boolean propagateToStudents
 ) {}
 

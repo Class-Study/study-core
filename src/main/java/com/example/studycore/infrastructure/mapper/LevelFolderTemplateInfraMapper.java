@@ -22,6 +22,7 @@ public interface LevelFolderTemplateInfraMapper {
             UUID teacherId,
             CreateLevelFolderTemplateRequest request
     ) {
+        final boolean propagate = request.propagateToStudents() != null && request.propagateToStudents();
         return new CreateLevelFolderTemplateInput(
                 levelFolderId,
                 levelProfileId,
@@ -29,7 +30,8 @@ public interface LevelFolderTemplateInfraMapper {
                 request.title(),
                 request.type(),
                 request.originalFilename(),
-                request.convertedHtml()
+                request.convertedHtml(),
+                propagate
         );
     }
 
