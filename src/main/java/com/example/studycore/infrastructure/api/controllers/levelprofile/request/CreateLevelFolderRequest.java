@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record CreateLevelFolderRequest(
         @NotBlank String name,
-        @NotNull Integer position,
-        @NotNull Integer initialFiles
+        @NotNull Integer position
 ) {
 }
 

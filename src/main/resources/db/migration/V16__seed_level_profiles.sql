@@ -12,11 +12,11 @@ WITH basic_profile AS (
     RETURNING id
 )
 INSERT INTO level_folders (id, level_profile_id, name, position, initial_files)
-SELECT gen_random_uuid(), id, '1-TO DO', 1, 3 FROM basic_profile
+SELECT gen_random_uuid(), id, '1-TO DO', 1, 0 FROM basic_profile
 UNION ALL
 SELECT gen_random_uuid(), id, '2-IN PROGRESS', 2, 0 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '3-VOCABULARY', 3, 2 FROM basic_profile
+SELECT gen_random_uuid(), id, '3-VOCABULARY', 3, 0 FROM basic_profile
 UNION ALL
 SELECT gen_random_uuid(), id, '4-DONE', 4, 0 FROM basic_profile;
 

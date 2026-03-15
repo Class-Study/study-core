@@ -43,22 +43,26 @@ public class ListLevelProfilesUseCase {
                         item.isSystem(),
                         item.createdBy(),
                         item.folders().stream()
-                                .map(folder -> new LevelFolderOutput(
-                                        folder.id(),
-                                        folder.name(),
-                                        folder.position(),
-                                        folder.initialFiles(),
-                                        levelFolderTemplateGateway.findAllByFolderId(folder.id()).stream()
-                                                .map(template -> new LevelFolderTemplateOutput(
-                                                        template.getId(),
-                                                        template.getLevelFolderId(),
-                                                        template.getTitle(),
-                                                        template.getType(),
-                                                        template.getOriginalFilename(),
-                                                        template.getCreatedAt()
-                                                ))
-                                                .toList()
-                                ))
+                                .map(folder -> {
+                                    final var templates = levelFolderTemplateGateway.findAllByFolderId(folder.id()).stream()
+                                            .map(template -> new LevelFolderTemplateOutput(
+                                                    template.getId(),
+                                                    template.getLevelFolderId(),
+                                                    template.getTitle(),
+                                                    template.getType(),
+                                                    template.getOriginalFilename(),
+                                                    template.getConvertedHtml(),
+                                                    template.getCreatedAt()
+                                            ))
+                                            .toList();
+                                    return new LevelFolderOutput(
+                                            folder.id(),
+                                            folder.name(),
+                                            folder.position(),
+                                            templates.size(),
+                                            templates
+                                    );
+                                })
                                 .toList(),
                         item.createdAt()
                 ))

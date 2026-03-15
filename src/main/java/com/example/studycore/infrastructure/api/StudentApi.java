@@ -44,6 +44,10 @@ public interface StudentApi {
     @PreAuthorize("hasRole('TEACHER')")
     ResponseEntity<Void> block(@PathVariable UUID id);
 
+    @PatchMapping("/{id}/unblock")
+    @PreAuthorize("hasRole('TEACHER')")
+    ResponseEntity<Void> unblock(@PathVariable UUID id);
+
     @GetMapping("/{id}/activities")
     @PreAuthorize("hasRole('TEACHER')")
     ResponseEntity<List<StudentActivityResponse>> listActivities(@PathVariable UUID id);

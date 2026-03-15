@@ -1,12 +1,7 @@
 package com.example.studycore.infrastructure.api.controllers.student;
 
 import com.example.studycore.application.usecase.activity.ListStudentActivitiesUseCase;
-import com.example.studycore.application.usecase.student.BlockStudentUseCase;
-import com.example.studycore.application.usecase.student.CreateStudentUseCase;
-import com.example.studycore.application.usecase.student.GetStudentByIdUseCase;
-import com.example.studycore.application.usecase.student.ListStudentsUseCase;
-import com.example.studycore.application.usecase.student.UpdateStudentUseCase;
-import com.example.studycore.application.usecase.student.GetStudentStatsUseCase;
+import com.example.studycore.application.usecase.student.*;
 import com.example.studycore.infrastructure.api.StudentApi;
 import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
@@ -36,6 +31,7 @@ public class StudentController implements StudentApi {
     private final BlockStudentUseCase blockStudentUseCase;
     private final ListStudentActivitiesUseCase listStudentActivitiesUseCase;
     private final GetStudentStatsUseCase getStudentStatsUseCase;
+    private final UnblockStudentUseCase unblockStudentUseCase;
 
     @Override
     public ResponseEntity<Void> create(CreateStudentRequest request) {
@@ -68,6 +64,12 @@ public class StudentController implements StudentApi {
     @Override
     public ResponseEntity<Void> block(UUID id) {
         blockStudentUseCase.execute(id, getAuthenticatedUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> unblock(UUID id) {
+        unblockStudentUseCase.execute(id, getAuthenticatedUserId());
         return ResponseEntity.noContent().build();
     }
 

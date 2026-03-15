@@ -32,7 +32,7 @@ public class CreateLevelProfileUseCase {
         });
 
         final List<LevelFolder> folders = input.folders() == null ? List.of() : input.folders().stream()
-                .map(f -> LevelFolder.create(f.name(), f.position(), f.initialFiles()))
+                .map(f -> LevelFolder.create(f.name(), f.position(), 0))
                 .toList();
 
         final var toSave = LevelProfile.create(

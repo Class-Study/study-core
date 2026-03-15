@@ -11,5 +11,6 @@ public interface StudentGateway {
     Optional<Student> findByEmail(String email);
     List<Student> findAllByTeacherId(UUID teacherId);
     void block(UUID id);
+    void unblock(UUID id);
 }
 

@@ -9,6 +9,7 @@ public record LevelFolderTemplateOutput(
         String title,
         String type,
         String originalFilename,
+        String convertedHtml,
         OffsetDateTime createdAt
 ) {}
 

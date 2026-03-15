@@ -99,5 +99,15 @@ public class StudentGatewayImpl implements StudentGateway {
                     userRepository.save(user);
                 });
     }
+
+    @Override
+    public void unblock(UUID id) {
+        userRepository.findById(id)
+                .filter(user -> UserRole.STUDENT.name().equals(user.getRole()))
+                .ifPresent(user -> {
+                    user.setStatus(UserStatus.ACTIVE.name());
+                    userRepository.save(user);
+                });
+    }
 }
 
