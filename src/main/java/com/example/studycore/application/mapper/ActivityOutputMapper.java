@@ -19,7 +19,7 @@ public interface ActivityOutputMapper {
                 activity.getFolderId(),
                 activity.getTitle(),
                 activity.getType(),
-                activity.getContentHtml(),
+                activity.getConvertedHtml(),
                 activity.getCreatedBy(),
                 activity.getCreatedAt(),
                 activity.getUpdatedAt()
@@ -33,7 +33,7 @@ public interface ActivityOutputMapper {
                         a.getFolderId(),
                         a.getTitle(),
                         a.getType(),
-                        a.getContentHtml(),
+                        a.getConvertedHtml(),
                         a.getCreatedBy(),
                         a.getCreatedAt(),
                         a.getUpdatedAt()
@@ -48,7 +48,7 @@ public interface ActivityOutputMapper {
                 activity.getId(),
                 activity.getTitle(),
                 activity.getType(),
-                activity.getContentHtml(),
+                activity.getConvertedHtml(),
                 activity.getFolderId(),
                 activity.getCreatedAt() != null ? activity.getCreatedAt().toString() : ""
         );

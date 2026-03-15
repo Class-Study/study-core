@@ -7,7 +7,7 @@ public record CreateActivityInput(
         UUID folderId,
         String title,
         String type,
-        String contentHtml
+        String convertedHtml
 ) {
 }
 

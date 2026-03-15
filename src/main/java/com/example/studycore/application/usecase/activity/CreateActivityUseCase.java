@@ -46,7 +46,7 @@ public class CreateActivityUseCase {
                 folder.getId(),
                 input.title(),
                 type,
-                input.contentHtml(),
+                input.convertedHtml(),
                 input.teacherId()
         );
 

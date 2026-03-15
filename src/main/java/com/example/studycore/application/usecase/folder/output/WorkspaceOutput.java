@@ -18,7 +18,7 @@ public record WorkspaceOutput(
             UUID id,
             String title,
             String type,
-            String contentHtml,
+            String convertedHtml,
             UUID folderId,
             String createdAt
     ) {}

@@ -12,7 +12,7 @@ public record ListActivitiesResponse(
             UUID folderId,
             String title,
             String type,
-            String contentHtml,
+            String convertedHtml,
             UUID createdBy,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt

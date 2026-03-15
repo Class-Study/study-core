@@ -29,7 +29,7 @@ public interface ActivityInfraMapper {
                 entity.getFolderId(),
                 entity.getTitle(),
                 entity.getType(),
-                entity.getContentHtml(),
+                entity.getConvertedHtml(),
                 entity.getCreatedBy(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
@@ -40,14 +40,14 @@ public interface ActivityInfraMapper {
     @Mapping(target = "folderId", source = "folderId")
     @Mapping(target = "title", source = "title")
     @Mapping(target = "type", source = "type")
-    @Mapping(target = "contentHtml", source = "contentHtml")
+    @Mapping(target = "convertedHtml", source = "convertedHtml")
     @Mapping(target = "createdBy", source = "createdBy")
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "updatedAt")
     ActivityEntity toEntity(Activity activity);
 
     default CreateActivityInput toCreateActivityInput(UUID teacherId, UUID folderId, CreateActivityRequest request) {
-        return new CreateActivityInput(teacherId, folderId, request.title(), request.type(), request.contentHtml());
+        return new CreateActivityInput(teacherId, folderId, request.title(), request.type(), request.convertedHtml());
     }
 
     default UpdateActivityInput toUpdateActivityInput(UUID teacherId, UUID activityId, UpdateActivityRequest request) {
@@ -55,7 +55,7 @@ public interface ActivityInfraMapper {
     }
 
     default UpdateActivityContentInput toUpdateActivityContentInput(UUID userId, boolean teacher, UUID activityId, UpdateActivityContentRequest request) {
-        return new UpdateActivityContentInput(userId, teacher, activityId, request.contentHtml());
+        return new UpdateActivityContentInput(userId, teacher, activityId, request.convertedHtml());
     }
 
     GetActivityResponse toGetActivityResponse(GetActivityOutput output);

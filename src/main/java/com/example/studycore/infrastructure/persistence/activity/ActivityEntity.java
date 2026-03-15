@@ -32,8 +32,8 @@ public class ActivityEntity {
     @Column(nullable = false, length = 20)
     private String type;
 
-    @Column(name = "content_html", nullable = false, columnDefinition = "TEXT")
-    private String contentHtml;
+    @Column(name = "converted_html", nullable = false, columnDefinition = "TEXT")
+    private String convertedHtml;
 
     @Column(name = "created_by")
     private UUID createdBy;
@@ -53,8 +53,8 @@ public class ActivityEntity {
         if (updatedAt == null) {
             updatedAt = now;
         }
-        if (contentHtml == null) {
-            contentHtml = "";
+        if (convertedHtml == null) {
+            convertedHtml = "";
         }
     }
 

@@ -7,7 +7,7 @@ public record ActivityResponse(
         UUID id,
         String title,
         String type,
-        String contentHtml,
+        String convertedHtml,
         UUID folderId,
         UUID createdBy,
         OffsetDateTime createdAt,

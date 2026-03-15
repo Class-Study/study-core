@@ -6,7 +6,7 @@ public record UpdateActivityContentInput(
         UUID authenticatedUserId,
         boolean teacher,
         UUID activityId,
-        String contentHtml
+        String convertedHtml
 ) {
 }
 

@@ -51,7 +51,7 @@ public class UpdateActivityUseCase {
                 existing.getFolderId(),
                 input.title() != null ? input.title().trim() : existing.getTitle(),
                 type,
-                existing.getContentHtml(),
+                existing.getConvertedHtml(),
                 existing.getCreatedBy(),
                 existing.getCreatedAt(),
                 OffsetDateTime.now()
@@ -60,3 +60,4 @@ public class UpdateActivityUseCase {
         return MAPPER.toGetActivityOutput(activityGateway.save(updated));
     }
 }
+

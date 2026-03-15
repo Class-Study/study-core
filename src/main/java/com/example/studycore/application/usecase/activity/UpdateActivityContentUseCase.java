@@ -48,7 +48,7 @@ public class UpdateActivityContentUseCase {
                 existing.getFolderId(),
                 existing.getTitle(),
                 existing.getType(),
-                input.contentHtml() == null ? "" : input.contentHtml(),
+                input.convertedHtml() == null ? "" : input.convertedHtml(),
                 existing.getCreatedBy(),
                 existing.getCreatedAt(),
                 OffsetDateTime.now()

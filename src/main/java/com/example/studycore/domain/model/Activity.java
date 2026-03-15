@@ -15,7 +15,7 @@ public class Activity {
     private final UUID folderId;
     private String title;
     private String type;
-    private String contentHtml;
+    private String convertedHtml;
     private final UUID createdBy;
     private final OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
@@ -25,7 +25,7 @@ public class Activity {
             UUID folderId,
             String title,
             String type,
-            String contentHtml,
+            String convertedHtml,
             UUID createdBy,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt
@@ -34,21 +34,21 @@ public class Activity {
         this.folderId = folderId;
         this.title = normalize(title);
         this.type = normalizeType(type);
-        this.contentHtml = contentHtml == null ? "" : contentHtml;
+        this.convertedHtml = convertedHtml == null ? "" : convertedHtml;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         validate();
     }
 
-    public static Activity create(UUID folderId, String title, String type, String contentHtml, UUID createdBy) {
+    public static Activity create(UUID folderId, String title, String type, String convertedHtml, UUID createdBy) {
         final var now = OffsetDateTime.now();
         return new Activity(
                 UUID.randomUUID(),
                 folderId,
                 title,
                 type,
-                contentHtml,
+                convertedHtml,
                 createdBy,
                 now,
                 now
@@ -60,12 +60,12 @@ public class Activity {
             UUID folderId,
             String title,
             String type,
-            String contentHtml,
+            String convertedHtml,
             UUID createdBy,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt
     ) {
-        return new Activity(id, folderId, title, type, contentHtml, createdBy, createdAt, updatedAt);
+        return new Activity(id, folderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
     }
 
     private void validate() {

@@ -63,7 +63,7 @@ public interface FolderInfraMapper {
                                         a.id(),
                                         a.title(),
                                         a.type(),
-                                        a.contentHtml(),
+                                        a.convertedHtml(),
                                         a.folderId(),
                                         a.createdAt()
                                 ))
