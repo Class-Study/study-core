@@ -21,7 +21,7 @@ public class JwtTokenProvider {
     private final long accessTokenExpirationMinutes;
 
     public JwtTokenProvider(
-            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.secret:dev-secret-key-must-be-at-least-256-bits-long!}") String secret,
             @Value("${jwt.access-token.expiration-minutes:15}") long accessTokenExpirationMinutes
     ) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));

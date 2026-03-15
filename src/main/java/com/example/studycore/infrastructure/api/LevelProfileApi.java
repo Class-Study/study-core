@@ -24,7 +24,7 @@ public interface LevelProfileApi {
     ResponseEntity<GetLevelProfileResponse> create(@RequestBody @Valid CreateLevelProfileRequest request);
 
     @GetMapping
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
     ResponseEntity<ListLevelProfilesResponse> list();
 
     @GetMapping("/{id}")
