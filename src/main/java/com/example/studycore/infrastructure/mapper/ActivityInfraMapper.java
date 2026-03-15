@@ -1,12 +1,14 @@
 package com.example.studycore.infrastructure.mapper;
 
 import com.example.studycore.application.usecase.activity.input.CreateActivityInput;
+import com.example.studycore.application.usecase.activity.input.MoveActivityInput;
 import com.example.studycore.application.usecase.activity.input.UpdateActivityContentInput;
 import com.example.studycore.application.usecase.activity.input.UpdateActivityInput;
 import com.example.studycore.application.usecase.activity.output.GetActivityOutput;
 import com.example.studycore.application.usecase.activity.output.ListActivitiesOutput;
 import com.example.studycore.domain.model.Activity;
 import com.example.studycore.infrastructure.api.controllers.activity.request.CreateActivityRequest;
+import com.example.studycore.infrastructure.api.controllers.activity.request.MoveActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.UpdateActivityContentRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.UpdateActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.response.GetActivityResponse;
@@ -58,8 +60,14 @@ public interface ActivityInfraMapper {
         return new UpdateActivityContentInput(userId, teacher, activityId, request.convertedHtml());
     }
 
+    default MoveActivityInput toMoveActivityInput(UUID teacherId, UUID activityId, MoveActivityRequest request) {
+        return new MoveActivityInput(teacherId, activityId, request.targetFolderId());
+    }
+
     GetActivityResponse toGetActivityResponse(GetActivityOutput output);
 
     ListActivitiesResponse toListActivitiesResponse(ListActivitiesOutput output);
 }
+
+
 

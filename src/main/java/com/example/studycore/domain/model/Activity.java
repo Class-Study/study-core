@@ -96,4 +96,20 @@ public class Activity {
     private static String normalizeType(String value) {
         return value == null ? null : value.trim().toUpperCase();
     }
+
+    public Activity move(UUID newFolderId) {
+        if (newFolderId == null) {
+            throw new IllegalArgumentException("Nova pasta (folderId) não pode ser nula.");
+        }
+        return Activity.with(
+                this.id,
+                newFolderId,
+                this.title,
+                this.type,
+                this.convertedHtml,
+                this.createdBy,
+                this.createdAt,
+                OffsetDateTime.now()
+        );
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.studycore.infrastructure.api;
 
 import com.example.studycore.infrastructure.api.controllers.activity.request.CreateActivityRequest;
+import com.example.studycore.infrastructure.api.controllers.activity.request.MoveActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.UpdateActivityContentRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.UpdateActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.response.GetActivityResponse;
@@ -33,6 +34,10 @@ public interface ActivityApi {
     @PatchMapping("/activities/{id}/content")
     @PreAuthorize("hasAnyRole('TEACHER','STUDENT')")
     ResponseEntity<GetActivityResponse> updateContent(@PathVariable UUID id, @RequestBody @Valid UpdateActivityContentRequest request);
+
+    @PatchMapping("/activities/{activityId}/move")
+    @PreAuthorize("hasAnyRole('TEACHER','STUDENT')")
+    ResponseEntity<GetActivityResponse> moveActivity(@PathVariable UUID activityId, @RequestBody @Valid MoveActivityRequest request);
 
     @DeleteMapping("/activities/{id}")
     @PreAuthorize("hasRole('TEACHER')")

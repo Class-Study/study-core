@@ -4,10 +4,12 @@ import com.example.studycore.application.usecase.activity.CreateActivityUseCase;
 import com.example.studycore.application.usecase.activity.DeleteActivityUseCase;
 import com.example.studycore.application.usecase.activity.GetActivityByIdUseCase;
 import com.example.studycore.application.usecase.activity.ListActivitiesByFolderUseCase;
+import com.example.studycore.application.usecase.activity.MoveActivityUseCase;
 import com.example.studycore.application.usecase.activity.UpdateActivityContentUseCase;
 import com.example.studycore.application.usecase.activity.UpdateActivityUseCase;
 import com.example.studycore.infrastructure.api.ActivityApi;
 import com.example.studycore.infrastructure.api.controllers.activity.request.CreateActivityRequest;
+import com.example.studycore.infrastructure.api.controllers.activity.request.MoveActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.UpdateActivityContentRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.UpdateActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.response.GetActivityResponse;
@@ -31,6 +33,7 @@ public class ActivityController implements ActivityApi {
     private final GetActivityByIdUseCase getActivityByIdUseCase;
     private final UpdateActivityUseCase updateActivityUseCase;
     private final UpdateActivityContentUseCase updateActivityContentUseCase;
+    private final MoveActivityUseCase moveActivityUseCase;
     private final DeleteActivityUseCase deleteActivityUseCase;
 
     @Override
@@ -63,6 +66,13 @@ public class ActivityController implements ActivityApi {
     public ResponseEntity<GetActivityResponse> updateContent(UUID id, UpdateActivityContentRequest request) {
         final var input = ACTIVITY_INFRA_MAPPER.toUpdateActivityContentInput(getAuthenticatedUserId(), isTeacher(), id, request);
         final var output = updateActivityContentUseCase.execute(input);
+        return ResponseEntity.ok(ACTIVITY_INFRA_MAPPER.toGetActivityResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<GetActivityResponse> moveActivity(UUID activityId, MoveActivityRequest request) {
+        final var input = ACTIVITY_INFRA_MAPPER.toMoveActivityInput(getAuthenticatedUserId(), activityId, request);
+        final var output = moveActivityUseCase.execute(input);
         return ResponseEntity.ok(ACTIVITY_INFRA_MAPPER.toGetActivityResponse(output));
     }
 
