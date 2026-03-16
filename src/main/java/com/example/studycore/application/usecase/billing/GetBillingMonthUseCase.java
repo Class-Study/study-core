@@ -91,17 +91,26 @@ public class GetBillingMonthUseCase {
             );
         }).toList();
 
-        // Calcular totais baseado em status real
-        BigDecimal totalReceived = sumByStatus(records, "PAID");
-        BigDecimal totalPending = sumByStatus(records, "PENDING");
-        BigDecimal totalOverdue = sumByStatus(records, "OVERDUE");
-        BigDecimal totalExpected = records.stream()
-                .map(BillingRecord::getAmount)
+        // Calcular totais baseado no valor real de aulas do mês (considerando mês parcial)
+        BigDecimal totalReceived = outputs.stream()
+                .filter(o -> "PAID".equalsIgnoreCase(o.status()))
+                .map(o -> o.totalAmountCalculated() != null ? o.totalAmountCalculated() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalPending = outputs.stream()
+                .filter(o -> "PENDING".equalsIgnoreCase(o.status()))
+                .map(o -> o.totalAmountCalculated() != null ? o.totalAmountCalculated() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalOverdue = outputs.stream()
+                .filter(o -> "OVERDUE".equalsIgnoreCase(o.status()))
+                .map(o -> o.totalAmountCalculated() != null ? o.totalAmountCalculated() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpected = outputs.stream()
+                .map(o -> o.totalAmountCalculated() != null ? o.totalAmountCalculated() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        int paidCount = countByStatus(records, "PAID");
-        int pendingCount = countByStatus(records, "PENDING");
-        int overdueCount = countByStatus(records, "OVERDUE");
+        int paidCount = (int) outputs.stream().filter(o -> "PAID".equalsIgnoreCase(o.status())).count();
+        int pendingCount = (int) outputs.stream().filter(o -> "PENDING".equalsIgnoreCase(o.status())).count();
+        int overdueCount = (int) outputs.stream().filter(o -> "OVERDUE".equalsIgnoreCase(o.status())).count();
 
         log.info("✓ GetBillingMonth | teacherId={} | month={} | paid={} | pending={} | overdue={} | generated={}",
                 teacherId, referenceMonth, paidCount, pendingCount, overdueCount, billingsGenerated);
@@ -143,4 +152,3 @@ public class GetBillingMonthUseCase {
                 .count();
     }
 }
-
