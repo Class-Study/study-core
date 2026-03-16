@@ -2,6 +2,7 @@ package com.example.studycore.infrastructure.api.controllers.billing.response;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,12 +18,11 @@ public record BillingRecordResponse(
         Integer notifyCount,
         String referenceMonth,
         Long daysOverdue,
-        // Detalhes de cálculo de aulas
         BigDecimal hourlyRate,
         List<String> classWeekDays,
         Integer weeksInMonth,
         Integer totalClasses,
-        BigDecimal totalAmountCalculated
+        BigDecimal totalAmountCalculated,
+        LocalDate startDate
 ) {
 }
-

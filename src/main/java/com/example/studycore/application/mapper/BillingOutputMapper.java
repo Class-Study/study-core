@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -50,21 +51,21 @@ public interface BillingOutputMapper {
                         }
                     })
                     .filter(java.util.Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (!dayOfWeeks.isEmpty()) {
-                final var classDetails = calculateMonthlyClasses(
+                // Usar BillingCalculator para considerar data de início do aluno
+                var details = com.example.studycore.application.usecase.billing.BillingCalculator.calculateMonthlyClasses(
                         referenceMonth,
                         dayOfWeeks,
-                        student.getClassRate() != null ? student.getClassRate() : BigDecimal.ZERO
+                        student.getClassRate() != null ? student.getClassRate() : BigDecimal.ZERO,
+                        student.getStartDate()
                 );
-                hourlyRate = (BigDecimal) classDetails.get(0);
-                @SuppressWarnings("unchecked")
-                List<String> days = (List<String>) classDetails.get(1);
-                classWeekDays = days;
-                weeksInMonth = (Integer) classDetails.get(2);
-                totalClasses = (Integer) classDetails.get(3);
-                totalAmountCalculated = (BigDecimal) classDetails.get(4);
+                hourlyRate = details.hourlyRate;
+                classWeekDays = details.classWeekDays;
+                weeksInMonth = details.weeksInMonth;
+                totalClasses = details.totalClasses;
+                totalAmountCalculated = details.totalAmount;
             }
         }
 
@@ -84,7 +85,8 @@ public interface BillingOutputMapper {
                 classWeekDays,
                 weeksInMonth,
                 totalClasses,
-                totalAmountCalculated
+                totalAmountCalculated,
+                student != null ? student.getStartDate() : null
         );
     }
 
@@ -135,11 +137,11 @@ public interface BillingOutputMapper {
             String studentName,
             String levelProfileName,
             Long daysOverdue,
-            java.math.BigDecimal hourlyRate,
+            BigDecimal hourlyRate,
             List<String> classWeekDays,
             Integer weeksInMonth,
             Integer totalClasses,
-            java.math.BigDecimal totalAmountCalculated
+            BigDecimal totalAmountCalculated
     ) {
         return new BillingRecordOutput(
                 record.getId(),
@@ -157,7 +159,8 @@ public interface BillingOutputMapper {
                 classWeekDays,
                 weeksInMonth,
                 totalClasses,
-                totalAmountCalculated
+                totalAmountCalculated,
+                null
         );
     }
 
@@ -207,4 +210,3 @@ public interface BillingOutputMapper {
         return referenceMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.of("pt", "BR")));
     }
 }
-

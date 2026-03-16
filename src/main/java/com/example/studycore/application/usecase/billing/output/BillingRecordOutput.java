@@ -22,7 +22,8 @@ public record BillingRecordOutput(
         List<String> classWeekDays,
         Integer weeksInMonth,
         Integer totalClasses,
-        BigDecimal totalAmountCalculated
+        BigDecimal totalAmountCalculated,
+        // Novo campo: data de início do aluno
+        java.time.LocalDate startDate
 ) {
 }
-

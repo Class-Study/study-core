@@ -14,25 +14,37 @@ import java.util.stream.Collectors;
 public class BillingCalculator {
 
     /**
-     * Calcula detalhes de aulas para um mês específico
+     * Calcula detalhes de aulas para um mês específico considerando a data de início do aluno
      *
      * @param yearMonth Mês/ano (ex: 2026-03)
      * @param classWeekDays Dias da semana com aula (ex: [MONDAY, WEDNESDAY, FRIDAY])
      * @param hourlyRate Valor/hora da aula (taxa do aluno)
+     * @param studentStartDate Data de início do aluno (LocalDate)
      * @return Objeto com detalhes: semanas, total aulas, valor total
      */
     public static BillingClassDetails calculateMonthlyClasses(
             LocalDate yearMonth,
             List<DayOfWeek> classWeekDays,
-            BigDecimal hourlyRate
+            BigDecimal hourlyRate,
+            LocalDate studentStartDate
     ) {
-        // Calcular número de semanas no mês
         final var ym = YearMonth.from(yearMonth);
         final var firstDay = ym.atDay(1);
         final var lastDay = ym.atEndOfMonth();
 
-        int weeksInMonth = calculateWeeksInMonth(firstDay, lastDay, classWeekDays);
-        int totalClasses = weeksInMonth * classWeekDays.size();
+        // Ajustar o primeiro dia considerado para a data de início do aluno, se for dentro do mês
+        LocalDate effectiveStart = (studentStartDate != null && studentStartDate.isAfter(firstDay) && !studentStartDate.isAfter(lastDay))
+                ? studentStartDate : firstDay;
+
+        int totalClasses = 0;
+        for (LocalDate date = effectiveStart; !date.isAfter(lastDay); date = date.plusDays(1)) {
+            if (classWeekDays.contains(date.getDayOfWeek())) {
+                totalClasses++;
+            }
+        }
+
+        // Calcular número de semanas "ativas" (pode ser parcial se aluno entrou no meio do mês)
+        int weeksInMonth = calculateWeeksInMonth(effectiveStart, lastDay, classWeekDays);
         BigDecimal totalAmount = hourlyRate.multiply(BigDecimal.valueOf(totalClasses));
 
         final var dayNames = classWeekDays.stream()
@@ -102,6 +114,3 @@ public class BillingCalculator {
         }
     }
 }
-
-
-
