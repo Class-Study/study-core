@@ -54,8 +54,27 @@ public class GetBillingMonthUseCase {
         log.debug("Cobranças geradas | teacherId={} | month={} | generated={}",
                 teacherId, referenceMonth, billingsGenerated);
 
+        // Último dia do mês de referência
+        final var lastDayOfMonth = referenceMonth.withDayOfMonth(referenceMonth.lengthOfMonth());
+
+        // Calcular o 5º dia útil do mês de referência
+        LocalDate fifthBusinessDay = referenceMonth;
+        int businessDays = 0;
+        while (businessDays < 5) {
+            if (!(fifthBusinessDay.getDayOfWeek().getValue() >= 6)) { // 6=Saturday, 7=Sunday
+                businessDays++;
+            }
+            if (businessDays < 5) fifthBusinessDay = fifthBusinessDay.plusDays(1);
+        }
+
+        // Se HOJE > 5º dia útil do mês de referência, atualizar status no banco
+        if (LocalDate.now().isAfter(fifthBusinessDay)) {
+            billingRecordGateway.updatePendingToOverdue(teacherId, referenceMonth, LocalDate.now());
+        }
+
         final var students = studentGateway.findAllByTeacherId(teacherId).stream()
                 .filter(s -> s.getStatus() == UserStatus.ACTIVE)
+                .filter(s -> s.getStartDate() != null && !s.getStartDate().isAfter(lastDayOfMonth))
                 .toList();
 
         final var studentIds = students.stream().map(Student::getId).collect(Collectors.toSet());
@@ -144,7 +163,7 @@ public class GetBillingMonthUseCase {
     }
 
     private int countByStatus(
-            List<com.example.studycore.domain.model.BillingRecord> records,
+            List<BillingRecord> records,
             String status
     ) {
         return (int) records.stream()

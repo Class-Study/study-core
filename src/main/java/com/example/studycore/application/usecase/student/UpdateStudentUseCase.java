@@ -13,6 +13,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Log4j2
 @Service
 @RequiredArgsConstructor
@@ -56,6 +58,10 @@ public class UpdateStudentUseCase {
             log.info("Successfully regenerated folder structure for student {}", input.id());
         }
 
+        LocalDate newStartDate = input.startDate() != null ? input.startDate() : existing.getStartDate();
+        if (newStartDate == null) {
+            throw new BusinessException("startDate não pode ser nulo");
+        }
         final Student updated = Student.with(
                 existing.getId(),
                 input.name() != null ? input.name().trim() : existing.getName(),
@@ -73,7 +79,7 @@ public class UpdateStudentUseCase {
                 input.classRate() != null ? input.classRate() : existing.getClassRate(),
                 input.meetPlatform() != null ? input.meetPlatform() : existing.getMeetPlatform(),
                 input.meetLink() != null ? input.meetLink() : existing.getMeetLink(),
-                existing.getStartDate(),
+                newStartDate,
                 existing.getNotesPrivate(),
                 existing.getCreatedAt()
         );

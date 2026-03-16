@@ -1,6 +1,7 @@
 package com.example.studycore.application.usecase.student.input;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public record UpdateStudentInput(
         Integer classDuration,
         BigDecimal classRate,
         String meetPlatform,
-        String meetLink
+        String meetLink,
+        LocalDate startDate // novo campo
 ) {
 }
-

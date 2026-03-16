@@ -31,10 +31,24 @@ public interface BillingRecordRepository extends JpaRepository<BillingRecordEnti
             VALUES (:studentId, :referenceMonth, :amount, 'PENDING', 0)
             ON CONFLICT (student_id, reference_month) DO NOTHING
             """, nativeQuery = true)
-    int insertMonthlyIfAbsent(
+    void insertMonthlyIfAbsent(
             @Param("studentId") UUID studentId,
             @Param("referenceMonth") LocalDate referenceMonth,
             @Param("amount") BigDecimal amount
     );
-}
 
+    @Modifying
+    @Query(value = """
+        UPDATE study.billing_records br
+        SET status = 'OVERDUE'
+        WHERE br.status = 'PENDING'
+          AND br.reference_month = :referenceMonth
+          AND br.student_id IN (
+            SELECT s.id FROM study.students s WHERE s.teacher_id = :teacherId
+          )
+    """, nativeQuery = true)
+    void updatePendingToOverdue(
+        @Param("teacherId") UUID teacherId,
+        @Param("referenceMonth") LocalDate referenceMonth
+    );
+}

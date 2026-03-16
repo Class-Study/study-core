@@ -16,5 +16,5 @@ public interface BillingRecordGateway {
     List<BillingRecord> findByStudentIdsAndStatusIn(Set<UUID> studentIds, Set<String> status);
     List<BillingRecord> findByStatus(String status);
     void insertMonthlyIfAbsent(UUID studentId, LocalDate referenceMonth, java.math.BigDecimal amount);
+    void updatePendingToOverdue(UUID teacherId, LocalDate referenceMonth, LocalDate now);
 }
-

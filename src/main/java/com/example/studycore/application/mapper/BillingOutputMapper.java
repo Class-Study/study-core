@@ -1,5 +1,6 @@
 package com.example.studycore.application.mapper;
 
+import com.example.studycore.application.usecase.billing.BillingCalculator;
 import com.example.studycore.application.usecase.billing.output.BillingMonthOutput;
 import com.example.studycore.application.usecase.billing.output.BillingRecordOutput;
 import com.example.studycore.domain.model.BillingRecord;
@@ -55,7 +56,7 @@ public interface BillingOutputMapper {
 
             if (!dayOfWeeks.isEmpty()) {
                 // Usar BillingCalculator para considerar data de início do aluno
-                var details = com.example.studycore.application.usecase.billing.BillingCalculator.calculateMonthlyClasses(
+                var details = BillingCalculator.calculateMonthlyClasses(
                         referenceMonth,
                         dayOfWeeks,
                         student.getClassRate() != null ? student.getClassRate() : BigDecimal.ZERO,

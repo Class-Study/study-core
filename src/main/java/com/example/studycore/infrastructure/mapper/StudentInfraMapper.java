@@ -111,7 +111,8 @@ public interface StudentInfraMapper {
                 request.classDuration(),
                 request.classRate(),
                 request.meetPlatform(),
-                request.meetLink()
+                request.meetLink(),
+                request.startDate() // novo campo
         );
     }
 

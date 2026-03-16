@@ -2,6 +2,7 @@ package com.example.studycore.application.usecase.billing.output;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,6 @@ public record BillingRecordOutput(
         Integer totalClasses,
         BigDecimal totalAmountCalculated,
         // Novo campo: data de início do aluno
-        java.time.LocalDate startDate
+        LocalDate startDate
 ) {
 }

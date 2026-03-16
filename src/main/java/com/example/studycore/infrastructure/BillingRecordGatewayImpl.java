@@ -68,5 +68,10 @@ public class BillingRecordGatewayImpl implements BillingRecordGateway {
     public void insertMonthlyIfAbsent(UUID studentId, LocalDate referenceMonth, BigDecimal amount) {
         billingRecordRepository.insertMonthlyIfAbsent(studentId, referenceMonth, amount);
     }
-}
 
+    @Override
+    @Transactional
+    public void updatePendingToOverdue(UUID teacherId, LocalDate referenceMonth, LocalDate now) {
+        billingRecordRepository.updatePendingToOverdue(teacherId, referenceMonth);
+    }
+}

@@ -60,7 +60,8 @@ public class CreateStudentUseCase {
                 input.classDuration(),
                 input.classRate(),
                 input.meetPlatform(),
-                input.meetLink()
+                input.meetLink(),
+                input.startDate() // <-- Passa o startDate do input
         );
 
         final var saved = studentGateway.save(student);
@@ -78,5 +79,3 @@ public class CreateStudentUseCase {
     }
 
 }
-
-

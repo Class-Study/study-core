@@ -91,12 +91,14 @@ public class Student {
             Integer classDuration,
             BigDecimal classRate,
             String meetPlatform,
-            String meetLink
+            String meetLink,
+            LocalDate startDate
     ) {
         final var id = UUID.randomUUID();
         final var createdAt = OffsetDateTime.now();
-        final var startDate = LocalDate.now();
-
+        if (startDate == null) {
+            throw new IllegalArgumentException("startDate não pode ser nulo");
+        }
         return new Student(
                 id,
                 normalize(name),
