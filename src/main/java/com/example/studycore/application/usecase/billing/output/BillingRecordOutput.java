@@ -2,6 +2,7 @@ package com.example.studycore.application.usecase.billing.output;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record BillingRecordOutput(
@@ -10,10 +11,18 @@ public record BillingRecordOutput(
         String studentName,
         String levelProfileName,
         BigDecimal amount,
+        BigDecimal amountAtBillingTime,
         String status,
         Instant paidAt,
         Integer notifyCount,
-        String referenceMonth
+        String referenceMonth,
+        Long daysOverdue,
+        // Novos campos para detalhamento de aulas
+        BigDecimal hourlyRate,
+        List<String> classWeekDays,
+        Integer weeksInMonth,
+        Integer totalClasses,
+        BigDecimal totalAmountCalculated
 ) {
 }
 

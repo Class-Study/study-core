@@ -23,6 +23,8 @@ public interface BillingRecordRepository extends JpaRepository<BillingRecordEnti
 
     List<BillingRecordEntity> findByStudentIdInAndStatusIn(Set<UUID> studentIds, Set<String> statuses);
 
+    List<BillingRecordEntity> findByStatus(String status);
+
     @Modifying
     @Query(value = """
             INSERT INTO study.billing_records (student_id, reference_month, amount, status, notify_count)

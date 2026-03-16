@@ -25,7 +25,9 @@ public interface BillingInfraMapper {
                 entity.getId(),
                 entity.getStudentId(),
                 entity.getReferenceMonth(),
+                entity.getDueDate(),
                 entity.getAmount(),
+                entity.getAmountAtBillingTime(),
                 entity.getStatus(),
                 entity.getPaidAt(),
                 entity.getNotifiedAt(),
@@ -38,7 +40,9 @@ public interface BillingInfraMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "studentId", source = "studentId")
     @Mapping(target = "referenceMonth", source = "referenceMonth")
+    @Mapping(target = "dueDate", source = "dueDate")
     @Mapping(target = "amount", source = "amount")
+    @Mapping(target = "amountAtBillingTime", source = "amountAtBillingTime")
     @Mapping(target = "status", source = "status")
     @Mapping(target = "paidAt", source = "paidAt")
     @Mapping(target = "notifiedAt", source = "notifiedAt")

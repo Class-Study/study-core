@@ -15,9 +15,11 @@ import com.example.studycore.infrastructure.api.controllers.billing.response.Not
 import com.example.studycore.infrastructure.mapper.BillingInfraMapper;
 import java.util.List;
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,8 +35,10 @@ public class BillingController implements BillingApi {
     private final UpdateStudentRateUseCase updateStudentRateUseCase;
 
     @Override
-    public ResponseEntity<BillingMonthResponse> getCurrentMonth() {
-        final var output = getBillingMonthUseCase.execute(getAuthenticatedUserId());
+    public ResponseEntity<BillingMonthResponse> getCurrentMonth(
+            @RequestParam(name = "month", required = false) String month
+    ) {
+        final var output = getBillingMonthUseCase.execute(getAuthenticatedUserId(), month);
         return ResponseEntity.ok(BILLING_INFRA_MAPPER.toBillingMonthResponse(output));
     }
 

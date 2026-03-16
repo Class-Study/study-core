@@ -58,6 +58,12 @@ public class BillingRecordGatewayImpl implements BillingRecordGateway {
     }
 
     @Override
+    public List<BillingRecord> findByStatus(String status) {
+        return billingRecordRepository.findByStatus(status)
+                .stream().map(BILLING_INFRA_MAPPER::fromEntity).toList();
+    }
+
+    @Override
     @Transactional
     public void insertMonthlyIfAbsent(UUID studentId, LocalDate referenceMonth, BigDecimal amount) {
         billingRecordRepository.insertMonthlyIfAbsent(studentId, referenceMonth, amount);

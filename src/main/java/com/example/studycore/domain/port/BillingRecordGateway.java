@@ -14,6 +14,7 @@ public interface BillingRecordGateway {
     List<BillingRecord> findByStudentIdsAndReferenceMonth(Set<UUID> studentIds, LocalDate referenceMonth);
     List<BillingRecord> findByStudentIdOrderByReferenceMonthDesc(UUID studentId);
     List<BillingRecord> findByStudentIdsAndStatusIn(Set<UUID> studentIds, Set<String> status);
+    List<BillingRecord> findByStatus(String status);
     void insertMonthlyIfAbsent(UUID studentId, LocalDate referenceMonth, java.math.BigDecimal amount);
 }
 

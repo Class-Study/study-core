@@ -4,6 +4,7 @@ import com.example.studycore.infrastructure.api.controllers.billing.request.Upda
 import com.example.studycore.infrastructure.api.controllers.billing.response.BillingMonthResponse;
 import com.example.studycore.infrastructure.api.controllers.billing.response.BillingRecordResponse;
 import com.example.studycore.infrastructure.api.controllers.billing.response.NotifyResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -15,13 +16,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequestMapping("/billing")
+@SecurityRequirement(name = "bearerAuth")
 public interface BillingApi {
 
     @GetMapping
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<BillingMonthResponse> getCurrentMonth();
+    ResponseEntity<BillingMonthResponse> getCurrentMonth(
+            @RequestParam(name = "month", required = false) String month
+    );
 
     @GetMapping("/students/{studentId}")
     @PreAuthorize("hasRole('TEACHER')")

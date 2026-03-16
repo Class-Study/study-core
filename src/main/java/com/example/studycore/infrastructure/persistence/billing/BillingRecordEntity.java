@@ -35,14 +35,21 @@ public class BillingRecordEntity {
     @Column(name = "reference_month", nullable = false)
     private LocalDate referenceMonth;
 
+    @Column(name = "due_date", nullable = false)
+    private LocalDate dueDate;
+
     @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal amount;
+
+    @Column(name = "amount_at_billing_time", nullable = false, precision = 8, scale = 2)
+    private BigDecimal amountAtBillingTime;
 
     @Column(nullable = false, length = 20)
     private String status;
 
     @Column(name = "paid_at")
     private OffsetDateTime paidAt;
+
 
     @Column(name = "notified_at")
     private OffsetDateTime notifiedAt;

@@ -15,9 +15,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotifyPendingUseCase {
@@ -31,56 +33,75 @@ public class NotifyPendingUseCase {
 
     @Transactional
     public NotifyOutput execute(UUID teacherId) {
+        log.debug("Iniciando notificação de pendências | teacherId={}", teacherId);
+
         final var students = studentGateway.findAllByTeacherId(teacherId).stream()
                 .filter(s -> s.getStatus() == UserStatus.ACTIVE)
                 .toList();
 
         final var studentIds = students.stream().map(Student::getId).collect(Collectors.toSet());
         if (studentIds.isEmpty()) {
+            log.info("✓ NotifyPending | teacherId={} | students=0 | enviadas=0", teacherId);
             return new NotifyOutput(0, "Nenhuma notificação pendente.");
         }
 
-        final var pending = billingRecordGateway.findByStudentIdsAndStatusIn(studentIds, Set.of("PENDING", "LATE"));
+        final var pending = billingRecordGateway.findByStudentIdsAndStatusIn(studentIds, Set.of("PENDING", "OVERDUE"));
 
         int sent = 0;
         for (BillingRecord record : pending) {
-            final var student = students.stream().filter(s -> s.getId().equals(record.getStudentId())).findFirst().orElse(null);
+            final var student = students.stream()
+                    .filter(s -> s.getId().equals(record.getStudentId()))
+                    .findFirst()
+                    .orElse(null);
             if (student == null) {
                 continue;
             }
 
-            notifyEmailService.sendBillingNotification(
-                    student.getEmail(),
-                    student.getName(),
-                    record.getAmount(),
-                    MAPPER.formatReferenceMonth(record.getReferenceMonth())
-            );
+            try {
+                notifyEmailService.sendBillingNotification(
+                        student.getEmail(),
+                        student.getName(),
+                        record.getAmount(),
+                        MAPPER.formatReferenceMonth(record.getReferenceMonth())
+                );
 
-            final var updated = BillingRecord.with(
-                    record.getId(),
-                    record.getStudentId(),
-                    record.getReferenceMonth(),
-                    record.getAmount(),
-                    record.getStatus(),
-                    record.getPaidAt(),
-                    OffsetDateTime.now(),
-                    (record.getNotifyCount() == null ? 0 : record.getNotifyCount()) + 1,
-                    record.getNotes(),
-                    record.getCreatedAt()
-            );
-            billingRecordGateway.save(updated);
+                final var updated = BillingRecord.with(
+                        record.getId(),
+                        record.getStudentId(),
+                        record.getReferenceMonth(),
+                        record.getDueDate(),
+                        record.getAmount(),
+                        record.getAmountAtBillingTime(),
+                        record.getStatus(),
+                        record.getPaidAt(),
+                        OffsetDateTime.now(),
+                        (record.getNotifyCount() == null ? 0 : record.getNotifyCount()) + 1,
+                        record.getNotes(),
+                        record.getCreatedAt()
+                );
+                billingRecordGateway.save(updated);
 
-            emailNotificationGateway.save(EmailNotification.create(
-                    record.getId(),
-                    student.getEmail(),
-                    "EduSpace — Lembrete de pagamento",
-                    "SENT",
-                    null
-            ));
+                emailNotificationGateway.save(EmailNotification.create(
+                        record.getId(),
+                        student.getEmail(),
+                        "EduSpace — Lembrete de pagamento",
+                        "SENT",
+                        null
+                ));
 
-            sent++;
+                sent++;
+                log.debug("Notificação enviada | studentId={} | email={}", student.getId(), student.getEmail());
+            } catch (Exception e) {
+                log.warn("Erro ao enviar notificação | studentId={} | email={} | erro={}",
+                        student.getId(), student.getEmail(), e.getMessage());
+            }
         }
+
+        log.info("✓ NotifyPending | teacherId={} | total_pendentes={} | enviadas={}",
+                teacherId, pending.size(), sent);
 
         return new NotifyOutput(sent, sent + " notificações enviadas com sucesso.");
     }
 }
+
+

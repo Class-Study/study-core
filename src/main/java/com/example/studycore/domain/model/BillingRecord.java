@@ -11,12 +11,14 @@ import java.util.UUID;
 @Getter
 public class BillingRecord {
 
-    private static final Set<String> ALLOWED_STATUS = Set.of("PAID", "PENDING", "LATE");
+    private static final Set<String> ALLOWED_STATUS = Set.of("PAID", "PENDING", "OVERDUE");
 
     private final UUID id;
     private final UUID studentId;
     private final LocalDate referenceMonth;
+    private final LocalDate dueDate;
     private final BigDecimal amount;
+    private final BigDecimal amountAtBillingTime;
     private final String status;
     private final OffsetDateTime paidAt;
     private final OffsetDateTime notifiedAt;
@@ -28,7 +30,9 @@ public class BillingRecord {
             UUID id,
             UUID studentId,
             LocalDate referenceMonth,
+            LocalDate dueDate,
             BigDecimal amount,
+            BigDecimal amountAtBillingTime,
             String status,
             OffsetDateTime paidAt,
             OffsetDateTime notifiedAt,
@@ -39,7 +43,9 @@ public class BillingRecord {
         this.id = id;
         this.studentId = studentId;
         this.referenceMonth = referenceMonth;
+        this.dueDate = dueDate;
         this.amount = amount;
+        this.amountAtBillingTime = amountAtBillingTime;
         this.status = normalizeStatus(status);
         this.paidAt = paidAt;
         this.notifiedAt = notifiedAt;
@@ -52,16 +58,18 @@ public class BillingRecord {
     public static BillingRecord create(
             UUID studentId,
             LocalDate referenceMonth,
+            LocalDate dueDate,
             BigDecimal amount,
-            String status,
             String notes
     ) {
         return new BillingRecord(
                 UUID.randomUUID(),
                 studentId,
                 referenceMonth,
+                dueDate,
                 amount,
-                status,
+                amount, // amountAtBillingTime = snapshot do amount no momento da criação
+                "PENDING",
                 null,
                 null,
                 0,
@@ -74,7 +82,9 @@ public class BillingRecord {
             UUID id,
             UUID studentId,
             LocalDate referenceMonth,
+            LocalDate dueDate,
             BigDecimal amount,
+            BigDecimal amountAtBillingTime,
             String status,
             OffsetDateTime paidAt,
             OffsetDateTime notifiedAt,
@@ -82,7 +92,44 @@ public class BillingRecord {
             String notes,
             OffsetDateTime createdAt
     ) {
-        return new BillingRecord(id, studentId, referenceMonth, amount, status, paidAt, notifiedAt, notifyCount, notes, createdAt);
+        return new BillingRecord(
+                id,
+                studentId,
+                referenceMonth,
+                dueDate,
+                amount,
+                amountAtBillingTime,
+                status,
+                paidAt,
+                notifiedAt,
+                notifyCount,
+                notes,
+                createdAt
+        );
+    }
+
+    public BillingRecord markAsPaid() {
+        return new BillingRecord(
+                this.id,
+                this.studentId,
+                this.referenceMonth,
+                this.dueDate,
+                this.amount,
+                this.amountAtBillingTime,
+                "PAID",
+                OffsetDateTime.now(),
+                this.notifiedAt,
+                this.notifyCount,
+                this.notes,
+                this.createdAt
+        );
+    }
+
+    public Long getDaysOverdue() {
+        if (this.paidAt != null || !this.status.equals("OVERDUE")) {
+            return null;
+        }
+        return java.time.temporal.ChronoUnit.DAYS.between(this.dueDate, LocalDate.now());
     }
 
     private void validate() {
