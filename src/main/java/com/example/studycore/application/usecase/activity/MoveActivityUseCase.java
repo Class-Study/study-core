@@ -42,8 +42,13 @@ public class MoveActivityUseCase {
         final var student = studentGateway.findById(currentFolder.getStudentId())
                 .orElseThrow(() -> new NotFoundException("Aluno da pasta não encontrado."));
 
-        // Validar se o professor autenticado é responsável pelo aluno
-        if (!input.teacherId().equals(student.getTeacherId())) {
+        // Validar permissão: professor responsável OU o próprio aluno
+        // Se o usuário autenticado é igual ao studentId, é o próprio aluno movendo suas atividades
+        final var isStudent = input.teacherId().equals(currentFolder.getStudentId());
+        // Se o usuário autenticado é professor, deve ser responsável pelo aluno
+        final var isTeacherResponsible = input.teacherId().equals(student.getTeacherId());
+
+        if (!isStudent && !isTeacherResponsible) {
             throw new BusinessException("Você não tem permissão para mover atividades deste aluno.");
         }
 
