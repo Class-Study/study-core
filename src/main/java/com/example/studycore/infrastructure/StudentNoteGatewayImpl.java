@@ -1,4 +1,4 @@
-package com.example.studycore.infrastructure.persistence;
+package com.example.studycore.infrastructure;
 
 import com.example.studycore.domain.model.StudentNote;
 import com.example.studycore.domain.port.StudentNoteGateway;
