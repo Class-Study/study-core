@@ -1,8 +1,7 @@
 package com.example.studycore.infrastructure.adapter.websocket;
 
 import com.example.studycore.domain.port.out.WorkspaceSessionPort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -12,17 +11,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Adapter que gerencia sessões WebSocket por workspace.
+ *
+ * Thread safety: Usa ConcurrentHashMap para rooms e sessionWorkspaceIndex.
+ * Cleanup duplo: removeSession remove dos dois mapas para evitar memory leak.
+ * Broadcast isolado: try/catch por sessão, falha em uma não derruba as demais.
+ */
+@Slf4j
 @Component
 public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
-
-    private static final Logger log = LoggerFactory.getLogger(WorkspaceSessionAdapter.class);
 
     private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
     private final Map<String, String> sessionWorkspaceIndex = new ConcurrentHashMap<>();
 
-    public WorkspaceSessionAdapter() {
-        log.info("[WS] WorkspaceSessionAdapter inicializado");
-    }
 
     @Override
     public void registerSession(String sessionId, String userId, String workspaceId, WebSocketSession session) {
@@ -32,7 +34,7 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
         }
         rooms.computeIfAbsent(workspaceId, k -> ConcurrentHashMap.newKeySet()).add(session);
         sessionWorkspaceIndex.put(sessionId, workspaceId);
-        log.info("[WS] Sessão registrada. sessionId={}, userId={}, workspaceId={}, totalNaSala={}",
+        log.info("[WS] Sessão registrada | sessionId={}, userId={}, workspaceId={}, totalNaSala={}",
                 sessionId, userId, workspaceId, rooms.get(workspaceId).size());
     }
 
@@ -40,7 +42,7 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
     public void removeSession(String sessionId) {
         String workspaceId = sessionWorkspaceIndex.remove(sessionId);
         if (workspaceId == null) {
-            log.warn("[WS] removeSession: sessão não encontrada no índice. sessionId={}", sessionId);
+            log.debug("[WS] removeSession: sessão não encontrada no índice | sessionId={}", sessionId);
             return;
         }
         Set<WebSocketSession> room = rooms.get(workspaceId);
@@ -48,10 +50,10 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
             room.removeIf(s -> s.getId().equals(sessionId));
             if (room.isEmpty()) {
                 rooms.remove(workspaceId);
-                log.info("[WS] Sala removida (vazia). workspaceId={}", workspaceId);
+                log.info("[WS] Sala removida (vazia) | workspaceId={}", workspaceId);
             }
         }
-        log.info("[WS] Sessão removida. sessionId={}, workspaceId={}", sessionId, workspaceId);
+        log.info("[WS] Sessão removida | sessionId={}, workspaceId={}", sessionId, workspaceId);
     }
 
     @Override
@@ -67,12 +69,14 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
                     enviados++;
                 } catch (IOException e) {
                     falhas++;
-                    log.error("[WS] Falha ao enviar mensagem para sessão {}. Erro: {}", session.getId(), e.getMessage());
+                    log.debug("[WS] Falha ao enviar mensagem para sessão {} | Erro: {}", session.getId(), e.getMessage());
                 }
             }
         }
 
-        log.info("[WS] Broadcast concluído. workspaceId={}, enviados={}, falhas={}, payload={}",
-                workspaceId, enviados, falhas, payload);
+        if (enviados > 0 || falhas > 0) {
+            log.debug("[WS] Broadcast concluído | workspaceId={}, enviados={}, falhas={}, payloadLength={}",
+                    workspaceId, enviados, falhas, payload.length());
+        }
     }
 }

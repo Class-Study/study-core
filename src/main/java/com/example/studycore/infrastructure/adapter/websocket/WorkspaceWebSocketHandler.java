@@ -3,18 +3,24 @@ package com.example.studycore.infrastructure.adapter.websocket;
 import com.example.studycore.domain.port.in.WorkspaceOperationUseCase;
 import com.example.studycore.domain.port.out.WorkspaceSessionPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.util.logging.Logger;
-
+/**
+ * Handler que processa conexões WebSocket puras (sem STOMP, sem SockJS).
+ *
+ * Fluxo:
+ * 1. afterConnectionEstablished: extrai userId e workspaceId da query string
+ * 2. handleTextMessage: deserializa JSON e delega para o UseCase
+ * 3. afterConnectionClosed: remove sessão dos mapas
+ */
+@Slf4j
 @Component
 public class WorkspaceWebSocketHandler extends TextWebSocketHandler {
-
-    private static final Logger logger = Logger.getLogger(WorkspaceWebSocketHandler.class.getName());
 
     private final WorkspaceOperationUseCase operationUseCase;
     private final WorkspaceSessionPort sessionPort;
@@ -35,12 +41,8 @@ public class WorkspaceWebSocketHandler extends TextWebSocketHandler {
         String userId = getQueryParam(session, "userId");
         String workspaceId = getQueryParam(session, "workspaceId");
 
-//        logger.info("🟢 WebSocket connection established:");
-//        logger.info("   - sessionId: " + session.getId());
-//        logger.info("   - userId: " + userId);
-//        logger.info("   - workspaceId: " + workspaceId);
-//        logger.info("   - uri: " + session.getUri());
-//        logger.info("   - remoteAddress: " + session.getRemoteAddress());
+        log.info("🟢 [WS] Conexão estabelecida | sessionId: {} | userId: {} | workspaceId: {} | uri: {}",
+            session.getId(), userId, workspaceId, session.getUri());
 
         sessionPort.registerSession(session.getId(), userId, workspaceId, session);
     }
@@ -48,22 +50,25 @@ public class WorkspaceWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try {
-//            logger.info("📨 Message received from " + session.getId() + ": " + message.getPayload());
             WorkspaceWSMessageDTO dto = objectMapper.readValue(message.getPayload(), WorkspaceWSMessageDTO.class);
-//            logger.info("   - Type: " + dto.getType() + ", Workspace: " + dto.getWorkspaceId());
+
+            // Log detalhado apenas para tipos que não são cursor (alto volume)
+            if (!"cursor".equals(dto.getType())) {
+                log.debug("📨 [WS] Mensagem recebida | type: {} | sessionId: {} | payload: {}",
+                    dto.getType(), session.getId(), message.getPayload());
+            }
+
             operationUseCase.handleOperation(dto, session.getId());
         } catch (Exception e) {
-            logger.severe("❌ Erro ao processar mensagem WebSocket: " + e.getMessage());
-            e.printStackTrace();
+            log.error("❌ [WS] Erro ao processar mensagem WebSocket: {}", e.getMessage(), e);
             throw e;
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-//        logger.info("🔴 WebSocket connection closed:");
-//        logger.info("   - sessionId: " + session.getId());
-//        logger.info("   - closeStatus: " + status.getCode() + " " + status.getReason());
+        log.info("🔴 [WS] Conexão fechada | sessionId: {} | closeCode: {} | reason: {}",
+            session.getId(), status.getCode(), status.getReason());
         sessionPort.removeSession(session.getId());
     }
 
