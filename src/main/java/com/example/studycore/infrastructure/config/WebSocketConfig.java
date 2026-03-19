@@ -1,5 +1,6 @@
 package com.example.studycore.infrastructure.config;
 
+import com.example.studycore.infrastructure.adapter.websocket.SignalingWebSocketHandler;
 import com.example.studycore.infrastructure.adapter.websocket.WorkspaceWebSocketHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,16 +13,28 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final WorkspaceWebSocketHandler handler;
+    private final WorkspaceWebSocketHandler workspaceHandler;
+    private final SignalingWebSocketHandler signalingHandler;
 
-    public WebSocketConfig(WorkspaceWebSocketHandler handler) {
-        this.handler = handler;
+    public WebSocketConfig(
+        WorkspaceWebSocketHandler workspaceHandler,
+        SignalingWebSocketHandler signalingHandler
+    ) {
+        this.workspaceHandler = workspaceHandler;
+        this.signalingHandler = signalingHandler;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        // Rota original para workspace (sincronização de conteúdo)
         registry
-                .addHandler(handler, "/ws")
+                .addHandler(workspaceHandler, "/ws")
+                .setAllowedOriginPatterns("*");
+
+        // 🚀 Nova rota para sinalização WebRTC
+        // Uso: ws://localhost:8080/ws/signal?workspaceId=abc-123&peerId=peer-uuid
+        registry
+                .addHandler(signalingHandler, "/ws/signal")
                 .setAllowedOriginPatterns("*");
     }
 

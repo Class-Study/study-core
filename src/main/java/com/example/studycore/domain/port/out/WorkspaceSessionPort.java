@@ -8,5 +8,6 @@ public interface WorkspaceSessionPort {
     void removeSession(String sessionId);
 
     void broadcastToWorkspace(String workspaceId, String excludeSessionId, String payload);
-}
 
+    String getWorkspaceIdBySessionId(String sessionId);
+}

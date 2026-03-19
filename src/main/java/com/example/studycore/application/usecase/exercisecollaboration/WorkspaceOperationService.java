@@ -38,6 +38,8 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
             case "join" -> handleJoin(message);
             case "snapshot" -> handleSnapshot(message, sessionId);
             case "cursor" -> handleCursor(message, sessionId);
+            case "webrtc-signal", "webrtc-ready" -> handleWebRTCSignal(message, sessionId);
+            case "webrtc-student-ready" -> handleWebRTCSignal(message, sessionId);  // ✅ Novo
             default -> log.warn("[WS] Tipo de mensagem desconhecido: {}", message.getType());
         }
     }
@@ -72,6 +74,26 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
         log.debug("[WS] cursor recebido. userId={}, from={}, to={}, userName={}",
             message.getUserId(), message.getFrom(), message.getTo(), message.getUserName());
         broadcast(message, sessionId);
+    }
+
+    // ✅ Handler para webrtc-signal e webrtc-ready
+    private void handleWebRTCSignal(WorkspaceWSMessageDTO message, String sessionId) {
+        // ✅ Roteia usando o workspaceId da SESSÃO (não do payload)
+        // Busca o workspaceId real da sessão para encontrar a sala certa
+        String roomId = sessionPort.getWorkspaceIdBySessionId(sessionId);
+        if (roomId == null) {
+            log.warn("[WS] {}: sessão não encontrada | sessionId={}", message.getType(), sessionId);
+            return;
+        }
+
+        log.info("[WS] {} | sessionId={} | sala={}", message.getType(), sessionId, roomId);
+
+        try {
+            String payload = objectMapper.writeValueAsString(message);
+            sessionPort.broadcastToWorkspace(roomId, sessionId, payload);
+        } catch (Exception e) {
+            log.error("[WS] Erro ao serializar {}: {}", message.getType(), e.getMessage(), e);
+        }
     }
 
     private void broadcast(WorkspaceWSMessageDTO message, String sessionId) {

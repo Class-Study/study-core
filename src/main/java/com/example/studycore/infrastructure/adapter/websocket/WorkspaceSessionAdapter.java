@@ -79,4 +79,10 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
                     workspaceId, enviados, falhas, payload.length());
         }
     }
+
+    @Override
+    public String getWorkspaceIdBySessionId(String sessionId) {
+        // ✅ Lookup inverso: obtém workspaceId a partir da sessionId
+        return sessionWorkspaceIndex.get(sessionId);
+    }
 }

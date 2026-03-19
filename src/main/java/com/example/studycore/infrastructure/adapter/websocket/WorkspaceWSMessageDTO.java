@@ -7,18 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * DTO para mensagens WebSocket de operações em workspace.
- *
- * Tipos de mensagem suportados:
- * - join: registro de sessão
- * - snapshot: conteúdo completo comprimido com gzip (base64)
- * - cursor: posição do cursor (presença)
- *
- * PROTOCOLO SNAPSHOT:
- * O campo 'snapshot' contém HTML completo comprimido com gzip e codificado em Base64.
- * O backend atua como relay puro, sem descomprimir o conteúdo.
- */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -49,6 +37,12 @@ public class WorkspaceWSMessageDTO {
 
     @JsonProperty("userName")
     private String userName;
+
+    @JsonProperty("data")
+    private Object data;        // ✅ carrega { sdp: ... } ou { candidate: ... } para webrtc-signal
+
+    @JsonProperty("role")
+    private String role;        // ✅ carrega "teacher" | "student" para webrtc-ready
 }
 
 
