@@ -1,6 +1,7 @@
 package com.example.studycore.domain.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.Set;
@@ -19,6 +20,8 @@ public class Activity {
     private final UUID createdBy;
     private final OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    @Setter
+    private String snapshot;  // base64 gzip do HTML completo
 
     private Activity(
             UUID id,
@@ -38,6 +41,7 @@ public class Activity {
         this.createdBy = createdBy;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.snapshot = "";
         validate();
     }
 
@@ -66,6 +70,22 @@ public class Activity {
             OffsetDateTime updatedAt
     ) {
         return new Activity(id, folderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
+    }
+
+    public static Activity withYjsState(
+            UUID id,
+            UUID folderId,
+            String title,
+            String type,
+            String convertedHtml,
+            UUID createdBy,
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt,
+            String snapshot
+    ) {
+        Activity activity = new Activity(id, folderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
+        activity.snapshot = snapshot;
+        return activity;
     }
 
     private void validate() {

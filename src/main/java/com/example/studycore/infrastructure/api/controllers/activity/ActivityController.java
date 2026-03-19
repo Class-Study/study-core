@@ -7,6 +7,7 @@ import com.example.studycore.application.usecase.activity.ListActivitiesByFolder
 import com.example.studycore.application.usecase.activity.MoveActivityUseCase;
 import com.example.studycore.application.usecase.activity.UpdateActivityContentUseCase;
 import com.example.studycore.application.usecase.activity.UpdateActivityUseCase;
+import com.example.studycore.domain.port.out.SnapshotPersistencePort;
 import com.example.studycore.infrastructure.api.ActivityApi;
 import com.example.studycore.infrastructure.api.controllers.activity.request.CreateActivityRequest;
 import com.example.studycore.infrastructure.api.controllers.activity.request.MoveActivityRequest;
@@ -18,6 +19,7 @@ import com.example.studycore.infrastructure.mapper.ActivityInfraMapper;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +37,7 @@ public class ActivityController implements ActivityApi {
     private final UpdateActivityContentUseCase updateActivityContentUseCase;
     private final MoveActivityUseCase moveActivityUseCase;
     private final DeleteActivityUseCase deleteActivityUseCase;
+    private final SnapshotPersistencePort snapshotPersistencePort;
 
     @Override
     public ResponseEntity<GetActivityResponse> createActivity(UUID folderId, CreateActivityRequest request) {
@@ -82,6 +85,17 @@ public class ActivityController implements ActivityApi {
         return ResponseEntity.noContent().build();
     }
 
+    @Override
+    public ResponseEntity<?> getSnapshot(UUID activityId) {
+        return snapshotPersistencePort.getSnapshot(activityId)
+            .map(snapshot -> ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new SnapshotResponse(snapshot)))
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    public record SnapshotResponse(String snapshot) {}
+
     private UUID getAuthenticatedUserId() {
         return UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
@@ -91,4 +105,6 @@ public class ActivityController implements ActivityApi {
                 .anyMatch(auth -> "ROLE_TEACHER".equals(auth.getAuthority()));
     }
 }
+
+
 

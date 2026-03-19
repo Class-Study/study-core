@@ -42,5 +42,9 @@ public interface ActivityApi {
     @DeleteMapping("/activities/{id}")
     @PreAuthorize("hasRole('TEACHER')")
     ResponseEntity<Void> deleteActivity(@PathVariable UUID id);
+
+    @GetMapping("/activities/{activityId}/snapshot")
+    @PreAuthorize("hasAnyRole('TEACHER','STUDENT')")
+    ResponseEntity<?> getSnapshot(@PathVariable UUID activityId);
 }
 

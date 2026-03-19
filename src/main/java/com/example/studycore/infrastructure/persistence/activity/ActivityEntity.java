@@ -44,6 +44,9 @@ public class ActivityEntity {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "snapshot", nullable = false)
+    private String snapshot;
+
     @PrePersist
     void prePersist() {
         final var now = OffsetDateTime.now();
@@ -55,6 +58,9 @@ public class ActivityEntity {
         }
         if (convertedHtml == null) {
             convertedHtml = "";
+        }
+        if (snapshot == null) {
+            snapshot = "";
         }
     }
 

@@ -12,13 +12,12 @@ import lombok.Setter;
  *
  * Tipos de mensagem suportados:
  * - join: registro de sessão
- * - sync: sincronização completa de conteúdo (compatibilidade)
- * - yjs-update: atualização incremental CRDT (Yjs) - NOVO
- * - insert, delete, cursor: operações legadas (mantidas por compatibilidade)
+ * - snapshot: conteúdo completo comprimido com gzip (base64)
+ * - cursor: posição do cursor (presença)
  *
- * NOVO PROTOCOLO (Yjs):
- * O campo 'update' contém um Uint8Array codificado em Base64.
- * O backend atua como relay puro, sem interpretar o conteúdo.
+ * PROTOCOLO SNAPSHOT:
+ * O campo 'snapshot' contém HTML completo comprimido com gzip e codificado em Base64.
+ * O backend atua como relay puro, sem descomprimir o conteúdo.
  */
 @Getter
 @Setter
@@ -28,7 +27,7 @@ import lombok.Setter;
 public class WorkspaceWSMessageDTO {
 
     @JsonProperty("type")
-    private String type;        // "join" | "sync" | "yjs-update" | "insert" | "delete" | "cursor"
+    private String type;        // "join" | "snapshot" | "cursor"
 
     @JsonProperty("userId")
     private String userId;
@@ -39,24 +38,9 @@ public class WorkspaceWSMessageDTO {
     @JsonProperty("activityId")
     private String activityId;
 
-    // ===== Operações Legadas (insert/delete/cursor) =====
-    @JsonProperty("position")
-    private Integer position;
+    @JsonProperty("snapshot")
+    private String snapshot;    // base64 gzip do HTML completo
 
-    @JsonProperty("text")
-    private String text;
-
-    @JsonProperty("length")
-    private Integer length;
-
-    @JsonProperty("docVersion")
-    private Integer docVersion;
-
-    // ===== Sync (compatibilidade) =====
-    @JsonProperty("html")
-    private String html;
-
-    // ===== Cursor (legado) =====
     @JsonProperty("from")
     private Integer from;
 
@@ -65,15 +49,6 @@ public class WorkspaceWSMessageDTO {
 
     @JsonProperty("userName")
     private String userName;
-
-    // ===== Yjs CRDT (NOVO) =====
-    /**
-     * Update incremental do Yjs codificado em Base64.
-     * Contém um Uint8Array que o frontend decodifica.
-     * Backend NÃO DEVE interpretar este conteúdo.
-     */
-    @JsonProperty("update")
-    private String update;
 }
 
 

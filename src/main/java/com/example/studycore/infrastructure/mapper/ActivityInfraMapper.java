@@ -26,7 +26,7 @@ public interface ActivityInfraMapper {
 
     default Activity fromEntity(ActivityEntity entity) {
         if (entity == null) return null;
-        return Activity.with(
+        return Activity.withYjsState(
                 entity.getId(),
                 entity.getFolderId(),
                 entity.getTitle(),
@@ -34,7 +34,8 @@ public interface ActivityInfraMapper {
                 entity.getConvertedHtml(),
                 entity.getCreatedBy(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt()
+                entity.getUpdatedAt(),
+                entity.getSnapshot()
         );
     }
 
@@ -46,6 +47,7 @@ public interface ActivityInfraMapper {
     @Mapping(target = "createdBy", source = "createdBy")
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "updatedAt")
+    @Mapping(target = "snapshot", source = "snapshot")
     ActivityEntity toEntity(Activity activity);
 
     default CreateActivityInput toCreateActivityInput(UUID teacherId, UUID folderId, CreateActivityRequest request) {

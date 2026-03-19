@@ -2,6 +2,7 @@ package com.example.studycore.application.usecase.exercisecollaboration;
 
 import com.example.studycore.domain.port.in.WorkspaceOperationUseCase;
 import com.example.studycore.domain.port.out.WorkspaceSessionPort;
+import com.example.studycore.domain.port.out.SnapshotPersistencePort;
 import com.example.studycore.infrastructure.adapter.websocket.WorkspaceWSMessageDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,10 +14,16 @@ import org.springframework.stereotype.Service;
 public class WorkspaceOperationService implements WorkspaceOperationUseCase {
 
     private final WorkspaceSessionPort sessionPort;
+    private final SnapshotPersistencePort snapshotPersistencePort;
     private final ObjectMapper objectMapper;
 
-    public WorkspaceOperationService(WorkspaceSessionPort sessionPort, ObjectMapper objectMapper) {
+    public WorkspaceOperationService(
+        WorkspaceSessionPort sessionPort,
+        SnapshotPersistencePort snapshotPersistencePort,
+        ObjectMapper objectMapper
+    ) {
         this.sessionPort = sessionPort;
+        this.snapshotPersistencePort = snapshotPersistencePort;
         this.objectMapper = objectMapper;
     }
 
@@ -29,9 +36,7 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
 
         switch (message.getType()) {
             case "join" -> handleJoin(message);
-            case "sync" -> handleSync(message, sessionId);
-            case "yjs-update" -> handleYjsUpdate(message, sessionId);
-            case "insert", "delete" -> handleInsertDelete(message, sessionId);
+            case "snapshot" -> handleSnapshot(message, sessionId);
             case "cursor" -> handleCursor(message, sessionId);
             default -> log.warn("[WS] Tipo de mensagem desconhecido: {}", message.getType());
         }
@@ -42,30 +47,24 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
             message.getUserId(), message.getWorkspaceId());
     }
 
-    private void handleSync(WorkspaceWSMessageDTO message, String sessionId) {
-        int htmlLength = message.getHtml() != null ? message.getHtml().length() : 0;
-        log.info("[WS] sync recebido. activityId={}, htmlLength={}",
-            message.getActivityId(), htmlLength);
-        broadcast(message, sessionId);
-    }
-
-    private void handleYjsUpdate(WorkspaceWSMessageDTO message, String sessionId) {
-        if (message.getActivityId() == null || message.getUpdate() == null) {
-            log.warn("[WS] yjs-update inválido recebido | activityId={}, hasUpdate={}",
-                message.getActivityId(), message.getUpdate() != null);
+    private void handleSnapshot(WorkspaceWSMessageDTO message, String sessionId) {
+        if (message.getActivityId() == null || message.getSnapshot() == null) {
+            log.warn("[WS] snapshot inválido recebido | activityId={}", message.getActivityId());
             return;
         }
 
-        log.debug("[WS] yjs-update recebido | activityId={}, updateSize={}bytes",
-            message.getActivityId(), message.getUpdate().length());
+        log.debug("[WS] snapshot recebido | activityId={} | payloadSize={}",
+            message.getActivityId(), message.getSnapshot().length());
 
-        broadcast(message, sessionId);
-    }
+        try {
+            java.util.UUID activityId = java.util.UUID.fromString(message.getActivityId());
+            // Persiste o snapshot (base64 gzip) recebido
+            snapshotPersistencePort.saveSnapshot(activityId, message.getSnapshot());
+        } catch (IllegalArgumentException e) {
+            log.warn("[WS] activityId inválido para snapshot | activityId={}", message.getActivityId());
+        }
 
-    private void handleInsertDelete(WorkspaceWSMessageDTO message, String sessionId) {
-        log.info("[WS] {} recebido. activityId={}, position={}, docVersion={}",
-            message.getType(), message.getActivityId(),
-            message.getPosition(), message.getDocVersion());
+        // Faz broadcast para todas as sessões exceto o remetente
         broadcast(message, sessionId);
     }
 
@@ -84,3 +83,5 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
         }
     }
 }
+
+
