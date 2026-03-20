@@ -29,6 +29,9 @@ public class WorkspaceWSMessageDTO {
     @JsonProperty("snapshot")
     private String snapshot;    // base64 gzip do HTML completo
 
+    @JsonProperty("html")
+    private String html;        // HTML para colaboração
+
     @JsonProperty("from")
     private Integer from;
 
@@ -39,10 +42,11 @@ public class WorkspaceWSMessageDTO {
     private String userName;
 
     @JsonProperty("data")
-    private Object data;        // ✅ carrega { sdp: ... } ou { candidate: ... } para webrtc-signal
+    private Object data;
 
     @JsonProperty("role")
-    private String role;        // ✅ carrega "teacher" | "student" para webrtc-ready
+    private String role;
+
+    @JsonProperty("activityTitle")
+    private String activityTitle;
 }
-
-

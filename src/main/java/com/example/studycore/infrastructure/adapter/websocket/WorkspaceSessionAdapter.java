@@ -11,20 +11,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Adapter que gerencia sessões WebSocket por workspace.
- *
- * Thread safety: Usa ConcurrentHashMap para rooms e sessionWorkspaceIndex.
- * Cleanup duplo: removeSession remove dos dois mapas para evitar memory leak.
- * Broadcast isolado: try/catch por sessão, falha em uma não derruba as demais.
- */
 @Slf4j
 @Component
 public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
 
     private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
     private final Map<String, String> sessionWorkspaceIndex = new ConcurrentHashMap<>();
-
 
     @Override
     public void registerSession(String sessionId, String userId, String workspaceId, WebSocketSession session) {
@@ -64,12 +56,16 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
 
         for (WebSocketSession session : room) {
             if (session.isOpen() && !session.getId().equals(excludeSessionId)) {
-                try {
-                    session.sendMessage(new TextMessage(payload));
-                    enviados++;
-                } catch (IOException e) {
-                    falhas++;
-                    log.debug("[WS] Falha ao enviar mensagem para sessão {} | Erro: {}", session.getId(), e.getMessage());
+                // ✅ Sincroniza por sessão — evita TEXT_PARTIAL_WRITING quando
+                // múltiplas threads tentam escrever na mesma sessão simultaneamente
+                synchronized (session) {
+                    try {
+                        session.sendMessage(new TextMessage(payload));
+                        enviados++;
+                    } catch (IOException e) {
+                        falhas++;
+                        log.debug("[WS] Falha ao enviar mensagem para sessão {} | Erro: {}", session.getId(), e.getMessage());
+                    }
                 }
             }
         }
@@ -82,7 +78,6 @@ public class WorkspaceSessionAdapter implements WorkspaceSessionPort {
 
     @Override
     public String getWorkspaceIdBySessionId(String sessionId) {
-        // ✅ Lookup inverso: obtém workspaceId a partir da sessionId
         return sessionWorkspaceIndex.get(sessionId);
     }
 }

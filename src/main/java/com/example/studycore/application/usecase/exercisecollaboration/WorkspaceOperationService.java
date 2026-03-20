@@ -38,8 +38,9 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
             case "join" -> handleJoin(message);
             case "snapshot" -> handleSnapshot(message, sessionId);
             case "cursor" -> handleCursor(message, sessionId);
-            case "webrtc-signal", "webrtc-ready" -> handleWebRTCSignal(message, sessionId);
-            case "webrtc-student-ready" -> handleWebRTCSignal(message, sessionId);  // ✅ Novo
+            case "collab-html" -> handleCollabHtml(message, sessionId);
+            case "webrtc-signal", "webrtc-ready", "webrtc-student-ready", "student-activity",
+                 "student-activity-change" -> handleWebRTCSignal(message, sessionId);
             default -> log.warn("[WS] Tipo de mensagem desconhecido: {}", message.getType());
         }
     }
@@ -96,6 +97,16 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
         }
     }
 
+    private void handleCollabHtml(WorkspaceWSMessageDTO message, String sessionId) {
+        if (message.getActivityId() == null || message.getHtml() == null) {
+            log.warn("[WS] collab-html inválido recebido | activityId={}", message.getActivityId());
+            return;
+        }
+        log.debug("[WS] collab-html recebido | activityId={} | htmlLength={}",
+            message.getActivityId(), message.getHtml().length());
+        broadcast(message, sessionId);
+    }
+
     private void broadcast(WorkspaceWSMessageDTO message, String sessionId) {
         try {
             String payload = objectMapper.writeValueAsString(message);
@@ -105,5 +116,3 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
         }
     }
 }
-
-
