@@ -50,8 +50,8 @@ public class SnapshotPersistenceAdapter implements SnapshotPersistencePort {
             log.debug("[Snapshot] Estado salvo em Redis | activityId={} | size={}bytes",
                 activityId, snapshotBase64.length());
 
-            // Enfileirar para flush periódico em PostgreSQL
-            flushQueue.enqueue(activityId, snapshotBase64);
+            // Enfileirar para flush periodico em PostgreSQL
+            flushQueue.addUpdate(activityId, snapshotBase64);
 
         } catch (Exception e) {
             log.error("[Snapshot] Falha ao salvar em Redis, tentando PostgreSQL | activityId={}", activityId, e);
@@ -123,8 +123,8 @@ public class SnapshotPersistenceAdapter implements SnapshotPersistencePort {
             log.warn("[Snapshot] Falha ao deletar do Redis | activityId={}", activityId, e);
         }
 
-        // Enfileirar para deleção em PostgreSQL
-        flushQueue.enqueueForDeletion(activityId);
+        // Enfileirar para delecao em PostgreSQL
+        flushQueue.markForDeletion(activityId);
     }
 
     /**

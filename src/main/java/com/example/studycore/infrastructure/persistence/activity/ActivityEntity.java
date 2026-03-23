@@ -44,7 +44,7 @@ public class ActivityEntity {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
-    @Column(name = "snapshot", nullable = false)
+    @Column(name = "snapshot", columnDefinition = "TEXT")
     private String snapshot;
 
     @PrePersist

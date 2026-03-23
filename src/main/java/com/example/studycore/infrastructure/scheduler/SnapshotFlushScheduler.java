@@ -57,12 +57,17 @@ public class SnapshotFlushScheduler {
             try {
                 activityRepository.findById(activityId).ifPresentOrElse(
                     entity -> {
+                        if (snapshotBase64 == null || snapshotBase64.isBlank()) {
+                            log.warn("[Snapshot Flush] Snapshot vazio recebido | activityId={}", activityId);
+                            return;
+                        }
+
                         entity.setSnapshot(snapshotBase64);
                         activityRepository.save(entity);
                         log.debug("[Snapshot Flush] Update persistido | activityId={} | size={}bytes",
                             activityId, snapshotBase64.length());
                     },
-                    () -> log.warn("[Snapshot Flush] Atividade não encontrada ao flush | activityId={}", activityId)
+                    () -> log.warn("[Snapshot Flush] Atividade nao encontrada ao flush | activityId={}", activityId)
                 );
             } catch (Exception e) {
                 log.error("[Snapshot Flush] Falha ao persistir update | activityId={}", activityId, e);
@@ -84,4 +89,3 @@ public class SnapshotFlushScheduler {
         }
     }
 }
-

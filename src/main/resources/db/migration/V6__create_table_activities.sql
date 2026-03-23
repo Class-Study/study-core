@@ -5,7 +5,7 @@ CREATE TABLE activities
     title          VARCHAR(255) NOT NULL,
     type           VARCHAR(100) NOT NULL,
     converted_html TEXT         NOT NULL DEFAULT '',
-    snapshot       TEXT         NOT NULL DEFAULT '',
+    snapshot       TEXT,
     created_by     UUID         NOT NULL REFERENCES users (id),
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()

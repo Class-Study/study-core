@@ -29,9 +29,6 @@ public class WorkspaceWSMessageDTO {
     @JsonProperty("snapshot")
     private String snapshot;    // base64 gzip do HTML completo
 
-    @JsonProperty("html")
-    private String html;        // HTML para colaboração
-
     @JsonProperty("from")
     private Integer from;
 
