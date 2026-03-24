@@ -1,113 +1,80 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# docker-compose.yaml — PRODUCTION stack (EC2)  ·  BACKEND only
+# docker-compose.yml — Stack do Backend  (coloque este arquivo no repo do backend)
 #
-# ⚠️  Nginx é gerenciado pelo repositório do FRONTEND.
-#     Este compose sobe apenas: postgres · redis · rabbitmq · backend
+# Serviços:
+#   postgres  — banco de dados
+#   rabbitmq  — message broker
+#   backend   — Spring Boot API
 #
-# A rede "eduspace_net" é criada pelo docker-compose do frontend.
-# Este arquivo apenas se conecta a ela (external: true).
+# NÃO inclui nginx nem frontend — gerenciados pelo pipeline do frontend.
+#
+# Uso:
+#   docker compose up -d
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
 
-  # ══════════════════════════════════════════════════════════════
-  # POSTGRESQL 16
-  # ══════════════════════════════════════════════════════════════
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: study_postgres
-    restart: unless-stopped
     environment:
-      POSTGRES_DB:       ${DB_NAME}
-      POSTGRES_USER:     ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       ${DB_NAME:-eduspace}
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-eduspace}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - eduspace_net
+    restart: unless-stopped
 
-
-  # ══════════════════════════════════════════════════════════════
-  # RABBITMQ 3.13 (management UI disponível via túnel SSH)
-  # ══════════════════════════════════════════════════════════════
+  # ── RabbitMQ ─────────────────────────────────────────────────────────────────
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
-    container_name: study_rabbitmq
-    restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    ports:
-      - "127.0.0.1:15672:15672"   # management UI — localhost only
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 15s
       timeout: 10s
       retries: 5
-    networks:
-      - eduspace_net
-
-  # ══════════════════════════════════════════════════════════════
-  # SPRING BOOT BACKEND
-  # O Nginx do frontend referencia este serviço pelo nome "backend"
-  # ══════════════════════════════════════════════════════════════
-  backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-class-study}/study-back:${BACK_VERSION:-latest}
-    container_name: study_backend
+      start_period: 30s
     restart: unless-stopped
-    env_file: .env
+
+  # ── Backend (Spring Boot) ────────────────────────────────────────────────────
+  backend:
+    image: ghcr.io/${GHCR_OWNER:-class-study}/study-back:${BACK_VERSION:-latest}
     environment:
-      DB_HOST:           postgres
-      DB_PORT:           "5432"
-      DB_NAME:           ${DB_NAME}
-      DB_USER:           ${DB_USER}
-      DB_PASSWORD:       ${DB_PASSWORD}
-      RABBITMQ_HOST:     rabbitmq
-      RABBITMQ_PORT:     "5672"
-      RABBITMQ_USER:     ${RABBITMQ_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-      JWT_SECRET:        ${JWT_SECRET}
-      JAVA_OPTS: >-
-        -Xmx512m
-        -XX:+UseContainerSupport
-        -Dspring.profiles.active=prod
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/${DB_NAME:-eduspace}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      SPRING_RABBITMQ_HOST:       rabbitmq
+      SPRING_RABBITMQ_PORT:       5672
+      SPRING_RABBITMQ_USERNAME:   ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD:   ${RABBITMQ_PASSWORD:-guest}
+      JWT_SECRET:                 ${JWT_SECRET:?JWT_SECRET is required}
+      JAVA_OPTS:                  "-Xms256m -Xmx512m"
+    ports:
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v1/actuator/health | grep -q 'UP'"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-    networks:
-      - eduspace_net
+    restart: unless-stopped
 
-# ──────────────────────────────────────────────────────────────
-# VOLUMES
-# ──────────────────────────────────────────────────────────────
+# ── Named volumes ──────────────────────────────────────────────────────────────
 volumes:
   postgres_data:
   rabbitmq_data:
-
-# ──────────────────────────────────────────────────────────────
-# NETWORK — compartilhada com o compose do frontend
-#
-# O frontend cria esta rede. O backend apenas se conecta.
-# Nome real no Docker: eduspace_net  (ou o prefixo do projeto + _net)
-#
-# Se o frontend usa `docker compose -p eduspace up`, a rede se chama
-# "eduspace_eduspace_net". Ajuste o `name:` abaixo conforme necessário.
-# ──────────────────────────────────────────────────────────────
-networks:
-  eduspace_net:
-    external: true

@@ -126,6 +126,21 @@ jobs:
       packages: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Envia o docker-compose.yml para a EC2 ────────────────────────────────
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          port:     22
+          source:   "docker-compose.yml"
+          target:   ${{ secrets.EC2_DEPLOY_PATH || '/opt/eduspace' }}
+
+      # ── Instala Docker, escreve .env, sobe infra + backend ───────────────────
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
