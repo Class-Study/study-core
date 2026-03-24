@@ -19,17 +19,6 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
 
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:redis123}
-      username: ""
-      timeout: 2000ms
-      connect-timeout: 2000ms
-      lettuce:
-        pool:
-          enabled: false
 
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
@@ -98,8 +87,6 @@ management:
     health:
       show-details: always
   health:
-    redis:
-      enabled: true
     rabbit:
       enabled: true
     db:

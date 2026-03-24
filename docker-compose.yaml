@@ -31,28 +31,6 @@ services:
     networks:
       - eduspace_net
 
-  # ══════════════════════════════════════════════════════════════
-  # REDIS 7
-  # ══════════════════════════════════════════════════════════════
-  redis:
-    image: redis:7-alpine
-    container_name: study_redis
-    restart: unless-stopped
-    command: >
-      redis-server
-      --requirepass ${REDIS_PASSWORD}
-      --appendonly yes
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - eduspace_net
 
   # ══════════════════════════════════════════════════════════════
   # RABBITMQ 3.13 (management UI disponível via túnel SSH)
@@ -91,9 +69,6 @@ services:
       DB_NAME:           ${DB_NAME}
       DB_USER:           ${DB_USER}
       DB_PASSWORD:       ${DB_PASSWORD}
-      REDIS_HOST:        redis
-      REDIS_PORT:        "6379"
-      REDIS_PASSWORD:    ${REDIS_PASSWORD}
       RABBITMQ_HOST:     rabbitmq
       RABBITMQ_PORT:     "5672"
       RABBITMQ_USER:     ${RABBITMQ_USER}
@@ -105,8 +80,6 @@ services:
         -Dspring.profiles.active=prod
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -124,7 +97,6 @@ services:
 # ──────────────────────────────────────────────────────────────
 volumes:
   postgres_data:
-  redis_data:
   rabbitmq_data:
 
 # ──────────────────────────────────────────────────────────────

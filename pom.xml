@@ -145,39 +145,7 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- ─────────────────────────────────────────
-             4. REDIS — CACHE & PRESENÇA
-        ───────────────────────────────────────────── -->
-
-        <!--
-            Spring Data Redis + Lettuce (cliente reativo).
-            Usado para: sessões WebSocket ativas (activity_sessions cache),
-                        heartbeat de presença, fila de e-mails curta,
-                        rate limiting de notificações.
-        -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-
-        <!--
-            Pool de conexões para Redis (Apache Commons Pool 2).
-            Necessário quando usando Lettuce com pool habilitado.
-        -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-pool2</artifactId>
-        </dependency>
-
-        <!--
-            Sessões gerenciadas pelo Spring + Redis.
-            Permite armazenar a sessão HTTP no Redis
-            (útil para ambientes com múltiplas instâncias).
-        -->
-        <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-data-redis</artifactId>
-        </dependency>
+        <!-- Redis removido — snapshot e sessão migrados para PostgreSQL -->
 
         <!-- ─────────────────────────────────────────
              5. MESSAGING - RABBITMQ

@@ -3,7 +3,6 @@ package com.example.studycore.infrastructure.adapter.websocket;
 import com.example.studycore.domain.port.in.WorkspaceOperationUseCase;
 import com.example.studycore.domain.port.out.WorkspaceSessionPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -53,23 +52,6 @@ public class WorkspaceWebSocketHandler extends TextWebSocketHandler {
         try {
             WorkspaceWSMessageDTO dto = objectMapper.readValue(message.getPayload(), WorkspaceWSMessageDTO.class);
 
-            if ("snapshot".equals(dto.getType())) {
-                if (dto.getActivityId() == null || dto.getActivityId().isBlank()) {
-                    log.error("[WebSocket] Snapshot recebido sem activityId | userId={} | workspaceId={}",
-                        dto.getUserId(), dto.getWorkspaceId());
-                    return;
-                }
-
-                try {
-                    UUID activityId = UUID.fromString(dto.getActivityId());
-                    int snapshotSize = dto.getSnapshot() == null ? 0 : dto.getSnapshot().length();
-                    log.info("[WebSocket] Snapshot recebido | activityId={} | size={}bytes",
-                        activityId, snapshotSize);
-                } catch (IllegalArgumentException invalidId) {
-                    log.error("[WebSocket] Snapshot recebido com activityId invalido | activityId={}", dto.getActivityId());
-                    return;
-                }
-            }
 
             // Log detalhado apenas para tipos que nao sao cursor (alto volume)
             if (!"cursor".equals(dto.getType())) {

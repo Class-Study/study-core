@@ -15,7 +15,7 @@ import lombok.Setter;
 public class WorkspaceWSMessageDTO {
 
     @JsonProperty("type")
-    private String type;        // "join" | "snapshot" | "cursor"
+    private String type;        // "join" | "cursor" | "webrtc-signal" | "webrtc-ready"
 
     @JsonProperty("userId")
     private String userId;
@@ -26,8 +26,6 @@ public class WorkspaceWSMessageDTO {
     @JsonProperty("activityId")
     private String activityId;
 
-    @JsonProperty("snapshot")
-    private String snapshot;    // base64 gzip do HTML completo
 
     @JsonProperty("from")
     private Integer from;

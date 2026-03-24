@@ -24,7 +24,6 @@
 #    DB_NAME           — nome do banco PostgreSQL
 #    DB_USER           — usuário PostgreSQL
 #    DB_PASSWORD       — senha PostgreSQL
-#    REDIS_PASSWORD    — senha Redis
 #    RABBITMQ_USER     — usuário RabbitMQ
 #    RABBITMQ_PASSWORD — senha RabbitMQ
 #    JWT_SECRET        — segredo JWT (≥256 bits, hex)
@@ -148,7 +147,6 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
             RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
@@ -162,7 +160,7 @@ jobs:
 
             # ── Sobe infra + backend (sem tocar no nginx/frontend) ────────────────
             docker compose up -d --no-deps --wait \
-              postgres redis rabbitmq backend
+              postgres rabbitmq backend
 
             # ── Sanity check ──────────────────────────────────────────────────────
             docker compose ps backend | grep -q "running" \

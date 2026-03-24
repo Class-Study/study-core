@@ -2,7 +2,6 @@ package com.example.studycore.application.usecase.exercisecollaboration;
 
 import com.example.studycore.domain.port.in.WorkspaceOperationUseCase;
 import com.example.studycore.domain.port.out.WorkspaceSessionPort;
-import com.example.studycore.domain.port.out.SnapshotPersistencePort;
 import com.example.studycore.infrastructure.adapter.websocket.WorkspaceWSMessageDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,16 +13,13 @@ import org.springframework.stereotype.Service;
 public class WorkspaceOperationService implements WorkspaceOperationUseCase {
 
     private final WorkspaceSessionPort sessionPort;
-    private final SnapshotPersistencePort snapshotPersistencePort;
     private final ObjectMapper objectMapper;
 
     public WorkspaceOperationService(
         WorkspaceSessionPort sessionPort,
-        SnapshotPersistencePort snapshotPersistencePort,
         ObjectMapper objectMapper
     ) {
         this.sessionPort = sessionPort;
-        this.snapshotPersistencePort = snapshotPersistencePort;
         this.objectMapper = objectMapper;
     }
 
@@ -35,12 +31,12 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
         }
 
         switch (message.getType()) {
-            case "join" -> handleJoin(message);
-            case "snapshot" -> handleSnapshot(message, sessionId);
-            case "cursor" -> handleCursor(message, sessionId);
-            case "webrtc-signal", "webrtc-ready", "webrtc-student-ready", "student-activity",
-                 "student-activity-change" -> handleWebRTCSignal(message, sessionId);
-            default -> log.warn("[WS] Tipo de mensagem desconhecido: {}", message.getType());
+            case "join"    -> handleJoin(message);
+            case "cursor"  -> handleCursor(message, sessionId);
+            case "webrtc-signal", "webrtc-ready", "webrtc-student-ready",
+                 "student-activity", "student-activity-change"
+                           -> handleWebRTCSignal(message, sessionId);
+            default        -> log.warn("[WS] Tipo de mensagem desconhecido: {}", message.getType());
         }
     }
 
@@ -49,34 +45,12 @@ public class WorkspaceOperationService implements WorkspaceOperationUseCase {
             message.getUserId(), message.getWorkspaceId());
     }
 
-    private void handleSnapshot(WorkspaceWSMessageDTO message, String sessionId) {
-        if (message.getActivityId() == null || message.getSnapshot() == null) {
-            log.warn("[WS] snapshot inválido recebido | activityId={}", message.getActivityId());
-            return;
-        }
-
-        log.debug("[WS] snapshot recebido | activityId={} | payloadSize={}",
-            message.getActivityId(), message.getSnapshot().length());
-
-        try {
-            java.util.UUID activityId = java.util.UUID.fromString(message.getActivityId());
-            // Persiste o snapshot (base64 gzip) recebido
-            snapshotPersistencePort.saveSnapshot(activityId, message.getSnapshot());
-        } catch (IllegalArgumentException e) {
-            log.warn("[WS] activityId inválido para snapshot | activityId={}", message.getActivityId());
-        }
-
-        // Faz broadcast para todas as sessões exceto o remetente
-        broadcast(message, sessionId);
-    }
-
     private void handleCursor(WorkspaceWSMessageDTO message, String sessionId) {
         log.debug("[WS] cursor recebido. userId={}, from={}, to={}, userName={}",
             message.getUserId(), message.getFrom(), message.getTo(), message.getUserName());
         broadcast(message, sessionId);
     }
 
-    // ✅ Handler para webrtc-signal e webrtc-ready
     private void handleWebRTCSignal(WorkspaceWSMessageDTO message, String sessionId) {
         // ✅ Roteia usando o workspaceId da SESSÃO (não do payload)
         // Busca o workspaceId real da sessão para encontrar a sala certa

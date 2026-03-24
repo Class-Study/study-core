@@ -15,48 +15,33 @@ services:
     volumes:
       - study_postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U track_user -d track_db"]
+      test: ["CMD-SHELL", "pg_isready -U study -d study"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 
   # ══════════════════════════════════════════════
-  # REDIS 7
+  # RABBITMQ 3.13
   # ══════════════════════════════════════════════
-  redis:
-    image: redis:7-alpine
-    container_name: eduspace_redis
-    restart: unless-stopped
-    command: redis-server --requirepass redis123 --appendonly yes
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ══════════════════════════════════════════════
-  # REDIS COMMANDER (UI web para inspecionar Redis)
-  # Acesse: http://localhost:8081
-  # ══════════════════════════════════════════════
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: eduspace_redis_ui
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: study_rabbitmq
     restart: unless-stopped
     environment:
-      REDIS_HOSTS:     local:redis:6379:0:redis123
-      HTTP_USER:       admin
-      HTTP_PASSWORD:   admin
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     ports:
-      - "8081:8081"
-    depends_on:
-      redis:
-        condition: service_healthy
+      - "5672:5672"
+      - "15672:15672"   # management UI: http://localhost:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
 volumes:
   study_postgres:
-  redis_data:
+  rabbitmq_data:
