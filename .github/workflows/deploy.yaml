@@ -104,35 +104,43 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          DEPLOY_PATH:  ${{ secrets.EC2_DEPLOY_PATH || '/opt/eduspace' }}
-          GHCR_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
-          GHCR_USER:    ${{ github.actor }}
+          DEPLOY_PATH:        ${{ secrets.EC2_DEPLOY_PATH }}
+          DB_NAME:            ${{ secrets.DB_NAME }}
+          DB_USER:            ${{ secrets.DB_USER }}
+          DB_PASSWORD:        ${{ secrets.DB_PASSWORD }}
+          RABBITMQ_USER:      ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD:  ${{ secrets.RABBITMQ_PASSWORD }}
+          JWT_SECRET:         ${{ secrets.JWT_SECRET }}
+          REPO_OWNER:         ${{ github.repository_owner }}
         with:
           host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_SSH_KEY }}
           port:     22
           timeout:  120s
-          envs:     DEPLOY_PATH,GHCR_TOKEN,GHCR_USER
+          envs:     DEPLOY_PATH,DB_NAME,DB_USER,DB_PASSWORD,RABBITMQ_USER,RABBITMQ_PASSWORD,JWT_SECRET,REPO_OWNER
           script: |
             set -euo pipefail
-            cd "${{ secrets.EC2_DEPLOY_PATH }}"
+            cd "$DEPLOY_PATH"
 
             # ── Preserva FRONT_VERSION caso o pipeline do front já tenha setado ──
             FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
 
             # ── Escreve o .env completo (backend é dono deste arquivo) ────────────
             cat > .env <<ENVEOF
-            DB_NAME=${{ secrets.DB_NAME }}
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
-            RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            DB_NAME=${DB_NAME}
+            DB_USER=${DB_USER}
+            DB_PASSWORD=${DB_PASSWORD}
+            RABBITMQ_USER=${RABBITMQ_USER}
+            RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+            JWT_SECRET=${JWT_SECRET}
             BACK_VERSION=latest
             FRONT_VERSION=${FRONT_VER}
-            GITHUB_REPOSITORY_OWNER=${{ github.repository_owner }}
+            GITHUB_REPOSITORY_OWNER=${REPO_OWNER}
             ENVEOF
+
+            # ── Login no GHCR para poder fazer pull da imagem privada ─────────────
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin || true
 
             # ── Pull da nova imagem do backend ────────────────────────────────────
             docker compose pull backend
