@@ -129,22 +129,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Envia o docker-compose.yml para a EC2 ────────────────────────────────
-      - name: Copy docker-compose.yml to EC2
+      # ── Envia o docker-compose.yaml para a EC2 ───────────────────────────────
+      - name: Copy docker-compose.yaml to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_SSH_KEY }}
           port:     22
-          source:   "docker-compose.yml"
-          target:   ${{ secrets.EC2_DEPLOY_PATH || '/opt/eduspace' }}
+          source:   "docker-compose.yaml"
+          target:   ${{ secrets.EC2_DEPLOY_PATH }}
 
       # ── Instala Docker, escreve .env, sobe infra + backend ───────────────────
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          DEPLOY_PATH:       ${{ secrets.EC2_DEPLOY_PATH || '/opt/eduspace' }}
+          DEPLOY_PATH:       ${{ secrets.EC2_DEPLOY_PATH }}
           DB_NAME:           ${{ secrets.DB_NAME }}
           DB_USER:           ${{ secrets.DB_USER }}
           DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
@@ -169,39 +169,32 @@ jobs:
               echo "🐳 Instalando Docker..."
               curl -fsSL https://get.docker.com | sudo sh
               sudo usermod -aG docker "$USER"
-              echo "✅ Docker instalado"
-            else
-              echo "✅ Docker: $(docker --version)"
             fi
 
             # ── 2. Instala Docker Compose plugin se necessário ────────────────
             if ! sudo docker compose version &>/dev/null; then
-              echo "🐳 Instalando Docker Compose..."
-              COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest \
+              echo "🐳 Instalando Docker Compose plugin..."
+              COMPOSE_VER=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest \
                 | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
               sudo mkdir -p /usr/local/lib/docker/cli-plugins
               sudo curl -fsSL \
-                "https://github.com/docker/compose/releases/download/v${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+                "https://github.com/docker/compose/releases/download/v${COMPOSE_VER}/docker-compose-linux-x86_64" \
                 -o /usr/local/lib/docker/cli-plugins/docker-compose
               sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-              echo "✅ Docker Compose instalado"
-            else
-              echo "✅ Docker Compose: $(sudo docker compose version)"
             fi
 
-            # ── 3. Garante diretório de deploy ────────────────────────────────
-            echo "📂 Deploy path: $DEPLOY_PATH"
+            # ── 3. Garante diretório e entra nele ─────────────────────────────
             sudo mkdir -p "$DEPLOY_PATH"
             sudo chown -R "$USER":"$USER" "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
 
-            # ── 4. Docker exige lowercase no nome da imagem ───────────────────
+            # ── 4. GHCR exige nome da imagem em lowercase ─────────────────────
             REPO_OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
 
             # ── 5. Preserva FRONT_VERSION do pipeline do frontend ─────────────
             FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
 
-            # ── 6. Escreve o .env completo (backend é dono deste arquivo) ─────
+            # ── 6. Escreve o .env ─────────────────────────────────────────────
             cat > .env <<ENVEOF
             DB_NAME=${DB_NAME}
             DB_USER=${DB_USER}
@@ -217,26 +210,19 @@ jobs:
             # ── 7. Login no GHCR ──────────────────────────────────────────────
             echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
 
-            # ── 8. Pull da nova imagem do backend ─────────────────────────────
+            # ── 8. Pull + sobe serviços ───────────────────────────────────────
             sudo docker compose pull backend
-
-            # ── 9. Sobe infra + backend (sem tocar em nginx/frontend) ─────────
             sudo docker compose up -d --no-deps postgres rabbitmq backend
 
-            # ── 10. Aguarda serviços subirem ──────────────────────────────────
-            echo "⏳ Aguardando backend iniciar..."
-            sleep 10
-            sudo docker compose ps
-
-            # ── 11. Sanity check ──────────────────────────────────────────────
+            # ── 9. Sanity check ───────────────────────────────────────────────
+            sleep 15
             RUNNING=$(sudo docker compose ps --status running 2>/dev/null | grep -c "backend" || true)
             if [ "$RUNNING" -lt 1 ]; then
               echo "❌ Backend falhou ao iniciar:"
-              sudo docker compose logs backend --tail=30
+              sudo docker compose logs backend --tail=50
               exit 1
             fi
 
-            # ── 12. Remove imagens antigas ────────────────────────────────────
+            # ── 10. Limpeza ───────────────────────────────────────────────────
             sudo docker image prune -f
-
-            echo "✅ Deploy backend concluído com sucesso"
+            echo "✅ Deploy concluído"
