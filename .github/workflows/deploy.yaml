@@ -1,3 +1,29 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CI/CD — EduSpace Backend  (copie este arquivo para o repositório do backend)
+#
+# Stages
+# ──────
+#  ci     — compile + test
+#  docker — build & push imagem para GHCR
+#  deploy — instala Docker se necessário, escreve .env, sobe infra + backend
+#
+# Secrets layout
+# ──────────────
+#  Organization secrets  (org → Settings → Secrets → Actions):
+#    EC2_HOST          — IP / hostname da EC2
+#    EC2_USER          — usuário SSH (ex: "ubuntu")
+#    EC2_SSH_KEY       — conteúdo da chave PEM
+#    EC2_DEPLOY_PATH   — caminho na EC2 (opcional, padrão: /opt/eduspace)
+#
+#  Repository secrets  (repo → Settings → Secrets → Actions):
+#    DB_NAME           — nome do banco PostgreSQL
+#    DB_USER           — usuário do banco
+#    DB_PASSWORD       — senha do banco
+#    RABBITMQ_USER     — usuário RabbitMQ
+#    RABBITMQ_PASSWORD — senha RabbitMQ
+#    JWT_SECRET        — segredo JWT (≥256 bits hex)
+# ─────────────────────────────────────────────────────────────────────────────
+
 name: CI/CD — Backend
 
 on:
@@ -86,10 +112,8 @@ jobs:
 
   # ── 3. Deploy stack de backend na EC2 ───────────────────────────────────────
   #
-  # Este job é dono do .env na EC2 e reinicia apenas os serviços do backend:
-  #   postgres · redis · rabbitmq · backend
-  #
-  # NÃO toca em nginx nem frontend — esses são gerenciados pelo pipeline do front.
+  # Este job é dono do .env na EC2 e sobe: postgres · rabbitmq · backend
+  # NÃO toca em nginx nem frontend — gerenciados pelo pipeline do frontend.
   # ─────────────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy — EC2
@@ -98,35 +122,71 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
 
-    permissions: {}
+    permissions:
+      packages: read
 
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          DEPLOY_PATH:        ${{ secrets.EC2_DEPLOY_PATH }}
-          DB_NAME:            ${{ secrets.DB_NAME }}
-          DB_USER:            ${{ secrets.DB_USER }}
-          DB_PASSWORD:        ${{ secrets.DB_PASSWORD }}
-          RABBITMQ_USER:      ${{ secrets.RABBITMQ_USER }}
-          RABBITMQ_PASSWORD:  ${{ secrets.RABBITMQ_PASSWORD }}
-          JWT_SECRET:         ${{ secrets.JWT_SECRET }}
-          REPO_OWNER:         ${{ github.repository_owner }}
+          DEPLOY_PATH:       ${{ secrets.EC2_DEPLOY_PATH || '/opt/eduspace' }}
+          DB_NAME:           ${{ secrets.DB_NAME }}
+          DB_USER:           ${{ secrets.DB_USER }}
+          DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
+          RABBITMQ_USER:     ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+          JWT_SECRET:        ${{ secrets.JWT_SECRET }}
+          REPO_OWNER:        ${{ github.repository_owner }}
+          GHCR_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
+          GHCR_ACTOR:        ${{ github.actor }}
         with:
           host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_SSH_KEY }}
           port:     22
-          timeout:  120s
-          envs:     DEPLOY_PATH,DB_NAME,DB_USER,DB_PASSWORD,RABBITMQ_USER,RABBITMQ_PASSWORD,JWT_SECRET,REPO_OWNER
+          timeout:  180s
+          envs:     DEPLOY_PATH,DB_NAME,DB_USER,DB_PASSWORD,RABBITMQ_USER,RABBITMQ_PASSWORD,JWT_SECRET,REPO_OWNER,GHCR_TOKEN,GHCR_ACTOR
           script: |
             set -euo pipefail
+
+            # ── 1. Instala Docker se necessário ───────────────────────────────
+            if ! command -v docker &>/dev/null; then
+              echo "🐳 Instalando Docker..."
+              curl -fsSL https://get.docker.com | sudo sh
+              sudo usermod -aG docker "$USER"
+              echo "✅ Docker instalado"
+            else
+              echo "✅ Docker: $(docker --version)"
+            fi
+
+            # ── 2. Instala Docker Compose plugin se necessário ────────────────
+            if ! sudo docker compose version &>/dev/null; then
+              echo "🐳 Instalando Docker Compose..."
+              COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest \
+                | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+              sudo mkdir -p /usr/local/lib/docker/cli-plugins
+              sudo curl -fsSL \
+                "https://github.com/docker/compose/releases/download/v${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+                -o /usr/local/lib/docker/cli-plugins/docker-compose
+              sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+              echo "✅ Docker Compose instalado"
+            else
+              echo "✅ Docker Compose: $(sudo docker compose version)"
+            fi
+
+            # ── 3. Garante diretório de deploy ────────────────────────────────
+            echo "📂 Deploy path: $DEPLOY_PATH"
+            sudo mkdir -p "$DEPLOY_PATH"
+            sudo chown -R "$USER":"$USER" "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
 
-            # ── Preserva FRONT_VERSION caso o pipeline do front já tenha setado ──
+            # ── 4. Docker exige lowercase no nome da imagem ───────────────────
+            REPO_OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+
+            # ── 5. Preserva FRONT_VERSION do pipeline do frontend ─────────────
             FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
 
-            # ── Escreve o .env completo (backend é dono deste arquivo) ────────────
+            # ── 6. Escreve o .env completo (backend é dono deste arquivo) ─────
             cat > .env <<ENVEOF
             DB_NAME=${DB_NAME}
             DB_USER=${DB_USER}
@@ -136,23 +196,32 @@ jobs:
             JWT_SECRET=${JWT_SECRET}
             BACK_VERSION=latest
             FRONT_VERSION=${FRONT_VER}
-            GITHUB_REPOSITORY_OWNER=${REPO_OWNER}
+            GHCR_OWNER=${REPO_OWNER_LOWER}
             ENVEOF
 
-            # ── Login no GHCR para poder fazer pull da imagem privada ─────────────
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin || true
+            # ── 7. Login no GHCR ──────────────────────────────────────────────
+            echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
 
-            # ── Pull da nova imagem do backend ────────────────────────────────────
-            docker compose pull backend
+            # ── 8. Pull da nova imagem do backend ─────────────────────────────
+            sudo docker compose pull backend
 
-            # ── Sobe infra + backend (sem tocar no nginx/frontend) ────────────────
-            docker compose up -d --no-deps --wait \
-              postgres rabbitmq backend
+            # ── 9. Sobe infra + backend (sem tocar em nginx/frontend) ─────────
+            sudo docker compose up -d --no-deps postgres rabbitmq backend
 
-            # ── Sanity check ──────────────────────────────────────────────────────
-            docker compose ps backend | grep -q "running" \
-              || (echo "❌ backend falhou ao iniciar" && exit 1)
+            # ── 10. Aguarda serviços subirem ──────────────────────────────────
+            echo "⏳ Aguardando backend iniciar..."
+            sleep 10
+            sudo docker compose ps
 
-            # ── Remove imagens antigas sem uso ────────────────────────────────────
-            docker image prune -f
+            # ── 11. Sanity check ──────────────────────────────────────────────
+            RUNNING=$(sudo docker compose ps --status running 2>/dev/null | grep -c "backend" || true)
+            if [ "$RUNNING" -lt 1 ]; then
+              echo "❌ Backend falhou ao iniciar:"
+              sudo docker compose logs backend --tail=30
+              exit 1
+            fi
 
+            # ── 12. Remove imagens antigas ────────────────────────────────────
+            sudo docker image prune -f
+
+            echo "✅ Deploy backend concluído com sucesso"
