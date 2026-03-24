@@ -1,34 +1,3 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# CI/CD — EduSpace Backend (study-core)
-#
-# Stages
-# ──────
-#  ci     — compile + test          (todo push / PR para main)
-#  docker — build & push para GHCR  (push em main, após ci passar)
-#  deploy — SSH na EC2, escreve .env completo, sobe a stack backend
-#           (push em main, após docker passar)
-#
-# A rede "eduspace_net" é criada pelo compose do FRONTEND.
-# O backend apenas se conecta a ela (external: true).
-# O deploy do backend NÃO reinicia nginx nem frontend.
-#
-# Secrets necessários
-# ───────────────────
-#  Organização (org → Settings → Secrets → Actions):
-#    EC2_HOST          — IP público / hostname da instância EC2
-#    EC2_USER          — usuário SSH (ex: "ubuntu")
-#    EC2_SSH_KEY       — conteúdo da chave PEM privada
-#    EC2_DEPLOY_PATH   — caminho absoluto na EC2 (ex: /opt/eduspace/backend)
-#
-#  Repositório (repo → Settings → Secrets → Actions):
-#    DB_NAME           — nome do banco PostgreSQL
-#    DB_USER           — usuário PostgreSQL
-#    DB_PASSWORD       — senha PostgreSQL
-#    RABBITMQ_USER     — usuário RabbitMQ
-#    RABBITMQ_PASSWORD — senha RabbitMQ
-#    JWT_SECRET        — segredo JWT (≥256 bits, hex)
-# ─────────────────────────────────────────────────────────────────────────────
-
 name: CI/CD — Backend
 
 on:
@@ -127,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
+    environment: production
     permissions: {}
 
     steps:
