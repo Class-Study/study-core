@@ -4,6 +4,7 @@ INSERT INTO study.users (
     email,
     password_hash,
     role,
+    preference_theme,
     status,
     created_at
 ) VALUES (
@@ -12,6 +13,7 @@ INSERT INTO study.users (
              'jonathanaparecido80@gmail.com',
              '$2y$10$owbJImj70beYAz6JKhD04.O7tCbMq7A7qvUizTHBaZCqMnTLrOK6W',  -- hash do bcrypt
              'ADMIN',
+                'light',
              'ACTIVE',
              NOW()
          );

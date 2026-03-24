@@ -60,6 +60,7 @@ public interface StudentInfraMapper {
     @Mapping(target = "passwordHash", source = "passwordHash")
     @Mapping(target = "role", expression = "java(student.getRole().name())")
     @Mapping(target = "status", expression = "java(student.getStatus().name())")
+    @Mapping(target = "preferenceTheme", ignore = true)
     @Mapping(target = "avatarUrl", source = "avatarUrl")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "lastSeenAt", ignore = true)

@@ -5,6 +5,7 @@ import com.example.studycore.application.usecase.teacher.input.UpdateTeacherInpu
 import com.example.studycore.application.usecase.teacher.output.GetTeacherOutput;
 import com.example.studycore.application.usecase.teacher.output.ListTeachersOutput;
 import com.example.studycore.domain.model.User;
+import com.example.studycore.domain.model.enums.ThemePreference;
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.infrastructure.api.controllers.teacher.request.CreateTeacherRequest;
@@ -35,6 +36,9 @@ public interface TeacherInfraMapper {
                 UserStatus.valueOf(entity.getStatus()),
                 entity.getAvatarUrl(),
                 entity.getPhone(),
+                entity.getPreferenceTheme() != null
+                        ? ThemePreference.valueOf(entity.getPreferenceTheme().toUpperCase())
+                        : ThemePreference.LIGHT,
                 entity.getLastSeenAt(),
                 entity.getCreatedAt()
         );
@@ -46,6 +50,7 @@ public interface TeacherInfraMapper {
     @Mapping(target = "passwordHash", source = "passwordHash")
     @Mapping(target = "role", expression = "java(teacher.getRole().name())")
     @Mapping(target = "status", expression = "java(teacher.getStatus().name())")
+    @Mapping(target = "preferenceTheme", expression = "java(teacher.getPreferenceTheme().name().toLowerCase())")
     @Mapping(target = "avatarUrl", source = "avatarUrl")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "lastSeenAt", source = "lastSeenAt")

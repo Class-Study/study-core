@@ -55,6 +55,24 @@ public interface AuthApi {
     @PostMapping("/login/student")
     ResponseEntity<AuthResponse> loginStudent(@Valid @RequestBody LoginRequest request);
 
+    @Operation(summary = "Admin login",
+            description = "Authenticates an admin user. Returns 401 if credentials are invalid or user is not an admin.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200",
+                    description = "Login successful",
+                    headers = {
+                            @Header(name = "X-Access-Token", description = "JWT access token",
+                                    schema = @Schema(type = "string")),
+                            @Header(name = "X-Refresh-Token", description = "Refresh token value",
+                                    schema = @Schema(type = "string")),
+                            @Header(name = "X-Expires-In", description = "Token expiration in seconds",
+                                    schema = @Schema(type = "integer"))
+                    }),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    @PostMapping("/login/admin")
+    ResponseEntity<AuthResponse> loginAdmin(@Valid @RequestBody LoginRequest request);
+
     @Operation(summary = "Refresh access token",
                description = "Generates new access token using refresh token from cookie or request body")
     @ApiResponses({

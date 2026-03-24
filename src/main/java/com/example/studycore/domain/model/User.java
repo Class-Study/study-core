@@ -2,6 +2,7 @@ package com.example.studycore.domain.model;
 
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
+import com.example.studycore.domain.model.enums.ThemePreference;
 import lombok.Getter;
 
 import java.time.OffsetDateTime;
@@ -18,6 +19,7 @@ public class User {
     private UserStatus status;
     private String avatarUrl;
     private String phone;
+    private ThemePreference preferenceTheme;
     private OffsetDateTime lastSeenAt;
     private final OffsetDateTime createdAt;
 
@@ -30,6 +32,7 @@ public class User {
             UserStatus status,
             String avatarUrl,
             String phone,
+            ThemePreference preferenceTheme,
             OffsetDateTime lastSeenAt,
             OffsetDateTime createdAt
     ) {
@@ -41,6 +44,7 @@ public class User {
         this.status = status;
         this.avatarUrl = avatarUrl;
         this.phone = phone;
+        this.preferenceTheme = preferenceTheme != null ? preferenceTheme : ThemePreference.LIGHT;
         this.lastSeenAt = lastSeenAt;
         this.createdAt = createdAt;
 
@@ -66,6 +70,7 @@ public class User {
                 status,
                 avatarUrl,
                 normalizePhone(phone),
+                ThemePreference.LIGHT,
                 null,
                 OffsetDateTime.now()
         );
@@ -80,6 +85,7 @@ public class User {
             UserStatus status,
             String avatarUrl,
             String phone,
+            ThemePreference preferenceTheme,
             OffsetDateTime lastSeenAt,
             OffsetDateTime createdAt
     ) {
@@ -92,9 +98,15 @@ public class User {
                 status,
                 avatarUrl,
                 phone,
+                preferenceTheme,
                 lastSeenAt,
                 createdAt
         );
+    }
+
+    public void updateTheme(ThemePreference theme) {
+        if (theme == null) throw new IllegalArgumentException("Theme cannot be null.");
+        this.preferenceTheme = theme;
     }
 
     private void validate() {

@@ -34,6 +34,7 @@ public class UserGatewayImpl implements UserGateway {
                 .map(AUTH_INFRA_MAPPER::userFromEntity);
     }
 
+    @Override
     public User save(User user) {
         UserEntity entity = AUTH_INFRA_MAPPER.userToEntity(user);
         UserEntity savedEntity = userRepository.save(entity);

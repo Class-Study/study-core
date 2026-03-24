@@ -6,6 +6,7 @@ import com.example.studycore.application.usecase.auth.output.LoginOutput;
 import com.example.studycore.application.usecase.auth.output.TokenOutput;
 import com.example.studycore.domain.model.RefreshToken;
 import com.example.studycore.domain.model.User;
+import com.example.studycore.domain.model.enums.ThemePreference;
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.infrastructure.api.controllers.auth.request.LoginRequest;
@@ -43,7 +44,8 @@ public interface AuthInfraMapper {
     @Mapping(target = "user.name", source = "userName")
     @Mapping(target = "user.email", source = "userEmail")
     @Mapping(target = "user.role", source = "userRole")
-    AuthResponse toAuthResponse(LoginOutput output);
+    @Mapping(target = "user.preferenceTheme", expression = "java(loginOutput.preferenceTheme() != null ? loginOutput.preferenceTheme().name().toLowerCase() : \"light\")")
+    AuthResponse toAuthResponse(LoginOutput loginOutput);
 
     @Mapping(target = "message", constant = "Token refreshed successfully")
     @Mapping(target = "user", ignore = true)
@@ -70,6 +72,9 @@ public interface AuthInfraMapper {
                 UserStatus.valueOf(entity.getStatus()),
                 entity.getAvatarUrl(),
                 entity.getPhone(),
+                entity.getPreferenceTheme() != null
+                        ? ThemePreference.valueOf(entity.getPreferenceTheme().toUpperCase())
+                        : ThemePreference.LIGHT,
                 entity.getLastSeenAt(),
                 entity.getCreatedAt()
         );
@@ -91,6 +96,7 @@ public interface AuthInfraMapper {
     // Domain → Entity using automatic mapping with enum conversion
     @Mapping(target = "role", expression = "java(user.getRole().name())")
     @Mapping(target = "status", expression = "java(user.getStatus().name())")
+    @Mapping(target = "preferenceTheme", expression = "java(user.getPreferenceTheme().name().toLowerCase())")
     UserEntity userToEntity(User user);
 
     RefreshTokenEntity refreshTokenToEntity(RefreshToken refreshToken);

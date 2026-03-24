@@ -43,6 +43,11 @@ public class AuthController implements AuthApi {
         return executeLogin(request, UserRole.STUDENT);
     }
 
+    @Override
+    public ResponseEntity<AuthResponse> loginAdmin(LoginRequest request) {
+        return executeLogin(request, UserRole.ADMIN);
+    }
+
     private ResponseEntity<AuthResponse> executeLogin(LoginRequest request, UserRole expectedRole) {
         final var userAgent = httpServletRequest.getHeader("User-Agent");
         final var input = AUTH_INFRA_MAPPER.toLoginInput(request, userAgent, expectedRole);

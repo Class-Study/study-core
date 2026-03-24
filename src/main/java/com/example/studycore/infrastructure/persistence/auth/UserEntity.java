@@ -43,6 +43,9 @@ public class UserEntity {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @Column(name = "preference_theme", nullable = false, length = 10)
+    private String preferenceTheme = "light";
+
     @Column(name = "last_seen_at")
     private OffsetDateTime lastSeenAt;
 

@@ -17,7 +17,8 @@ public record AuthResponse(
             String id,
             String name,
             String email,
-            String role
+            String role,
+            String preferenceTheme
     ) {
     }
 

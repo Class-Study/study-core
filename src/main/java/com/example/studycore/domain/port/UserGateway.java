@@ -11,5 +11,7 @@ public interface UserGateway {
     Optional<User> findByEmailAndRole(String email, UserRole role);
 
     Optional<User> findById(UUID id);
+
+    User save(User user);
 }
 

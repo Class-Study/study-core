@@ -40,6 +40,7 @@ public class UpdateTeacherUseCase {
                 existingTeacher.getStatus(), // Status não pode ser alterado via update
                 input.avatarUrl() != null ? input.avatarUrl() : existingTeacher.getAvatarUrl(),
                 input.phone() != null ? input.phone() : existingTeacher.getPhone(),
+                existingTeacher.getPreferenceTheme(),
                 existingTeacher.getLastSeenAt(),
                 existingTeacher.getCreatedAt()
         );
