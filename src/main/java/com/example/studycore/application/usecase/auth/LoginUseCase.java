@@ -36,7 +36,7 @@ public class LoginUseCase {
 
     @Transactional
     public LoginOutput execute(LoginInput input) {
-        User user = userGateway.findByEmail(input.email().trim().toLowerCase())
+        User user = userGateway.findByEmailAndRole(input.email().trim().toLowerCase(), input.expectedRole())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials."));
 
         if (user.getStatus() == UserStatus.BLOCKED) {
@@ -44,6 +44,10 @@ public class LoginUseCase {
         }
 
         if (!passwordEncoder.matches(input.password(), user.getPasswordHash())) {
+            throw new UnauthorizedException("Invalid credentials.");
+        }
+
+        if (user.getRole() != input.expectedRole()) {
             throw new UnauthorizedException("Invalid credentials.");
         }
 

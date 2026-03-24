@@ -25,9 +25,9 @@ public interface AuthInfraMapper {
 
     AuthInfraMapper INSTANCE = Mappers.getMapper(AuthInfraMapper.class);
 
-    default LoginInput toLoginInput(LoginRequest request, String userAgent) {
+    default LoginInput toLoginInput(LoginRequest request, String userAgent, UserRole expectedRole) {
         if (request == null) return null;
-        return new LoginInput(request.email(), request.password(), userAgent);
+        return new LoginInput(request.email(), request.password(), userAgent, expectedRole);
     }
 
     RefreshTokenInput toRefreshTokenInput(RefreshRequest request);

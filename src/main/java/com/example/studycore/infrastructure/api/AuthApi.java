@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/auth")
 public interface AuthApi {
 
-    @Operation(summary = "User login",
-               description = "Authenticates user and returns tokens via headers and HttpOnly cookie")
+    @Operation(summary = "Teacher login",
+               description = "Authenticates a teacher. Returns 401 if credentials are invalid or user is not a teacher.")
     @ApiResponses({
         @ApiResponse(responseCode = "200",
                      description = "Login successful",
@@ -32,10 +32,28 @@ public interface AuthApi {
                          @Header(name = "X-Expires-In", description = "Token expiration in seconds",
                                 schema = @Schema(type = "integer"))
                      }),
-        @ApiResponse(responseCode = "400", description = "Invalid credentials or user blocked")
+        @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
-    @PostMapping("/login")
-    ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request);
+    @PostMapping("/login/teacher")
+    ResponseEntity<AuthResponse> loginTeacher(@Valid @RequestBody LoginRequest request);
+
+    @Operation(summary = "Student login",
+               description = "Authenticates a student. Returns 401 if credentials are invalid or user is not a student.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200",
+                     description = "Login successful",
+                     headers = {
+                         @Header(name = "X-Access-Token", description = "JWT access token",
+                                schema = @Schema(type = "string")),
+                         @Header(name = "X-Refresh-Token", description = "Refresh token value",
+                                schema = @Schema(type = "string")),
+                         @Header(name = "X-Expires-In", description = "Token expiration in seconds",
+                                schema = @Schema(type = "integer"))
+                     }),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    @PostMapping("/login/student")
+    ResponseEntity<AuthResponse> loginStudent(@Valid @RequestBody LoginRequest request);
 
     @Operation(summary = "Refresh access token",
                description = "Generates new access token using refresh token from cookie or request body")

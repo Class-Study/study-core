@@ -1,6 +1,7 @@
 package com.example.studycore.infrastructure;
 
 import com.example.studycore.domain.model.User;
+import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.port.UserGateway;
 import com.example.studycore.infrastructure.mapper.AuthInfraMapper;
 import com.example.studycore.infrastructure.persistence.auth.UserEntity;
@@ -22,8 +23,8 @@ public class UserGatewayImpl implements UserGateway {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmailIgnoreCase(email)
+    public Optional<User> findByEmailAndRole(String email, UserRole role) {
+        return userRepository.findByEmailAndRoleIgnoreCase(email, role.name())
                 .map(AUTH_INFRA_MAPPER::userFromEntity);
     }
 

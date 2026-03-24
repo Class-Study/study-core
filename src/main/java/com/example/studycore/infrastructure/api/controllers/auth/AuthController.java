@@ -3,6 +3,7 @@ package com.example.studycore.infrastructure.api.controllers.auth;
 import com.example.studycore.application.usecase.auth.LoginUseCase;
 import com.example.studycore.application.usecase.auth.LogoutUseCase;
 import com.example.studycore.application.usecase.auth.RefreshTokenUseCase;
+import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.infrastructure.api.AuthApi;
 import com.example.studycore.infrastructure.api.controllers.auth.request.LoginRequest;
 import com.example.studycore.infrastructure.api.controllers.auth.request.RefreshRequest;
@@ -33,21 +34,24 @@ public class AuthController implements AuthApi {
     private final HttpServletResponse httpServletResponse;
 
     @Override
-    public ResponseEntity<AuthResponse> login(LoginRequest request) {
-        // Request → Input using AuthInfraMapper automatic mapping
-        final var userAgent = httpServletRequest.getHeader("User-Agent");
-        final var input = AUTH_INFRA_MAPPER.toLoginInput(request, userAgent);
+    public ResponseEntity<AuthResponse> loginTeacher(LoginRequest request) {
+        return executeLogin(request, UserRole.TEACHER);
+    }
 
-        // Execute use case
+    @Override
+    public ResponseEntity<AuthResponse> loginStudent(LoginRequest request) {
+        return executeLogin(request, UserRole.STUDENT);
+    }
+
+    private ResponseEntity<AuthResponse> executeLogin(LoginRequest request, UserRole expectedRole) {
+        final var userAgent = httpServletRequest.getHeader("User-Agent");
+        final var input = AUTH_INFRA_MAPPER.toLoginInput(request, userAgent, expectedRole);
+
         final var output = loginUseCase.execute(input);
 
-        // Set tokens in headers
         final var headers = createTokenHeaders(output.accessToken(), output.refreshToken(), output.expiresIn());
-
-        // Set refresh token cookie using CookieService
         cookieService.setRefreshTokenCookie(httpServletResponse, output.refreshToken());
 
-        // Output → Response using AuthInfraMapper automatic mapping
         final var response = AUTH_INFRA_MAPPER.toAuthResponse(output);
 
         return ResponseEntity.ok()
@@ -57,22 +61,14 @@ public class AuthController implements AuthApi {
 
     @Override
     public ResponseEntity<AuthResponse> refresh(RefreshRequest request) {
-        // Get refresh token from cookie or request using CookieService
         final var refreshTokenValue = cookieService.getRefreshTokenFromCookieOrRequest(
                 httpServletRequest,
                 request.refreshToken()
         );
 
-        // Request → Input using AuthInfraMapper automatic mapping
         final var input = AUTH_INFRA_MAPPER.toRefreshTokenInput(refreshTokenValue);
-
-        // Execute use case
         final var output = refreshTokenUseCase.execute(input);
-
-        // Set access token in headers
         final var headers = createTokenHeaders(output.accessToken(), null, output.expiresIn());
-
-        // Output → Response using AuthInfraMapper automatic mapping
         final var response = AUTH_INFRA_MAPPER.toAuthResponse(output);
 
         return ResponseEntity.ok()
@@ -82,19 +78,13 @@ public class AuthController implements AuthApi {
 
     @Override
     public ResponseEntity<Void> logout(RefreshRequest request) {
-        // Get refresh token from cookie or request using CookieService
         final var refreshTokenValue = cookieService.getRefreshTokenFromCookieOrRequest(
                 httpServletRequest,
                 request.refreshToken()
         );
 
-        // Request → Input using AuthInfraMapper automatic mapping
         final var input = AUTH_INFRA_MAPPER.toRefreshTokenInput(refreshTokenValue);
-
-        // Execute use case
         logoutUseCase.execute(input);
-
-        // Clear refresh token cookie using CookieService
         cookieService.clearRefreshTokenCookie(httpServletResponse);
 
         return ResponseEntity.noContent().build();

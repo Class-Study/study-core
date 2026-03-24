@@ -63,8 +63,8 @@ public class StudentGatewayImpl implements StudentGateway {
     }
 
     @Override
-    public Optional<Student> findByEmail(String email) {
-        final Optional<UserEntity> userOpt = userRepository.findByEmailIgnoreCase(email.trim().toLowerCase());
+    public Optional<Student> findByEmailAndRole(String email, UserRole role) {
+        final Optional<UserEntity> userOpt = userRepository.findByEmailIgnoreCaseAndRole(email, role.name());
         if (userOpt.isEmpty()) {
             return Optional.empty();
         }

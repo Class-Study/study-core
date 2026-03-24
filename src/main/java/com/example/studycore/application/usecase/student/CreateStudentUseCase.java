@@ -7,6 +7,7 @@ import com.example.studycore.application.usecase.student.output.GetStudentOutput
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.model.Student;
+import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.port.StudentGateway;
 import com.example.studycore.domain.port.UserGateway;
 import com.example.studycore.infrastructure.service.email.NotifyEmailService;
@@ -34,7 +35,7 @@ public class CreateStudentUseCase {
 
     @Transactional
     public GetStudentOutput execute(final CreateStudentInput input) {
-        studentGateway.findByEmail(input.email().trim().toLowerCase()).ifPresent(existing -> {
+        studentGateway.findByEmailAndRole(input.email().trim().toLowerCase(), UserRole.STUDENT).ifPresent(existing -> {
             throw new BusinessException("User with email " + input.email() + " already exists.");
         });
 
