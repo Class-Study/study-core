@@ -1,0 +1,173 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CI/CD — EduSpace Backend (study-core)
+#
+# Stages
+# ──────
+#  ci     — compile + test          (todo push / PR para main)
+#  docker — build & push para GHCR  (push em main, após ci passar)
+#  deploy — SSH na EC2, escreve .env completo, sobe a stack backend
+#           (push em main, após docker passar)
+#
+# A rede "eduspace_net" é criada pelo compose do FRONTEND.
+# O backend apenas se conecta a ela (external: true).
+# O deploy do backend NÃO reinicia nginx nem frontend.
+#
+# Secrets necessários
+# ───────────────────
+#  Organização (org → Settings → Secrets → Actions):
+#    EC2_HOST          — IP público / hostname da instância EC2
+#    EC2_USER          — usuário SSH (ex: "ubuntu")
+#    EC2_SSH_KEY       — conteúdo da chave PEM privada
+#    EC2_DEPLOY_PATH   — caminho absoluto na EC2 (ex: /opt/eduspace/backend)
+#
+#  Repositório (repo → Settings → Secrets → Actions):
+#    DB_NAME           — nome do banco PostgreSQL
+#    DB_USER           — usuário PostgreSQL
+#    DB_PASSWORD       — senha PostgreSQL
+#    REDIS_PASSWORD    — senha Redis
+#    RABBITMQ_USER     — usuário RabbitMQ
+#    RABBITMQ_PASSWORD — senha RabbitMQ
+#    JWT_SECRET        — segredo JWT (≥256 bits, hex)
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI/CD — Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY:   ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/study-back
+
+jobs:
+
+  # ── 1. Compile & test ────────────────────────────────────────────────────────
+  ci:
+    name: CI — compile & test
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build & test
+        run: ./mvnw -B verify --no-transfer-progress
+
+  # ── 2. Build & push imagem Docker para GHCR ─────────────────────────────────
+  docker:
+    name: Docker — build & push
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags:   ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+  # ── 3. Deploy stack de backend na EC2 ───────────────────────────────────────
+  #
+  # Este job é dono do .env na EC2 e reinicia apenas os serviços do backend:
+  #   postgres · redis · rabbitmq · backend
+  #
+  # NÃO toca em nginx nem frontend — esses são gerenciados pelo pipeline do front.
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy — EC2
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    permissions: {}
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.EC2_DEPLOY_PATH }}"
+
+            # ── Preserva FRONT_VERSION caso o pipeline do front já tenha setado ──
+            FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
+
+            # ── Escreve o .env completo (backend é dono deste arquivo) ────────────
+            cat > .env <<ENVEOF
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}
+            RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            BACK_VERSION=latest
+            FRONT_VERSION=${FRONT_VER}
+            GITHUB_REPOSITORY_OWNER=${{ github.repository_owner }}
+            ENVEOF
+
+            # ── Pull da nova imagem do backend ────────────────────────────────────
+            docker compose pull backend
+
+            # ── Sobe infra + backend (sem tocar no nginx/frontend) ────────────────
+            docker compose up -d --no-deps --wait \
+              postgres redis rabbitmq backend
+
+            # ── Sanity check ──────────────────────────────────────────────────────
+            docker compose ps backend | grep -q "running" \
+              || (echo "❌ backend falhou ao iniciar" && exit 1)
+
+            # ── Remove imagens antigas sem uso ────────────────────────────────────
+            docker image prune -f
+

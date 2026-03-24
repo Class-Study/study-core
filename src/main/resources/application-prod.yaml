@@ -1,0 +1,20 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# application-prod.yaml — Production profile overrides
+#
+# Activated via: -Dspring.profiles.active=prod  (set in JAVA_OPTS in docker-compose)
+# ─────────────────────────────────────────────────────────────────────────────
+
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        show_sql: false
+
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    org.hibernate.SQL: WARN
+    com.example.studycore: INFO
+

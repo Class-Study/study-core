@@ -1,35 +1,43 @@
 server:
   servlet:
     context-path: /api/v1
+  # Forward headers from Nginx (X-Forwarded-Proto, etc.)
+  forward-headers-strategy: framework
 
 spring:
   application:
     name: study-app
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/study
-    username: study
-    password: study123
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:study}
+    username: ${DB_USER:study}
+    password: ${DB_PASSWORD:study123}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: redis123
-      username: ""          # ← adiciona isso (Redis 7 exige explícito)
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis123}
+      username: ""
       timeout: 2000ms
       connect-timeout: 2000ms
       lettuce:
         pool:
           enabled: false
+
   rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
     publisher-returns: true
     publisher-confirm-type: correlated
-    host: ${HOST_RABBIT:localhost}
-    port: 5672
-    username: guest
-    password: guest
     connection-timeout: 5000
     template:
       retry:
@@ -42,7 +50,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: false
@@ -56,6 +64,9 @@ spring:
     schemas: study
     default-schema: study
 
+# ──────────────────────────────────────────────────────────
+# JWT
+# ──────────────────────────────────────────────────────────
 jwt:
   secret: ${JWT_SECRET:dev-secret-key-must-be-at-least-256-bits-long!}
   access-token:
@@ -63,6 +74,9 @@ jwt:
   refresh-token:
     expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:30}
 
+# ──────────────────────────────────────────────────────────
+# AMQP QUEUES
+# ──────────────────────────────────────────────────────────
 amqp:
   queue:
     user-created: user-created.queue
@@ -71,10 +85,32 @@ amqp:
     user-created-dlq: user-created.dlq
     notify-user-dlq: notify-user.dlq
 
+# ──────────────────────────────────────────────────────────
+# ACTUATOR — health check used by Docker & Nginx
+# ──────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: true
+    rabbit:
+      enabled: true
+    db:
+      enabled: true
+
+# ──────────────────────────────────────────────────────────
+# LOGGING
+# ──────────────────────────────────────────────────────────
 logging:
   level:
     root: INFO
     org.springframework: INFO
-    org.hibernate.type.descriptor.sql: TRACE
-    com.seu.pacote: DEBUG
-
+    org.hibernate.SQL: DEBUG
+    com.example.studycore: DEBUG

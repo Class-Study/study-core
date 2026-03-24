@@ -1,62 +1,141 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yaml — PRODUCTION stack (EC2)  ·  BACKEND only
+#
+# ⚠️  Nginx é gerenciado pelo repositório do FRONTEND.
+#     Este compose sobe apenas: postgres · redis · rabbitmq · backend
+#
+# A rede "eduspace_net" é criada pelo docker-compose do frontend.
+# Este arquivo apenas se conecta a ela (external: true).
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
 
-  # ══════════════════════════════════════════════
+  # ══════════════════════════════════════════════════════════════
   # POSTGRESQL 16
-  # ══════════════════════════════════════════════
+  # ══════════════════════════════════════════════════════════════
   postgres:
     image: postgres:16-alpine
     container_name: study_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: study
-      POSTGRES_USER: study
-      POSTGRES_PASSWORD: study123
-    ports:
-      - "5432:5432"
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - study_postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U track_user -d track_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - eduspace_net
 
-
-  # ══════════════════════════════════════════════
+  # ══════════════════════════════════════════════════════════════
   # REDIS 7
-  # ══════════════════════════════════════════════
+  # ══════════════════════════════════════════════════════════════
   redis:
     image: redis:7-alpine
-    container_name: eduspace_redis
+    container_name: study_redis
     restart: unless-stopped
-    command: redis-server --requirepass redis123 --appendonly yes
-    ports:
-      - "6379:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - eduspace_net
 
-  # ══════════════════════════════════════════════
-  # REDIS COMMANDER (UI web para inspecionar Redis)
-  # Acesse: http://localhost:8081
-  # ══════════════════════════════════════════════
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: eduspace_redis_ui
+  # ══════════════════════════════════════════════════════════════
+  # RABBITMQ 3.13 (management UI disponível via túnel SSH)
+  # ══════════════════════════════════════════════════════════════
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: study_rabbitmq
     restart: unless-stopped
     environment:
-      REDIS_HOSTS:     local:redis:6379:0:redis123
-      HTTP_USER:       admin
-      HTTP_PASSWORD:   admin
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     ports:
-      - "8081:8081"
+      - "127.0.0.1:15672:15672"   # management UI — localhost only
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - eduspace_net
+
+  # ══════════════════════════════════════════════════════════════
+  # SPRING BOOT BACKEND
+  # O Nginx do frontend referencia este serviço pelo nome "backend"
+  # ══════════════════════════════════════════════════════════════
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-class-study}/study-back:${BACK_VERSION:-latest}
+    container_name: study_backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST:           postgres
+      DB_PORT:           "5432"
+      DB_NAME:           ${DB_NAME}
+      DB_USER:           ${DB_USER}
+      DB_PASSWORD:       ${DB_PASSWORD}
+      REDIS_HOST:        redis
+      REDIS_PORT:        "6379"
+      REDIS_PASSWORD:    ${REDIS_PASSWORD}
+      RABBITMQ_HOST:     rabbitmq
+      RABBITMQ_PORT:     "5672"
+      RABBITMQ_USER:     ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      JWT_SECRET:        ${JWT_SECRET}
+      JAVA_OPTS: >-
+        -Xmx512m
+        -XX:+UseContainerSupport
+        -Dspring.profiles.active=prod
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v1/actuator/health | grep -q 'UP'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - eduspace_net
 
+# ──────────────────────────────────────────────────────────────
+# VOLUMES
+# ──────────────────────────────────────────────────────────────
 volumes:
-  study_postgres:
+  postgres_data:
   redis_data:
+  rabbitmq_data:
+
+# ──────────────────────────────────────────────────────────────
+# NETWORK — compartilhada com o compose do frontend
+#
+# O frontend cria esta rede. O backend apenas se conecta.
+# Nome real no Docker: eduspace_net  (ou o prefixo do projeto + _net)
+#
+# Se o frontend usa `docker compose -p eduspace up`, a rede se chama
+# "eduspace_eduspace_net". Ajuste o `name:` abaixo conforme necessário.
+# ──────────────────────────────────────────────────────────────
+networks:
+  eduspace_net:
+    external: true

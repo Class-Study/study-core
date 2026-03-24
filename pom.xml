@@ -394,6 +394,9 @@
          BUILD — PLUGINS
     ══════════════════════════════════════════════════ -->
     <build>
+        <!-- Deterministic JAR name — required by Dockerfile COPY instruction -->
+        <finalName>study-core</finalName>
+
         <plugins>
 
             <!--
@@ -412,6 +415,10 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!-- Layered JAR: improves Docker build cache hit rate -->
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
                 </configuration>
             </plugin>
 
