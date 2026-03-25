@@ -3,14 +3,16 @@
 #
 # Responsabilidades
 # ─────────────────
-#  • Envia o docker-compose.yaml via base64 por variável de ambiente SSH
-#    (sem scp-action — evita timeout/trava na transferência de arquivos)
+#  • Envia o docker-compose.yaml via SSH nativo (sem actions de terceiros)
 #  • Instala Docker (engine + CLI) e Docker Compose plugin  [idempotente]
 #  • Instala utilitários essenciais (wget, curl, jq…)       [idempotente]
 #  • Cria diretório de deploy e ajusta permissões
 #  • Escreve o .env com credenciais de infra
 #  • Sobe PostgreSQL e RabbitMQ e aguarda healthcheck        [idempotente]
 #  • Se tudo já estiver pronto → exit 0 imediato (sem ações)
+#
+# ⚠️  Usa SSH nativo do runner (openssh-client) em vez de appleboy/ssh-action
+#     para evitar o container Docker intermediário que causava travamento.
 #
 # Como usar em outro workflow
 # ───────────────────────────
@@ -75,43 +77,62 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Codifica o docker-compose.yaml em base64 para enviar via env SSH ───
-      - name: Encode docker-compose.yaml
-        id: encode
+      # ── Configura chave SSH no runner ─────────────────────────────────────
+      - name: Configurar chave SSH
         run: |
-          echo "compose_b64=$(base64 -w 0 docker-compose.yaml)" >> "$GITHUB_OUTPUT"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
-      # ── Instala dependências, copia compose, escreve .env e sobe infra ──────
+      # ── Envia docker-compose.yaml via scp nativo ──────────────────────────
+      - name: Copiar docker-compose.yaml para EC2
+        run: |
+          # Garante que o diretório existe antes do scp
+          ssh -i ~/.ssh/ec2_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=30 \
+              "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" \
+              "sudo mkdir -p '${{ secrets.EC2_DEPLOY_PATH }}' && sudo chown -R \$USER:\$USER '${{ secrets.EC2_DEPLOY_PATH }}'"
+
+          scp -i ~/.ssh/ec2_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=30 \
+              docker-compose.yaml \
+              "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_DEPLOY_PATH }}/docker-compose.yaml"
+
+      # ── Instala dependências, escreve .env e sobe postgres + rabbitmq ──────
       - name: Preparar máquina via SSH
-        uses: appleboy/ssh-action@v1.0.3
         env:
-          DEPLOY_PATH:       ${{ secrets.EC2_DEPLOY_PATH }}
-          DB_NAME:           ${{ secrets.DB_NAME }}
-          DB_USER:           ${{ secrets.DB_USER }}
-          DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
-          RABBITMQ_USER:     ${{ secrets.RABBITMQ_USER }}
+          EC2_USER:         ${{ secrets.EC2_USER }}
+          EC2_HOST:         ${{ secrets.EC2_HOST }}
+          DEPLOY_PATH:      ${{ secrets.EC2_DEPLOY_PATH }}
+          DB_NAME:          ${{ secrets.DB_NAME }}
+          DB_USER:          ${{ secrets.DB_USER }}
+          DB_PASSWORD:      ${{ secrets.DB_PASSWORD }}
+          RABBITMQ_USER:    ${{ secrets.RABBITMQ_USER }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
-          COMPOSE_B64:       ${{ steps.encode.outputs.compose_b64 }}
-        with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          port:     22
-          timeout:  300s
-          envs:     DEPLOY_PATH,DB_NAME,DB_USER,DB_PASSWORD,RABBITMQ_USER,RABBITMQ_PASSWORD,COMPOSE_B64
-          script: |
+        run: |
+          ssh -i ~/.ssh/ec2_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=30 \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=20 \
+              "$EC2_USER@$EC2_HOST" \
+              "DEPLOY_PATH='$DEPLOY_PATH' \
+               DB_NAME='$DB_NAME' \
+               DB_USER='$DB_USER' \
+               DB_PASSWORD='$DB_PASSWORD' \
+               RABBITMQ_USER='$RABBITMQ_USER' \
+               RABBITMQ_PASSWORD='$RABBITMQ_PASSWORD' \
+               bash -s" << 'SSHEOF'
             set -euo pipefail
 
             echo "════════════════════════════════════════"
             echo " EduSpace — Preparação da máquina EC2"
             echo "════════════════════════════════════════"
 
-            # ── 1. Garante diretório de deploy e atualiza docker-compose.yaml ─
-            sudo mkdir -p "$DEPLOY_PATH"
-            sudo chown -R "$USER":"$USER" "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
-            echo "📄 Atualizando docker-compose.yaml..."
-            echo "${COMPOSE_B64}" | base64 -d > docker-compose.yaml
 
             # ── Pré-verificação: checa o que já está pronto ───────────────────
             SKIP_DOCKER=false
@@ -121,8 +142,8 @@ jobs:
 
             echo "🔍 Verificando o que já está instalado/rodando..."
 
-            command -v docker &>/dev/null         && SKIP_DOCKER=true
-            sudo docker compose version &>/dev/null && SKIP_COMPOSE=true
+            command -v docker &>/dev/null             && SKIP_DOCKER=true
+            sudo docker compose version &>/dev/null   && SKIP_COMPOSE=true
 
             if [ "$SKIP_DOCKER" = "true" ] && [ "$SKIP_COMPOSE" = "true" ]; then
               PG_STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
@@ -147,7 +168,7 @@ jobs:
               exit 0
             fi
 
-            # ── 2. Atualiza pacotes base (apenas se algo precisa ser instalado) ─
+            # ── 1. Atualiza pacotes base (apenas se algo precisa ser instalado) ─
             if [ "$SKIP_DOCKER" = "false" ] || [ "$SKIP_COMPOSE" = "false" ]; then
               echo "📦 Atualizando lista de pacotes..."
               sudo apt-get update -y -q
@@ -158,7 +179,7 @@ jobs:
                 unzip jq net-tools
             fi
 
-            # ── 3. Instala Docker Engine ──────────────────────────────────────
+            # ── 2. Instala Docker Engine ──────────────────────────────────────
             if [ "$SKIP_DOCKER" = "false" ]; then
               echo "🐳 Instalando Docker Engine..."
               curl -fsSL https://get.docker.com | sudo sh
@@ -168,7 +189,7 @@ jobs:
               echo "⏭️  Docker — já instalado, pulando."
             fi
 
-            # ── 4. Instala Docker Compose plugin ─────────────────────────────
+            # ── 3. Instala Docker Compose plugin ─────────────────────────────
             if [ "$SKIP_COMPOSE" = "false" ]; then
               echo "🐳 Instalando Docker Compose plugin..."
               COMPOSE_VER=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest \
@@ -183,15 +204,14 @@ jobs:
               echo "⏭️  Docker Compose — já instalado, pulando."
             fi
 
-            # ── 5. Garante que o serviço Docker está ativo ────────────────────
+            # ── 4. Garante que o serviço Docker está ativo ────────────────────
             if ! sudo systemctl is-active --quiet docker; then
               echo "🚀 Iniciando serviço Docker..."
               sudo systemctl enable docker
               sudo systemctl start  docker
             fi
 
-
-            # ── 6. Escreve/atualiza o .env de infra ───────────────────────────
+            # ── 5. Escreve/atualiza o .env de infra ───────────────────────────
             echo "📝 Atualizando .env..."
             BACK_VER=$(grep -Po  '(?<=^BACK_VERSION=).*'  .env 2>/dev/null || echo "latest")
             FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
@@ -208,7 +228,7 @@ jobs:
             GHCR_OWNER=${GHCR_OWNER}
             ENVEOF
 
-            # ── 7. Sobe PostgreSQL (se necessário) ────────────────────────────
+            # ── 6. Sobe PostgreSQL (se necessário) ────────────────────────────
             if [ "$SKIP_POSTGRES" = "false" ]; then
               echo "🗄️  Subindo PostgreSQL..."
               sudo docker compose pull postgres
@@ -234,7 +254,7 @@ jobs:
               echo "⏭️  PostgreSQL — já healthy, pulando."
             fi
 
-            # ── 8. Sobe RabbitMQ (se necessário) ─────────────────────────────
+            # ── 7. Sobe RabbitMQ (se necessário) ─────────────────────────────
             if [ "$SKIP_RABBITMQ" = "false" ]; then
               echo "🐇 Subindo RabbitMQ..."
               sudo docker compose pull rabbitmq
@@ -260,7 +280,7 @@ jobs:
               echo "⏭️  RabbitMQ — já healthy, pulando."
             fi
 
-            # ── 9. Resumo final ───────────────────────────────────────────────
+            # ── 8. Resumo final ───────────────────────────────────────────────
             echo ""
             echo "════════════════════════════════════════"
             echo "  Docker         : $(sudo docker --version)"
@@ -272,3 +292,4 @@ jobs:
             sudo docker compose ps postgres rabbitmq
             echo ""
             echo "✅ Máquina pronta para deploy do backend!"
+          SSHEOF

@@ -143,36 +143,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Faz o deploy somente do backend ──────────────────────────────────────
+      # ── Configura chave SSH no runner ───────────────────────────────────────
+      - name: Configurar chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      # ── Faz o deploy somente do backend ────────────────────────────────────
       # (docker-compose.yaml, .env, postgres e rabbitmq já foram preparados
       #  pelo job prepare via prepare-machine.yaml)
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
         env:
-          DEPLOY_PATH:  ${{ secrets.EC2_DEPLOY_PATH }}
-          JWT_SECRET:   ${{ secrets.JWT_SECRET }}
-          REPO_OWNER:   ${{ github.repository_owner }}
-          GHCR_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
-          GHCR_ACTOR:   ${{ github.actor }}
-        with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          port:     22
-          timeout:  180s
-          envs:     DEPLOY_PATH,JWT_SECRET,REPO_OWNER,GHCR_TOKEN,GHCR_ACTOR
-          script: |
+          EC2_USER:    ${{ secrets.EC2_USER }}
+          EC2_HOST:    ${{ secrets.EC2_HOST }}
+          DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
+          JWT_SECRET:  ${{ secrets.JWT_SECRET }}
+          REPO_OWNER:  ${{ github.repository_owner }}
+          GHCR_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
+          GHCR_ACTOR:  ${{ github.actor }}
+        run: |
+          ssh -i ~/.ssh/ec2_key \
+              -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=30 \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=20 \
+              "$EC2_USER@$EC2_HOST" \
+              "DEPLOY_PATH='$DEPLOY_PATH' \
+               JWT_SECRET='$JWT_SECRET' \
+               REPO_OWNER='$REPO_OWNER' \
+               GHCR_TOKEN='$GHCR_TOKEN' \
+               GHCR_ACTOR='$GHCR_ACTOR' \
+               bash -s" << 'SSHEOF'
             set -euo pipefail
             cd "$DEPLOY_PATH"
 
             # ── 1. GHCR exige nome da imagem em lowercase ─────────────────────
             REPO_OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
 
-            # ── 2. Atualiza BACK_VERSION, GHCR_OWNER e JWT_SECRET no .env ───────
-            # (as demais variáveis já foram escritas pelo job prepare)
+            # ── 2. Atualiza BACK_VERSION, GHCR_OWNER e JWT_SECRET no .env ─────
             sed -i "s|^BACK_VERSION=.*|BACK_VERSION=latest|" .env
             sed -i "s|^GHCR_OWNER=.*|GHCR_OWNER=${REPO_OWNER_LOWER}|" .env
-            # JWT_SECRET: adiciona se não existir, atualiza se existir
             if grep -q "^JWT_SECRET=" .env; then
               sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" .env
             else
@@ -198,3 +210,4 @@ jobs:
             # ── 6. Limpeza ────────────────────────────────────────────────────
             sudo docker image prune -f
             echo "✅ Deploy do backend concluído"
+          SSHEOF
