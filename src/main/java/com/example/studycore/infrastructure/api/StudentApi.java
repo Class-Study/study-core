@@ -26,7 +26,7 @@ public interface StudentApi {
 
     @PostMapping
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<Void> create(@RequestBody @Valid CreateStudentRequest request);
+    ResponseEntity<String> create(@RequestBody @Valid CreateStudentRequest request);
 
     @GetMapping
     @PreAuthorize("hasRole('TEACHER')")

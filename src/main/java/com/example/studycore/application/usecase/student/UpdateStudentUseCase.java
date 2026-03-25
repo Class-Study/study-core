@@ -84,7 +84,7 @@ public class UpdateStudentUseCase {
                 existing.getCreatedAt()
         );
 
-        return MAPPER.toGetStudentOutput(studentGateway.save(updated));
+        return MAPPER.toGetStudentOutput(studentGateway.save(updated), null);
     }
 }
 

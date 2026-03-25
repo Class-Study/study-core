@@ -10,8 +10,10 @@ import com.example.studycore.infrastructure.api.controllers.student.response.Get
 import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.StudentStatsResponse;
 import com.example.studycore.infrastructure.mapper.StudentInfraMapper;
+
 import java.util.List;
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,11 +36,11 @@ public class StudentController implements StudentApi {
     private final UnblockStudentUseCase unblockStudentUseCase;
 
     @Override
-    public ResponseEntity<Void> create(CreateStudentRequest request) {
+    public ResponseEntity<String> create(CreateStudentRequest request) {
         final var teacherId = getAuthenticatedUserId();
         final var input = STUDENT_INFRA_MAPPER.toCreateStudentInput(teacherId, request);
-        createStudentUseCase.execute(input);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        final var provisoryPass = createStudentUseCase.execute(input).provisoryPass();
+        return ResponseEntity.status(HttpStatus.CREATED).body(provisoryPass);
     }
 
     @Override

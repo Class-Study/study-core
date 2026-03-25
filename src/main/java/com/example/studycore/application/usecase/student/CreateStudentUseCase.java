@@ -76,7 +76,7 @@ public class CreateStudentUseCase {
                 temporaryPassword
         );
 
-        return MAPPER.toGetStudentOutput(saved);
+        return MAPPER.toGetStudentOutput(saved, temporaryPassword);
     }
 
 }

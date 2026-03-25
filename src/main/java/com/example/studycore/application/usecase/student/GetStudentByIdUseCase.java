@@ -25,7 +25,7 @@ public class GetStudentByIdUseCase {
             throw new BusinessException("Student does not belong to authenticated teacher.");
         }
 
-        return MAPPER.toGetStudentOutput(student);
+        return MAPPER.toGetStudentOutput(student, null);
     }
 }
 

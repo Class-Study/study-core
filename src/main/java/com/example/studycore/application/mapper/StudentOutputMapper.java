@@ -14,7 +14,8 @@ public interface StudentOutputMapper {
     StudentOutputMapper INSTANCE = Mappers.getMapper(StudentOutputMapper.class);
 
     @Mapping(target = "status", expression = "java(student.getStatus().name())")
-    GetStudentOutput toGetStudentOutput(Student student);
+    @Mapping(target = "provisoryPass", source = "provisoryPass")
+    GetStudentOutput toGetStudentOutput(Student student, String provisoryPass);
 
     default ListStudentsOutput toListStudentsOutput(List<Student> students) {
         if (students == null) {

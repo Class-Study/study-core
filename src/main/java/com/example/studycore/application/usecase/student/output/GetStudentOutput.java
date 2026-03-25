@@ -12,6 +12,7 @@ public record GetStudentOutput(
         String name,
         String email,
         String phone,
+        String provisoryPass,
         String avatarUrl,
         String status,
         UUID teacherId,
