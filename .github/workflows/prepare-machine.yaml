@@ -107,30 +107,64 @@ jobs:
             echo " EduSpace — Preparação da máquina EC2"
             echo "════════════════════════════════════════"
 
-            # ── 1. Atualiza pacotes base ──────────────────────────────────────
-            echo "📦 Atualizando lista de pacotes..."
-            sudo apt-get update -y -q
+            SKIP_DOCKER=false
+            SKIP_COMPOSE=false
+            SKIP_POSTGRES=false
+            SKIP_RABBITMQ=false
 
-            # ── 2. Instala utilitários essenciais ─────────────────────────────
-            echo "🔧 Instalando utilitários (wget, curl, gnupg, unzip, jq)..."
-            sudo apt-get install -y -q \
-              wget curl gnupg lsb-release ca-certificates \
-              unzip jq net-tools
+            # ── Pré-verificação: checa o que já está pronto ───────────────────
+            echo "🔍 Verificando o que já está instalado/rodando..."
 
-            # ── 3. Instala Docker Engine ──────────────────────────────────────
-            if command -v docker &>/dev/null; then
-              echo "✅ Docker já instalado: $(docker --version)"
-            else
+            command -v docker &>/dev/null                          && SKIP_DOCKER=true
+            sudo docker compose version &>/dev/null               && SKIP_COMPOSE=true
+
+            if [ "$SKIP_DOCKER" = "true" ] && [ "$SKIP_COMPOSE" = "true" ]; then
+              cd "$DEPLOY_PATH" 2>/dev/null || true
+              PG_STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
+                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+              MQ_STATUS=$(sudo docker compose ps --format json rabbitmq 2>/dev/null \
+                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+              [ "$PG_STATUS" = "healthy" ] && SKIP_POSTGRES=true
+              [ "$MQ_STATUS" = "healthy" ] && SKIP_RABBITMQ=true
+            fi
+
+            echo "  Docker          : $([ "$SKIP_DOCKER"   = "true" ] && echo "✅ já instalado"  || echo "⚙️  será instalado")"
+            echo "  Docker Compose  : $([ "$SKIP_COMPOSE"  = "true" ] && echo "✅ já instalado"  || echo "⚙️  será instalado")"
+            echo "  PostgreSQL      : $([ "$SKIP_POSTGRES" = "true" ] && echo "✅ já healthy"    || echo "⚙️  será iniciado")"
+            echo "  RabbitMQ        : $([ "$SKIP_RABBITMQ" = "true" ] && echo "✅ já healthy"    || echo "⚙️  será iniciado")"
+            echo ""
+
+            # ── Atalho: tudo pronto, nada a fazer ────────────────────────────
+            if [ "$SKIP_DOCKER" = "true" ] && [ "$SKIP_COMPOSE" = "true" ] && \
+               [ "$SKIP_POSTGRES" = "true" ] && [ "$SKIP_RABBITMQ" = "true" ]; then
+              echo "🚀 Máquina já está 100% preparada — nenhuma ação necessária."
+              sudo docker compose ps postgres rabbitmq
+              exit 0
+            fi
+
+            # ── 1. Atualiza pacotes base (apenas se algo precisa ser instalado) ──
+            if [ "$SKIP_DOCKER" = "false" ] || [ "$SKIP_COMPOSE" = "false" ]; then
+              echo "📦 Atualizando lista de pacotes..."
+              sudo apt-get update -y -q
+
+              echo "🔧 Instalando utilitários (wget, curl, gnupg, unzip, jq)..."
+              sudo apt-get install -y -q \
+                wget curl gnupg lsb-release ca-certificates \
+                unzip jq net-tools
+            fi
+
+            # ── 2. Instala Docker Engine ──────────────────────────────────────
+            if [ "$SKIP_DOCKER" = "false" ]; then
               echo "🐳 Instalando Docker Engine..."
               curl -fsSL https://get.docker.com | sudo sh
               sudo usermod -aG docker "$USER"
               echo "✅ Docker instalado: $(sudo docker --version)"
+            else
+              echo "⏭️  Docker — já instalado, pulando."
             fi
 
-            # ── 4. Instala Docker Compose plugin ─────────────────────────────
-            if sudo docker compose version &>/dev/null; then
-              echo "✅ Docker Compose já instalado: $(sudo docker compose version)"
-            else
+            # ── 3. Instala Docker Compose plugin ─────────────────────────────
+            if [ "$SKIP_COMPOSE" = "false" ]; then
               echo "🐳 Instalando Docker Compose plugin..."
               COMPOSE_VER=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest \
                 | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
@@ -140,22 +174,24 @@ jobs:
                 -o /usr/local/lib/docker/cli-plugins/docker-compose
               sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
               echo "✅ Docker Compose instalado: $(sudo docker compose version)"
+            else
+              echo "⏭️  Docker Compose — já instalado, pulando."
             fi
 
-            # ── 5. Habilita e inicia o serviço Docker ─────────────────────────
-            echo "🚀 Habilitando serviço Docker..."
-            sudo systemctl enable docker
-            sudo systemctl start  docker
+            # ── 4. Garante que o serviço Docker está ativo ────────────────────
+            if ! sudo systemctl is-active --quiet docker; then
+              echo "🚀 Iniciando serviço Docker..."
+              sudo systemctl enable docker
+              sudo systemctl start  docker
+            fi
 
-            # ── 6. Cria e entra no diretório de deploy ────────────────────────
-            echo "📁 Criando diretório de deploy: $DEPLOY_PATH"
+            # ── 5. Garante diretório de deploy ────────────────────────────────
             sudo mkdir -p "$DEPLOY_PATH"
             sudo chown -R "$USER":"$USER" "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
 
-            # ── 7. Escreve o .env de infra ────────────────────────────────────
-            echo "📝 Escrevendo .env..."
-            # Preserva BACK_VERSION e FRONT_VERSION se já existirem
+            # ── 6. Escreve/atualiza o .env de infra ───────────────────────────
+            echo "📝 Atualizando .env..."
             BACK_VER=$(grep -Po  '(?<=^BACK_VERSION=).*'  .env 2>/dev/null || echo "latest")
             FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
             GHCR_OWNER=$(grep -Po '(?<=^GHCR_OWNER=).*'  .env 2>/dev/null || echo "")
@@ -171,55 +207,63 @@ jobs:
             GHCR_OWNER=${GHCR_OWNER}
             ENVEOF
 
-            # ── 8. Sobe PostgreSQL e RabbitMQ ─────────────────────────────────
-            echo "🗄️  Subindo PostgreSQL e RabbitMQ..."
-            sudo docker compose pull postgres rabbitmq
-            sudo docker compose up -d --no-deps postgres rabbitmq
+            # ── 7. Sobe PostgreSQL (se necessário) ────────────────────────────
+            if [ "$SKIP_POSTGRES" = "false" ]; then
+              echo "🗄️  Subindo PostgreSQL..."
+              sudo docker compose pull postgres
+              sudo docker compose up -d --no-deps postgres
 
-            # ── 9. Aguarda postgres ficar healthy ─────────────────────────────
-            echo "⏳ Aguardando PostgreSQL ficar healthy..."
-            for i in $(seq 1 24); do
-              STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
-                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
-              if [ "$STATUS" = "healthy" ]; then
-                echo "✅ PostgreSQL healthy!"
-                break
-              fi
-              echo "  [$i/24] PostgreSQL status: ${STATUS:-starting}..."
-              sleep 5
-              if [ "$i" -eq 24 ]; then
-                echo "❌ PostgreSQL não ficou healthy a tempo"
-                sudo docker compose logs postgres --tail=30
-                exit 1
-              fi
-            done
+              echo "⏳ Aguardando PostgreSQL ficar healthy..."
+              for i in $(seq 1 24); do
+                STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
+                  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+                if [ "$STATUS" = "healthy" ]; then
+                  echo "✅ PostgreSQL healthy!"
+                  break
+                fi
+                echo "  [$i/24] PostgreSQL status: ${STATUS:-starting}..."
+                sleep 5
+                if [ "$i" -eq 24 ]; then
+                  echo "❌ PostgreSQL não ficou healthy a tempo"
+                  sudo docker compose logs postgres --tail=30
+                  exit 1
+                fi
+              done
+            else
+              echo "⏭️  PostgreSQL — já healthy, pulando."
+            fi
 
-            # ── 10. Aguarda rabbitmq ficar healthy ────────────────────────────
-            echo "⏳ Aguardando RabbitMQ ficar healthy..."
-            for i in $(seq 1 24); do
-              STATUS=$(sudo docker compose ps --format json rabbitmq 2>/dev/null \
-                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
-              if [ "$STATUS" = "healthy" ]; then
-                echo "✅ RabbitMQ healthy!"
-                break
-              fi
-              echo "  [$i/24] RabbitMQ status: ${STATUS:-starting}..."
-              sleep 5
-              if [ "$i" -eq 24 ]; then
-                echo "❌ RabbitMQ não ficou healthy a tempo"
-                sudo docker compose logs rabbitmq --tail=30
-                exit 1
-              fi
-            done
+            # ── 8. Sobe RabbitMQ (se necessário) ─────────────────────────────
+            if [ "$SKIP_RABBITMQ" = "false" ]; then
+              echo "🐇 Subindo RabbitMQ..."
+              sudo docker compose pull rabbitmq
+              sudo docker compose up -d --no-deps rabbitmq
 
-            # ── 11. Resumo final ──────────────────────────────────────────────
+              echo "⏳ Aguardando RabbitMQ ficar healthy..."
+              for i in $(seq 1 24); do
+                STATUS=$(sudo docker compose ps --format json rabbitmq 2>/dev/null \
+                  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+                if [ "$STATUS" = "healthy" ]; then
+                  echo "✅ RabbitMQ healthy!"
+                  break
+                fi
+                echo "  [$i/24] RabbitMQ status: ${STATUS:-starting}..."
+                sleep 5
+                if [ "$i" -eq 24 ]; then
+                  echo "❌ RabbitMQ não ficou healthy a tempo"
+                  sudo docker compose logs rabbitmq --tail=30
+                  exit 1
+                fi
+              done
+            else
+              echo "⏭️  RabbitMQ — já healthy, pulando."
+            fi
+
+            # ── 9. Resumo final ───────────────────────────────────────────────
             echo ""
-            echo "════════════════════════════════════════"
-            echo " Versões instaladas"
             echo "════════════════════════════════════════"
             echo "  Docker         : $(sudo docker --version)"
             echo "  Docker Compose : $(sudo docker compose version)"
-            echo "  wget           : $(wget --version 2>&1 | head -1)"
             echo "  Diretório      : $DEPLOY_PATH"
             echo "════════════════════════════════════════"
             echo ""
