@@ -145,11 +145,14 @@ jobs:
 
       # ── Configura chave SSH no runner ───────────────────────────────────────
       - name: Configurar chave SSH
+        env:
+          SSH_KEY:  ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/ec2_key
           chmod 600 ~/.ssh/ec2_key
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
       # ── Faz o deploy somente do backend ────────────────────────────────────
       # (docker-compose.yaml, .env, postgres e rabbitmq já foram preparados
