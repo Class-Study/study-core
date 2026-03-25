@@ -1,0 +1,229 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Workflow reutilizável — Preparação da máquina EC2
+#
+# Responsabilidades
+# ─────────────────
+#  • Instala Docker (engine + CLI) e Docker Compose plugin
+#  • Instala utilitários essenciais (wget, curl, jq…)
+#  • Cria diretório de deploy e ajusta permissões
+#  • Escreve o .env com credenciais de infra
+#  • Sobe PostgreSQL e RabbitMQ e aguarda healthcheck
+#
+# Como usar em outro workflow
+# ───────────────────────────
+#   jobs:
+#     prepare:
+#       uses: ./.github/workflows/prepare-machine.yaml
+#       secrets: inherit
+#
+# Secrets obrigatórios
+# ────────────────────
+#   EC2_HOST          — IP / hostname da instância
+#   EC2_USER          — usuário SSH  (ex: ubuntu)
+#   EC2_SSH_KEY       — chave PEM completa
+#   EC2_DEPLOY_PATH   — caminho absoluto na EC2  (ex: /opt/eduspace)
+#   DB_NAME           — nome do banco PostgreSQL
+#   DB_USER           — usuário do banco
+#   DB_PASSWORD       — senha do banco
+#   RABBITMQ_USER     — usuário RabbitMQ
+#   RABBITMQ_PASSWORD — senha RabbitMQ
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Prepare Machine — EC2
+
+on:
+  # ── Pode ser chamado por outros workflows ───────────────────────────────────
+  workflow_call:
+    secrets:
+      EC2_HOST:
+        required: true
+      EC2_USER:
+        required: true
+      EC2_SSH_KEY:
+        required: true
+      EC2_DEPLOY_PATH:
+        required: true
+      DB_NAME:
+        required: true
+      DB_USER:
+        required: true
+      DB_PASSWORD:
+        required: true
+      RABBITMQ_USER:
+        required: true
+      RABBITMQ_PASSWORD:
+        required: true
+
+  # ── Pode ser executado manualmente (útil para provisionar uma EC2 nova) ─────
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Motivo da execução manual"
+        required: false
+        default: "Provisionar / atualizar dependências da EC2"
+
+jobs:
+  prepare:
+    name: Prepare — instala dependências e sobe infra na EC2
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # ── Envia o docker-compose.yaml para a EC2 ─────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copiar docker-compose.yaml para EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          port:     22
+          source:   "docker-compose.yaml"
+          target:   ${{ secrets.EC2_DEPLOY_PATH }}
+
+      # ── Instala dependências, escreve .env e sobe postgres + rabbitmq ───────
+      - name: Preparar máquina via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOY_PATH:       ${{ secrets.EC2_DEPLOY_PATH }}
+          DB_NAME:           ${{ secrets.DB_NAME }}
+          DB_USER:           ${{ secrets.DB_USER }}
+          DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
+          RABBITMQ_USER:     ${{ secrets.RABBITMQ_USER }}
+          RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          port:     22
+          timeout:  300s
+          envs:     DEPLOY_PATH,DB_NAME,DB_USER,DB_PASSWORD,RABBITMQ_USER,RABBITMQ_PASSWORD
+          script: |
+            set -euo pipefail
+
+            echo "════════════════════════════════════════"
+            echo " EduSpace — Preparação da máquina EC2"
+            echo "════════════════════════════════════════"
+
+            # ── 1. Atualiza pacotes base ──────────────────────────────────────
+            echo "📦 Atualizando lista de pacotes..."
+            sudo apt-get update -y -q
+
+            # ── 2. Instala utilitários essenciais ─────────────────────────────
+            echo "🔧 Instalando utilitários (wget, curl, gnupg, unzip, jq)..."
+            sudo apt-get install -y -q \
+              wget curl gnupg lsb-release ca-certificates \
+              unzip jq net-tools
+
+            # ── 3. Instala Docker Engine ──────────────────────────────────────
+            if command -v docker &>/dev/null; then
+              echo "✅ Docker já instalado: $(docker --version)"
+            else
+              echo "🐳 Instalando Docker Engine..."
+              curl -fsSL https://get.docker.com | sudo sh
+              sudo usermod -aG docker "$USER"
+              echo "✅ Docker instalado: $(sudo docker --version)"
+            fi
+
+            # ── 4. Instala Docker Compose plugin ─────────────────────────────
+            if sudo docker compose version &>/dev/null; then
+              echo "✅ Docker Compose já instalado: $(sudo docker compose version)"
+            else
+              echo "🐳 Instalando Docker Compose plugin..."
+              COMPOSE_VER=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest \
+                | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+              sudo mkdir -p /usr/local/lib/docker/cli-plugins
+              sudo curl -fsSL \
+                "https://github.com/docker/compose/releases/download/v${COMPOSE_VER}/docker-compose-linux-x86_64" \
+                -o /usr/local/lib/docker/cli-plugins/docker-compose
+              sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+              echo "✅ Docker Compose instalado: $(sudo docker compose version)"
+            fi
+
+            # ── 5. Habilita e inicia o serviço Docker ─────────────────────────
+            echo "🚀 Habilitando serviço Docker..."
+            sudo systemctl enable docker
+            sudo systemctl start  docker
+
+            # ── 6. Cria e entra no diretório de deploy ────────────────────────
+            echo "📁 Criando diretório de deploy: $DEPLOY_PATH"
+            sudo mkdir -p "$DEPLOY_PATH"
+            sudo chown -R "$USER":"$USER" "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
+
+            # ── 7. Escreve o .env de infra ────────────────────────────────────
+            echo "📝 Escrevendo .env..."
+            # Preserva BACK_VERSION e FRONT_VERSION se já existirem
+            BACK_VER=$(grep -Po  '(?<=^BACK_VERSION=).*'  .env 2>/dev/null || echo "latest")
+            FRONT_VER=$(grep -Po '(?<=^FRONT_VERSION=).*' .env 2>/dev/null || echo "latest")
+            GHCR_OWNER=$(grep -Po '(?<=^GHCR_OWNER=).*'  .env 2>/dev/null || echo "")
+
+            cat > .env <<ENVEOF
+            DB_NAME=${DB_NAME}
+            DB_USER=${DB_USER}
+            DB_PASSWORD=${DB_PASSWORD}
+            RABBITMQ_USER=${RABBITMQ_USER}
+            RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+            BACK_VERSION=${BACK_VER}
+            FRONT_VERSION=${FRONT_VER}
+            GHCR_OWNER=${GHCR_OWNER}
+            ENVEOF
+
+            # ── 8. Sobe PostgreSQL e RabbitMQ ─────────────────────────────────
+            echo "🗄️  Subindo PostgreSQL e RabbitMQ..."
+            sudo docker compose pull postgres rabbitmq
+            sudo docker compose up -d --no-deps postgres rabbitmq
+
+            # ── 9. Aguarda postgres ficar healthy ─────────────────────────────
+            echo "⏳ Aguardando PostgreSQL ficar healthy..."
+            for i in $(seq 1 24); do
+              STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
+                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✅ PostgreSQL healthy!"
+                break
+              fi
+              echo "  [$i/24] PostgreSQL status: ${STATUS:-starting}..."
+              sleep 5
+              if [ "$i" -eq 24 ]; then
+                echo "❌ PostgreSQL não ficou healthy a tempo"
+                sudo docker compose logs postgres --tail=30
+                exit 1
+              fi
+            done
+
+            # ── 10. Aguarda rabbitmq ficar healthy ────────────────────────────
+            echo "⏳ Aguardando RabbitMQ ficar healthy..."
+            for i in $(seq 1 24); do
+              STATUS=$(sudo docker compose ps --format json rabbitmq 2>/dev/null \
+                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+              if [ "$STATUS" = "healthy" ]; then
+                echo "✅ RabbitMQ healthy!"
+                break
+              fi
+              echo "  [$i/24] RabbitMQ status: ${STATUS:-starting}..."
+              sleep 5
+              if [ "$i" -eq 24 ]; then
+                echo "❌ RabbitMQ não ficou healthy a tempo"
+                sudo docker compose logs rabbitmq --tail=30
+                exit 1
+              fi
+            done
+
+            # ── 11. Resumo final ──────────────────────────────────────────────
+            echo ""
+            echo "════════════════════════════════════════"
+            echo " Versões instaladas"
+            echo "════════════════════════════════════════"
+            echo "  Docker         : $(sudo docker --version)"
+            echo "  Docker Compose : $(sudo docker compose version)"
+            echo "  wget           : $(wget --version 2>&1 | head -1)"
+            echo "  Diretório      : $DEPLOY_PATH"
+            echo "════════════════════════════════════════"
+            echo ""
+            echo "  Serviços de infra rodando:"
+            sudo docker compose ps postgres rabbitmq
+            echo ""
+            echo "✅ Máquina pronta para deploy do backend!"
