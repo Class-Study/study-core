@@ -39,6 +39,11 @@ USER appuser
 # Spring Boot default port
 EXPOSE 8080
 
+# Docker health check — calls the Spring Actuator health endpoint.
+# start_period: gives the JVM / Flyway time to finish startup before counting failures.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:8080/api/v1/actuator/health | grep -q '"status":"UP"' || exit 1
+
 # JAVA_OPTS lets operators inject JVM tuning flags at runtime, e.g.:
 #   -Xmx512m -XX:+UseContainerSupport -Dspring.profiles.active=prod
 ENV JAVA_OPTS=""
