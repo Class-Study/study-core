@@ -48,7 +48,7 @@ public class UpdateTeacherUseCase {
         // Salvar alterações
         final var savedTeacher = teacherGateway.save(updatedTeacher);
 
-        return MAPPER.toGetTeacherOutput(savedTeacher);
+        return MAPPER.toGetTeacherOutput(savedTeacher, null);
     }
 }
 

@@ -16,7 +16,8 @@ public interface TeacherOutputMapper {
 
     @Mapping(target = "role", expression = "java(teacher.getRole().name())")
     @Mapping(target = "status", expression = "java(teacher.getStatus().name())")
-    GetTeacherOutput toGetTeacherOutput(User teacher);
+    @Mapping(target = "provisoryPass", source = "provisoryPass")
+    GetTeacherOutput toGetTeacherOutput(User teacher, String provisoryPass);
 
     default ListTeachersOutput toListTeachersOutput(List<User> teachers) {
         if (teachers == null) return new ListTeachersOutput(List.of());

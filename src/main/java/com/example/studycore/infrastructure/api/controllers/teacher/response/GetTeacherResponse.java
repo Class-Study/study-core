@@ -11,6 +11,7 @@ public record GetTeacherResponse(
         String status,
         String avatarUrl,
         String phone,
+        String provisoryPass,
         OffsetDateTime lastSeenAt,
         OffsetDateTime createdAt
 ) {

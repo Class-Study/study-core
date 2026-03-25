@@ -59,7 +59,7 @@ public class CreateTeacherUseCase {
                 temporaryPassword
         );
 
-        return MAPPER.toGetTeacherOutput(savedTeacher);
+        return MAPPER.toGetTeacherOutput(savedTeacher, temporaryPassword);
     }
 }
 

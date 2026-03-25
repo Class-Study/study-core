@@ -27,6 +27,6 @@ public class GetTeacherByIdUseCase {
             throw new NotFoundException("Teacher not found with id: " + teacherId);
         }
 
-        return MAPPER.toGetTeacherOutput(teacher);
+        return MAPPER.toGetTeacherOutput(teacher, null);
     }
 }

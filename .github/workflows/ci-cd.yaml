@@ -1,209 +1,62 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# CI/CD — EduSpace Backend
-#
-# Stages
-# ──────
-#  ci      — compile + test
-#  docker  — build & push imagem para GHCR
-#  prepare — prepara EC2: Docker, Compose, postgres, rabbitmq  (prepare-machine.yaml)
-#  deploy  — pull da imagem do backend e sobe somente o container backend
-#
-# Secrets layout
-# ──────────────
-#  Organization secrets  (org → Settings → Secrets → Actions):
-#    EC2_HOST          — IP / hostname da EC2
-#    EC2_USER          — usuário SSH (ex: "ubuntu")
-#    EC2_SSH_KEY       — conteúdo da chave PEM
-#    EC2_DEPLOY_PATH   — caminho na EC2 (ex: /opt/eduspace)
-#
-#  Repository secrets  (repo → Settings → Secrets → Actions):
-#    DB_NAME           — nome do banco PostgreSQL
-#    DB_USER           — usuário do banco
-#    DB_PASSWORD       — senha do banco
-#    RABBITMQ_USER     — usuário RabbitMQ
-#    RABBITMQ_PASSWORD — senha RabbitMQ
-#    JWT_SECRET        — segredo JWT (≥256 bits hex)
-# ─────────────────────────────────────────────────────────────────────────────
-
-name: CI/CD — Backend
+name: Build & Push Backend
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
-  REGISTRY:   ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/study-back
+  IMAGE: ghcr.io/class-study/study-back
 
 jobs:
-
-  # ── 1. Compile & test ────────────────────────────────────────────────────────
-  ci:
-    name: CI — compile & test
+  build:
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: "21"
-          distribution: "temurin"
-          cache: maven
-
-      - name: Grant execute permission to mvnw
-        run: chmod +x mvnw
-
-      - name: Build & test
-        run: ./mvnw -B verify --no-transfer-progress
-
-  # ── 2. Build & push imagem Docker para GHCR ─────────────────────────────────
-  docker:
-    name: Docker — build & push
-    runs-on: ubuntu-latest
-    needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     permissions:
       contents: read
       packages: write
 
-    outputs:
-      image_tag: ${{ steps.meta.outputs.version }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build Spring Boot
+        run: ./mvnw package -DskipTests  # ou ./gradlew build -x test
+
+      - name: Login no GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
+      - name: Extrair metadata (tags e labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.IMAGE }}
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-
-            type=raw,value=latest,enable=true
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and push
-        uses: docker/build-push-action@v6
+      - name: Build e Push
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags:   ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to:   type=gha,mode=max
 
-  # ── 3. Preparação da máquina EC2 ────────────────────────────────────────────
-  prepare:
-    name: Prepare — máquina EC2
-    needs: docker
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    uses: ./.github/workflows/prepare-machine.yaml
-    secrets: inherit
-
-  # ── 4. Deploy do backend na EC2 ─────────────────────────────────────────────
-  deploy:
-    name: Deploy — EC2
-    runs-on: ubuntu-latest
-    needs: [docker, prepare]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-
-    permissions:
-      packages: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # ── Configura chave SSH no runner ───────────────────────────────────────
-      - name: Configurar chave SSH
-        env:
-          SSH_KEY:  ${{ secrets.EC2_SSH_KEY }}
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-        run: |
-          mkdir -p ~/.ssh
-          # Escreve a chave garantindo newline final e sem espaços extras
-          echo "$SSH_KEY" > ~/.ssh/ec2_key
-          chmod 600 ~/.ssh/ec2_key
-          # ssh-keyscan pode falhar se o host ainda não responde — não bloqueia o pipeline
-          ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-          # Garante que o arquivo known_hosts existe mesmo se keyscan falhou
-          touch ~/.ssh/known_hosts
-
-      # ── Faz o deploy somente do backend ────────────────────────────────────
-      - name: Deploy via SSH
-        env:
-          EC2_USER:    ${{ secrets.EC2_USER }}
-          EC2_HOST:    ${{ secrets.EC2_HOST }}
-          DEPLOY_PATH: ${{ secrets.EC2_DEPLOY_PATH }}
-          JWT_SECRET:  ${{ secrets.JWT_SECRET }}
-          REPO_OWNER:  ${{ github.repository_owner }}
-          GHCR_TOKEN:  ${{ secrets.GITHUB_TOKEN }}
-          GHCR_ACTOR:  ${{ github.actor }}
-        run: |
-          ssh -i ~/.ssh/ec2_key \
-              -o StrictHostKeyChecking=no \
-              -o ConnectTimeout=30 \
-              -o ServerAliveInterval=30 \
-              -o ServerAliveCountMax=20 \
-              "$EC2_USER@$EC2_HOST" \
-              "DEPLOY_PATH='$DEPLOY_PATH' \
-               JWT_SECRET='$JWT_SECRET' \
-               REPO_OWNER='$REPO_OWNER' \
-               GHCR_TOKEN='$GHCR_TOKEN' \
-               GHCR_ACTOR='$GHCR_ACTOR' \
-               bash -s" << 'SSHEOF'
-            set -euo pipefail
-            cd "$DEPLOY_PATH"
-
-            # ── 1. GHCR exige nome da imagem em lowercase ─────────────────────
-            REPO_OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
-
-            # ── 2. Atualiza BACK_VERSION, GHCR_OWNER e JWT_SECRET no .env ─────
-            sed -i "s|^BACK_VERSION=.*|BACK_VERSION=latest|" .env
-            sed -i "s|^GHCR_OWNER=.*|GHCR_OWNER=${REPO_OWNER_LOWER}|" .env
-            if grep -q "^JWT_SECRET=" .env; then
-              sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" .env
-            else
-              echo "JWT_SECRET=${JWT_SECRET}" >> .env
-            fi
-
-            # ── 3. Login no GHCR ──────────────────────────────────────────────
-            echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
-
-            # ── 4. Pull + sobe somente o backend ──────────────────────────────
-            sudo docker compose pull backend
-            sudo docker compose up -d --no-deps backend
-
-            # ── 5. Sanity check ───────────────────────────────────────────────
-            sleep 15
-            RUNNING=$(sudo docker compose ps --status running 2>/dev/null | grep -c "backend" || true)
-            if [ "$RUNNING" -lt 1 ]; then
-              echo "❌ Backend falhou ao iniciar:"
-              sudo docker compose logs backend --tail=50
-              exit 1
-            fi
-
-            # ── 6. Limpeza ────────────────────────────────────────────────────
-            sudo docker image prune -f
-            echo "✅ Deploy do backend concluído"
-          SSHEOF
+      - name: Acionar deploy na infra
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          repository: Class-Study/study-core
+          event-type: deploy
+          client-payload: '{"service": "backend"}'
