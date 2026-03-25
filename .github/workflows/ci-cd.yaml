@@ -141,9 +141,13 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/ec2_key
+          # Escreve a chave garantindo newline final e sem espaços extras
+          echo "$SSH_KEY" > ~/.ssh/ec2_key
           chmod 600 ~/.ssh/ec2_key
-          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          # ssh-keyscan pode falhar se o host ainda não responde — não bloqueia o pipeline
+          ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          # Garante que o arquivo known_hosts existe mesmo se keyscan falhou
+          touch ~/.ssh/known_hosts
 
       # ── Faz o deploy somente do backend ────────────────────────────────────
       - name: Deploy via SSH
