@@ -37,7 +37,6 @@
 name: Prepare Machine — EC2
 
 on:
-  # ── Pode ser chamado por outros workflows ───────────────────────────────────
   workflow_call:
     secrets:
       EC2_HOST:
@@ -59,7 +58,6 @@ on:
       RABBITMQ_PASSWORD:
         required: true
 
-  # ── Pode ser executado manualmente (útil para provisionar uma EC2 nova) ─────
   workflow_dispatch:
     inputs:
       reason:
@@ -91,7 +89,6 @@ jobs:
       # ── Envia docker-compose.yaml via scp nativo ──────────────────────────
       - name: Copiar docker-compose.yaml para EC2
         run: |
-          # Garante que o diretório existe antes do scp
           ssh -i ~/.ssh/ec2_key \
               -o StrictHostKeyChecking=no \
               -o ConnectTimeout=30 \
@@ -107,13 +104,13 @@ jobs:
       # ── Instala dependências, escreve .env e sobe postgres + rabbitmq ──────
       - name: Preparar máquina via SSH
         env:
-          EC2_USER:         ${{ secrets.EC2_USER }}
-          EC2_HOST:         ${{ secrets.EC2_HOST }}
-          DEPLOY_PATH:      ${{ secrets.EC2_DEPLOY_PATH }}
-          DB_NAME:          ${{ secrets.DB_NAME }}
-          DB_USER:          ${{ secrets.DB_USER }}
-          DB_PASSWORD:      ${{ secrets.DB_PASSWORD }}
-          RABBITMQ_USER:    ${{ secrets.RABBITMQ_USER }}
+          EC2_USER:          ${{ secrets.EC2_USER }}
+          EC2_HOST:          ${{ secrets.EC2_HOST }}
+          DEPLOY_PATH:       ${{ secrets.EC2_DEPLOY_PATH }}
+          DB_NAME:           ${{ secrets.DB_NAME }}
+          DB_USER:           ${{ secrets.DB_USER }}
+          DB_PASSWORD:       ${{ secrets.DB_PASSWORD }}
+          RABBITMQ_USER:     ${{ secrets.RABBITMQ_USER }}
           RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
         run: |
           ssh -i ~/.ssh/ec2_key \
@@ -137,6 +134,15 @@ jobs:
 
             cd "$DEPLOY_PATH"
 
+            # ── Função auxiliar: lê Health via docker inspect (sem python/stdin) ──
+            get_health() {
+              local service="$1"
+              local cid
+              cid=$(sudo docker compose ps -q "$service" 2>/dev/null || echo "")
+              if [ -z "$cid" ]; then echo ""; return; fi
+              sudo docker inspect "$cid" --format '{{.State.Health.Status}}' 2>/dev/null || echo ""
+            }
+
             # ── Pré-verificação: checa o que já está pronto ───────────────────
             SKIP_DOCKER=false
             SKIP_COMPOSE=false
@@ -145,22 +151,20 @@ jobs:
 
             echo "🔍 Verificando o que já está instalado/rodando..."
 
-            command -v docker &>/dev/null             && SKIP_DOCKER=true
-            sudo docker compose version &>/dev/null   && SKIP_COMPOSE=true
+            command -v docker &>/dev/null           && SKIP_DOCKER=true
+            sudo docker compose version &>/dev/null && SKIP_COMPOSE=true
 
             if [ "$SKIP_DOCKER" = "true" ] && [ "$SKIP_COMPOSE" = "true" ]; then
-              PG_STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
-                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
-              MQ_STATUS=$(sudo docker compose ps --format json rabbitmq 2>/dev/null \
-                | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+              PG_STATUS=$(get_health postgres)
+              MQ_STATUS=$(get_health rabbitmq)
               [ "$PG_STATUS" = "healthy" ] && SKIP_POSTGRES=true
               [ "$MQ_STATUS" = "healthy" ] && SKIP_RABBITMQ=true
             fi
 
-            echo "  Docker          : $([ "$SKIP_DOCKER"   = "true" ] && echo "✅ já instalado"  || echo "⚙️  será instalado")"
-            echo "  Docker Compose  : $([ "$SKIP_COMPOSE"  = "true" ] && echo "✅ já instalado"  || echo "⚙️  será instalado")"
-            echo "  PostgreSQL      : $([ "$SKIP_POSTGRES" = "true" ] && echo "✅ já healthy"    || echo "⚙️  será iniciado")"
-            echo "  RabbitMQ        : $([ "$SKIP_RABBITMQ" = "true" ] && echo "✅ já healthy"    || echo "⚙️  será iniciado")"
+            echo "  Docker          : $([ "$SKIP_DOCKER"   = "true" ] && echo "✅ já instalado" || echo "⚙️  será instalado")"
+            echo "  Docker Compose  : $([ "$SKIP_COMPOSE"  = "true" ] && echo "✅ já instalado" || echo "⚙️  será instalado")"
+            echo "  PostgreSQL      : $([ "$SKIP_POSTGRES" = "true" ] && echo "✅ já healthy"   || echo "⚙️  será iniciado")"
+            echo "  RabbitMQ        : $([ "$SKIP_RABBITMQ" = "true" ] && echo "✅ já healthy"   || echo "⚙️  será iniciado")"
             echo ""
 
             # ── Atalho: tudo pronto, nada mais a fazer ────────────────────────
@@ -211,7 +215,7 @@ jobs:
             if ! sudo systemctl is-active --quiet docker; then
               echo "🚀 Iniciando serviço Docker..."
               sudo systemctl enable docker
-              sudo systemctl start  docker
+              sudo systemctl start docker
             fi
 
             # ── 5. Escreve/atualiza o .env de infra ───────────────────────────
@@ -221,14 +225,14 @@ jobs:
             GHCR_OWNER=$(grep -Po '(?<=^GHCR_OWNER=).*'  .env 2>/dev/null || echo "")
 
             cat > .env <<ENVEOF
-            DB_NAME=${DB_NAME}
-            DB_USER=${DB_USER}
-            DB_PASSWORD=${DB_PASSWORD}
-            RABBITMQ_USER=${RABBITMQ_USER}
-            RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-            BACK_VERSION=${BACK_VER}
-            FRONT_VERSION=${FRONT_VER}
-            GHCR_OWNER=${GHCR_OWNER}
+              DB_NAME=${DB_NAME}
+              DB_USER=${DB_USER}
+              DB_PASSWORD=${DB_PASSWORD}
+              RABBITMQ_USER=${RABBITMQ_USER}
+              RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+              BACK_VERSION=${BACK_VER}
+              FRONT_VERSION=${FRONT_VER}
+              GHCR_OWNER=${GHCR_OWNER}
             ENVEOF
 
             # ── 6. Sobe PostgreSQL (se necessário) ────────────────────────────
@@ -239,8 +243,7 @@ jobs:
 
               echo "⏳ Aguardando PostgreSQL ficar healthy..."
               for i in $(seq 1 24); do
-                STATUS=$(sudo docker compose ps --format json postgres 2>/dev/null \
-                  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+                STATUS=$(get_health postgres)
                 if [ "$STATUS" = "healthy" ]; then
                   echo "✅ PostgreSQL healthy!"
                   break
@@ -265,8 +268,7 @@ jobs:
 
               echo "⏳ Aguardando RabbitMQ ficar healthy..."
               for i in $(seq 1 24); do
-                STATUS=$(sudo docker compose ps --format json rabbitmq 2>/dev/null \
-                  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Health',''))" 2>/dev/null || echo "")
+                STATUS=$(get_health rabbitmq)
                 if [ "$STATUS" = "healthy" ]; then
                   echo "✅ RabbitMQ healthy!"
                   break
