@@ -147,7 +147,7 @@ jobs:
       # (docker-compose.yaml, .env, postgres e rabbitmq já foram preparados
       #  pelo job prepare via prepare-machine.yaml)
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.0.3
         env:
           DEPLOY_PATH:  ${{ secrets.EC2_DEPLOY_PATH }}
           JWT_SECRET:   ${{ secrets.JWT_SECRET }}
