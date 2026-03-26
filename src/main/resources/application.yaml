@@ -89,9 +89,9 @@ management:
       probes:
         enabled: true        # exposes /actuator/health/liveness and /actuator/health/readiness
   health:
-    livenessstate:
+    liveness-state:
       enabled: true
-    readinessstate:
+    readiness-state:
       enabled: true
     rabbit:
       enabled: true
