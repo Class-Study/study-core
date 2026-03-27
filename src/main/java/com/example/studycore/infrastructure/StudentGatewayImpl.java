@@ -10,12 +10,10 @@ import com.example.studycore.infrastructure.persistence.auth.UserRepository;
 import com.example.studycore.infrastructure.persistence.student.StudentEntity;
 import com.example.studycore.infrastructure.persistence.student.StudentRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 public class StudentGatewayImpl implements StudentGateway {
@@ -119,6 +117,21 @@ public class StudentGatewayImpl implements StudentGateway {
                     user.setStatus(UserStatus.ACTIVE.name());
                     userRepository.save(user);
                 });
+    }
+
+    @Override
+    public List<Student> searchByNameOrEmail(String q) {
+        if (q == null || q.isBlank()) return java.util.List.of();
+
+        final var sort = Sort.by(Sort.Direction.ASC, "name");
+        final List<UserEntity> users = userRepository.searchByRoleAndNameOrEmail(UserRole.STUDENT.name(), q.trim(), sort);
+
+        return users.stream()
+                .filter(user -> UserRole.STUDENT.name().equals(user.getRole()))
+                .map(user -> studentRepository.findById(user.getId())
+                        .map(studentEntity -> STUDENT_INFRA_MAPPER.fromUserAndStudentEntity(user, studentEntity))
+                        .orElse(STUDENT_INFRA_MAPPER.fromUserAndStudentEntity(user, null)))
+                .toList();
     }
 }
 

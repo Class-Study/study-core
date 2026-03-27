@@ -11,5 +11,7 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID> {
     List<StudentEntity> findByTeacherId(UUID teacherId);
 
     List<StudentEntity> findByLevelProfileId(UUID levelProfileId);
+
+    // Busca por nome ou email (email está na tabela users) — será usada via join manual no gateway
 }
 

@@ -1,0 +1,22 @@
+package com.example.studycore.application.usecase.schedule.output;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.UUID;
+
+public record ScheduleEventOutput(
+        String id,
+        UUID studentId,
+        String studentName,
+        LocalDate date,
+        LocalTime startTime,
+        Integer durationMin,
+        String type,
+        String title,
+        String meetLink,
+        String meetPlatform,
+        String studentStatus,
+        String levelCode
+) {
+}
+

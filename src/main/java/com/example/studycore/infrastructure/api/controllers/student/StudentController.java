@@ -2,6 +2,7 @@ package com.example.studycore.infrastructure.api.controllers.student;
 
 import com.example.studycore.application.usecase.activity.ListStudentActivitiesUseCase;
 import com.example.studycore.application.usecase.student.*;
+import com.example.studycore.application.usecase.student.output.SearchStudentOutput;
 import com.example.studycore.infrastructure.api.StudentApi;
 import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
@@ -34,6 +35,7 @@ public class StudentController implements StudentApi {
     private final ListStudentActivitiesUseCase listStudentActivitiesUseCase;
     private final GetStudentStatsUseCase getStudentStatsUseCase;
     private final UnblockStudentUseCase unblockStudentUseCase;
+    private final SearchStudentsUseCase searchStudentsUseCase;
 
     @Override
     public ResponseEntity<String> create(CreateStudentRequest request) {
@@ -47,6 +49,12 @@ public class StudentController implements StudentApi {
     public ResponseEntity<ListStudentsResponse> list() {
         final var output = listStudentsUseCase.execute(getAuthenticatedUserId());
         return ResponseEntity.ok(STUDENT_INFRA_MAPPER.toListStudentsResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<List<SearchStudentOutput>> search(String q) {
+        final var results = searchStudentsUseCase.execute(q);
+        return ResponseEntity.ok(results);
     }
 
     @Override

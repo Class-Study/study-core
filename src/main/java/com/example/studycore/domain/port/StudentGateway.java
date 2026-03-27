@@ -15,5 +15,6 @@ public interface StudentGateway {
     List<Student> findByLevelProfileId(UUID levelProfileId);
     void block(UUID id);
     void unblock(UUID id);
+    List<com.example.studycore.domain.model.Student> searchByNameOrEmail(String q);
 }
 

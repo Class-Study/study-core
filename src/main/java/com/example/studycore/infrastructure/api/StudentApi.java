@@ -1,5 +1,6 @@
 package com.example.studycore.infrastructure.api;
 
+import com.example.studycore.application.usecase.student.output.SearchStudentOutput;
 import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
@@ -12,13 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/students")
 @SecurityRequirement(name = "bearerAuth")
@@ -31,6 +26,10 @@ public interface StudentApi {
     @GetMapping
     @PreAuthorize("hasRole('TEACHER')")
     ResponseEntity<ListStudentsResponse> list();
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('TEACHER')")
+    ResponseEntity<List<SearchStudentOutput>> search(@RequestParam(name = "q") String q);
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('TEACHER')")
