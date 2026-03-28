@@ -23,6 +23,7 @@ public record GetStudentResponse(
         String meetPlatform,
         String meetLink,
         LocalDate startDate,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        ExtraClassResponse extraClass
 ) {
 }

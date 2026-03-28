@@ -9,6 +9,7 @@ import com.example.studycore.infrastructure.api.controllers.student.response.Get
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -16,6 +17,7 @@ public interface StudentMeResponseMapper {
 
     StudentMeResponseMapper INSTANCE = Mappers.getMapper(StudentMeResponseMapper.class);
 
+    @Mapping(target = "extraClass", source = "output.extraClass")
     GetMyProfileResponse toGetMyProfileResponse(GetMyProfileOutput output);
 
     GetMyActivitiesResponse toGetMyActivitiesResponse(GetMyActivitiesOutput output);

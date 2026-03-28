@@ -2,6 +2,7 @@ package com.example.studycore.application.mapper;
 
 import com.example.studycore.application.usecase.student.output.GetStudentOutput;
 import com.example.studycore.application.usecase.student.output.ListStudentsOutput;
+import com.example.studycore.domain.model.ExtraClass;
 import com.example.studycore.domain.model.Student;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,6 +18,14 @@ public interface StudentOutputMapper {
     @Mapping(target = "provisoryPass", source = "provisoryPass")
     GetStudentOutput toGetStudentOutput(Student student, String provisoryPass);
 
+    @Mapping(target = "id", source = "student.id")
+    @Mapping(target = "teacherId", source = "student.teacherId")
+    @Mapping(target = "status", expression = "java(student.getStatus().name())")
+    @Mapping(target = "createdAt", source = "student.createdAt")
+    @Mapping(target = "provisoryPass", ignore = true)
+    @Mapping(target = "extraClass", source = "extraClass")
+    GetStudentOutput toGetStudentOutputAndExtraClass(Student student, ExtraClass extraClass);
+
     default ListStudentsOutput toListStudentsOutput(List<Student> students) {
         if (students == null) {
             return new ListStudentsOutput(List.of());
@@ -27,4 +36,3 @@ public interface StudentOutputMapper {
     @Mapping(target = "status", expression = "java(student.getStatus().name())")
     ListStudentsOutput.StudentItem toStudentItem(Student student);
 }
-

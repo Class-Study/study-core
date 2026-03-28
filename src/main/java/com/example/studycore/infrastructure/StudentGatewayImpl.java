@@ -13,7 +13,11 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.time.LocalTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class StudentGatewayImpl implements StudentGateway {
@@ -132,6 +136,11 @@ public class StudentGatewayImpl implements StudentGateway {
                         .map(studentEntity -> STUDENT_INFRA_MAPPER.fromUserAndStudentEntity(user, studentEntity))
                         .orElse(STUDENT_INFRA_MAPPER.fromUserAndStudentEntity(user, null)))
                 .toList();
+    }
+
+    @Override
+    public boolean existsRecurringClassOverlap(UUID teacherId, String classDays, LocalTime startClass, LocalTime endClass) {
+        return studentRepository.existsRecurringClassOverlap(teacherId, classDays, startClass, endClass);
     }
 }
 

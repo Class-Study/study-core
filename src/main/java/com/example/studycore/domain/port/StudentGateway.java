@@ -2,7 +2,7 @@ package com.example.studycore.domain.port;
 
 import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.model.enums.UserRole;
-
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,5 +16,5 @@ public interface StudentGateway {
     void block(UUID id);
     void unblock(UUID id);
     List<com.example.studycore.domain.model.Student> searchByNameOrEmail(String q);
+    boolean existsRecurringClassOverlap(UUID teacherId, String classDays, LocalTime startClass, LocalTime endClass);
 }
-

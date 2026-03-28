@@ -22,7 +22,8 @@ public record GetMyProfileOutput(
         String meetLink,
         LocalDate startDate,
         OffsetDateTime createdAt,
-        TeacherInfo teacher
+        TeacherInfo teacher,
+        ExtraClassOutput extraClass
 ) {
     public record LevelProfileMinimal(
             UUID id,

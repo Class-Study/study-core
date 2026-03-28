@@ -1,9 +1,6 @@
 package com.example.studycore.infrastructure.api.exception;
 
-import com.example.studycore.domain.exception.BusinessException;
-import com.example.studycore.domain.exception.DomainException;
-import com.example.studycore.domain.exception.NotFoundException;
-import com.example.studycore.domain.exception.UnauthorizedException;
+import com.example.studycore.domain.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
@@ -30,6 +27,7 @@ public class GlobalExceptionHandler {
     private static final int BAD_REQUEST = HttpStatus.BAD_REQUEST.value();
     private static final int UNAUTHORIZED = HttpStatus.UNAUTHORIZED.value();
     private static final int INTERNAL_SERVER_ERROR = HttpStatus.INTERNAL_SERVER_ERROR.value();
+    private static final int CONFLICT = HttpStatus.CONFLICT.value();
 
 
     @ExceptionHandler(BusinessException.class)
@@ -41,6 +39,18 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 null)
         );
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException ex) {
+        log.warn("✗ CONFLICT_EXCEPTION | status=409 | message={}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(
+                        Instant.now(),
+                        CONFLICT,
+                        ex.getMessage(),
+                        null)
+                );
     }
 
     @ExceptionHandler(NotFoundException.class)

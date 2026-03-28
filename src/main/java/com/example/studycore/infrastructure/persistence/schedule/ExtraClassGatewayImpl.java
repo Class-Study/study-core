@@ -6,6 +6,7 @@ import com.example.studycore.infrastructure.mapper.SchedulerInfraMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -27,16 +28,6 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
         return SCHEDULER_INFRA_MAPPER.fromEntity(saved);
 
     }
-    public List<ExtraClass> findByStartWeekBetweenEndWeek(OffsetDateTime start, OffsetDateTime end) {
-        if (start == null || end == null) return Collections.emptyList();
-
-        // Converter intervalo UTC para intervalo de LocalDate com base nas datas (inclusive)
-        final LocalDate startDate = start.toLocalDate();
-        final LocalDate endDate = end.toLocalDate();
-
-        return repository.findByDateBetweenOrderByDateAsc(startDate, endDate)
-                .stream().map(SCHEDULER_INFRA_MAPPER::fromEntity).toList();
-    }
 
     public List<ExtraClass> findByStudentIdsAndStartAtUtcBetween(java.util.Collection<java.util.UUID> studentIds, OffsetDateTime start, OffsetDateTime end) {
         if (studentIds == null || studentIds.isEmpty() || start == null || end == null)
@@ -52,8 +43,31 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
     public Optional<ExtraClass> findById(UUID id) {
         return repository.findById(id).map(SCHEDULER_INFRA_MAPPER::fromEntity);
     }
+
     public void deleteById(UUID id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public Optional<ExtraClass> findMostRecentByStudentId(UUID studentId) {
+        return repository
+                .findMostRecentByStudentId(
+                        studentId,
+                        LocalDate.now(),
+                        LocalTime.now()
+                )
+                .map(SCHEDULER_INFRA_MAPPER::fromEntity);
+    }
+
+    @Override
+    public boolean existsByTeacherAndTimeOverlap(
+            UUID teacherId,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime
+    ) {
+        return repository.existsByTeacherAndTimeOverlap(teacherId, date, startTime, endTime);
+    }
+
 }
 

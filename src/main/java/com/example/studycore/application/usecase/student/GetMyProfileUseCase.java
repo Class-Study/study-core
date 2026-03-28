@@ -1,13 +1,17 @@
 package com.example.studycore.application.usecase.student;
 
+import com.example.studycore.application.usecase.student.output.ExtraClassOutput;
 import com.example.studycore.application.usecase.student.output.GetMyProfileOutput;
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.model.enums.UserStatus;
+import com.example.studycore.domain.port.ExtraClassGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
 import com.example.studycore.domain.port.StudentGateway;
 import com.example.studycore.domain.port.TeacherGateway;
+
 import java.util.UUID;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +22,7 @@ public class GetMyProfileUseCase {
     private final StudentGateway studentGateway;
     private final LevelProfileGateway levelProfileGateway;
     private final TeacherGateway teacherGateway;
+    private final ExtraClassGateway extraClassGateway;
 
     public GetMyProfileOutput execute(UUID studentId) {
         final var student = studentGateway.findById(studentId)
@@ -55,6 +60,8 @@ public class GetMyProfileUseCase {
             );
         }
 
+        final var extraClass = extraClassGateway.findMostRecentByStudentId(studentId).orElse(null);
+
         return new GetMyProfileOutput(
                 student.getId(),
                 student.getName(),
@@ -70,7 +77,13 @@ public class GetMyProfileUseCase {
                 student.getMeetLink(),
                 student.getStartDate(),
                 student.getCreatedAt(),
-                teacherInfo
+                teacherInfo,
+                extraClass == null ? null : new ExtraClassOutput(
+                        extraClass.getId(),
+                        extraClass.getDate(),
+                        extraClass.getStartTime(),
+                        extraClass.getDurationMin()
+                )
         );
     }
 }
