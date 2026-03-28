@@ -55,6 +55,12 @@ public class StudentEntity {
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
+    @Column(name = "contract_months", nullable = false)
+    private Integer contractMonths;
+
+    @Column(name = "contract_end_date", nullable = false)
+    private LocalDate contractEndDate;
+
     @Column(name = "notes_private")
     private String notesPrivate;
 

@@ -30,7 +30,9 @@ public class Student {
     private BigDecimal classRate;
     private String meetPlatform;
     private String meetLink;
-    private LocalDate startDate;
+    private final LocalDate startDate;
+    private final Integer contractMonths;
+    private final LocalDate contractEndDate;
     private String notesPrivate;
     private OffsetDateTime createdAt;
 
@@ -52,6 +54,8 @@ public class Student {
             String meetPlatform,
             String meetLink,
             LocalDate startDate,
+            Integer contractMonths,
+            LocalDate contractEndDate,
             String notesPrivate,
             OffsetDateTime createdAt
     ) {
@@ -72,6 +76,8 @@ public class Student {
         this.meetPlatform = meetPlatform;
         this.meetLink = meetLink;
         this.startDate = startDate;
+        this.contractMonths = contractMonths;
+        this.contractEndDate = contractEndDate;
         this.notesPrivate = notesPrivate;
         this.createdAt = createdAt;
 
@@ -92,8 +98,10 @@ public class Student {
             BigDecimal classRate,
             String meetPlatform,
             String meetLink,
-            LocalDate startDate
-    ) {
+            LocalDate startDate,
+            Integer contractMonths,
+            LocalDate contractEndDate
+            ) {
         final var id = UUID.randomUUID();
         final var createdAt = OffsetDateTime.now();
         if (startDate == null) {
@@ -117,6 +125,8 @@ public class Student {
                 meetPlatform,
                 meetLink,
                 startDate,
+                contractMonths,
+                contractEndDate,
                 null,
                 createdAt
         );
@@ -140,6 +150,8 @@ public class Student {
             String meetPlatform,
             String meetLink,
             LocalDate startDate,
+            Integer contractMonths,
+            LocalDate contractEndDate,
             String notesPrivate,
             OffsetDateTime createdAt
     ) {
@@ -161,6 +173,8 @@ public class Student {
                 meetPlatform,
                 meetLink,
                 startDate,
+                contractMonths,
+                contractEndDate,
                 notesPrivate,
                 createdAt
         );

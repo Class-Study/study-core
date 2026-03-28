@@ -42,6 +42,8 @@ public class UpdateStudentRateUseCase {
                 student.getMeetPlatform(),
                 student.getMeetLink(),
                 student.getStartDate(),
+                student.getContractMonths(),
+                student.getContractEndDate(),
                 student.getNotesPrivate(),
                 student.getCreatedAt()
         );

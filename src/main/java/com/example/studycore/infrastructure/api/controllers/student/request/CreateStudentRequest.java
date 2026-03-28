@@ -16,12 +16,14 @@ public record CreateStudentRequest(
         String phone,
         String avatarUrl,
         @NotNull UUID levelProfileId,
+        @NotNull LocalDate startDate,
+        @NotNull Integer contractMonths,
+        @NotNull LocalDate contractEndDate,
         @NotNull LocalTime classTime,
         @NotNull List<String> classDays,
         @NotNull Integer classDuration,
         @NotNull BigDecimal classRate,
         String meetPlatform,
-        String meetLink,
-        @NotNull LocalDate startDate
+        String meetLink
 ) {
 }

@@ -80,6 +80,8 @@ public class UpdateStudentUseCase {
                 input.meetPlatform() != null ? input.meetPlatform() : existing.getMeetPlatform(),
                 input.meetLink() != null ? input.meetLink() : existing.getMeetLink(),
                 newStartDate,
+                existing.getContractMonths(),
+                existing.getContractEndDate(),
                 existing.getNotesPrivate(),
                 existing.getCreatedAt()
         );

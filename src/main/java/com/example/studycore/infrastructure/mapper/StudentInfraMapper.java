@@ -49,6 +49,8 @@ public interface StudentInfraMapper {
                 student != null ? student.getMeetPlatform() : null,
                 student != null ? student.getMeetLink() : null,
                 student != null ? student.getStartDate() : null,
+                student != null ? student.getContractMonths() : null,
+                student != null ? student.getContractEndDate() : null,
                 student != null ? student.getNotesPrivate() : null,
                 student != null ? student.getCreatedAt() : user.getCreatedAt()
         );
@@ -77,27 +79,15 @@ public interface StudentInfraMapper {
     @Mapping(target = "meetPlatform", source = "meetPlatform")
     @Mapping(target = "meetLink", source = "meetLink")
     @Mapping(target = "startDate", source = "startDate")
+    @Mapping(target = "contractMonths", source = "contractMonths")
+    @Mapping(target = "contractEndDate", source = "contractEndDate")
     @Mapping(target = "notesPrivate", source = "notesPrivate")
     @Mapping(target = "createdAt", source = "createdAt")
     StudentEntity toStudentEntity(Student student);
 
-    default CreateStudentInput toCreateStudentInput(UUID teacherId, CreateStudentRequest request) {
-        return new CreateStudentInput(
-                teacherId,
-                request.name(),
-                request.email(),
-                request.phone(),
-                request.avatarUrl(),
-                request.levelProfileId(),
-                request.classTime(),
-                request.classDays(),
-                request.classDuration(),
-                request.classRate(),
-                request.meetPlatform(),
-                request.meetLink(),
-                request.startDate()
-        );
-    }
+    @Mapping(target = "teacherId", source = "teacherId")
+    CreateStudentInput toCreateStudentInput(UUID teacherId, CreateStudentRequest request);
+
 
     default UpdateStudentInput toUpdateStudentInput(UUID id, UUID teacherId, UpdateStudentRequest request) {
         return new UpdateStudentInput(

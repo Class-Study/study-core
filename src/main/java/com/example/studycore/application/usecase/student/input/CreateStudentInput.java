@@ -13,13 +13,15 @@ public record CreateStudentInput(
         String phone,
         String avatarUrl,
         UUID levelProfileId,
+        LocalDate startDate,
+        Integer contractMonths,
+        LocalDate contractEndDate,
         LocalTime classTime,
         List<String> classDays,
         Integer classDuration,
         BigDecimal classRate,
         String meetPlatform,
-        String meetLink,
-        LocalDate startDate
+        String meetLink
 ) {
 }
 

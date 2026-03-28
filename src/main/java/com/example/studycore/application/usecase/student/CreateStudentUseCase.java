@@ -62,7 +62,9 @@ public class CreateStudentUseCase {
                 input.classRate(),
                 input.meetPlatform(),
                 input.meetLink(),
-                input.startDate() // <-- Passa o startDate do input
+                input.startDate(),
+                input.contractMonths(),
+                input.contractEndDate()
         );
 
         final var saved = studentGateway.save(student);
