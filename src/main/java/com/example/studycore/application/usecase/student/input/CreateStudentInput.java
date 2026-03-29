@@ -15,7 +15,6 @@ public record CreateStudentInput(
         UUID levelProfileId,
         LocalDate startDate,
         Integer contractMonths,
-        LocalDate contractEndDate,
         LocalTime classTime,
         List<String> classDays,
         Integer classDuration,

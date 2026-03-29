@@ -2,6 +2,8 @@ package com.example.studycore.domain.port;
 
 import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.model.enums.UserRole;
+
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +19,12 @@ public interface StudentGateway {
     void unblock(UUID id);
     List<com.example.studycore.domain.model.Student> searchByNameOrEmail(String q);
     boolean existsRecurringClassOverlap(UUID teacherId, String classDays, LocalTime startClass, LocalTime endClass);
+    List<Student> findRecurringConflicts(
+            UUID teacherId,
+            List<String> days,
+            LocalTime classTime,
+            int durationMin,
+            LocalDate startDate,
+            LocalDate contractEndDate
+    );
 }

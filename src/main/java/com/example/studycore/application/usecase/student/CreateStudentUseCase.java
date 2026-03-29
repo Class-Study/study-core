@@ -48,6 +48,9 @@ public class CreateStudentUseCase {
         final var teacher = userGateway.findById(input.teacherId())
                 .orElseThrow(() -> new NotFoundException("Authenticated teacher not found."));
 
+        final var contractEndDate = input.startDate().plusMonths(input.contractMonths());
+
+
         final Student student = Student.create(
                 input.name(),
                 input.email(),
@@ -64,7 +67,7 @@ public class CreateStudentUseCase {
                 input.meetLink(),
                 input.startDate(),
                 input.contractMonths(),
-                input.contractEndDate()
+                contractEndDate
         );
 
         final var saved = studentGateway.save(student);

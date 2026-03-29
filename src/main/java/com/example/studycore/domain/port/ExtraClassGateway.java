@@ -27,4 +27,13 @@ public interface ExtraClassGateway {
             LocalTime startTime,
             LocalTime endTime
     );
+
+    List<ExtraClass> findExtraConflicts(
+            UUID teacherId,
+            List<String> days,
+            LocalTime classTime,
+            int durationMin,
+            LocalDate startDate,
+            LocalDate contractEndDate
+    );
 }

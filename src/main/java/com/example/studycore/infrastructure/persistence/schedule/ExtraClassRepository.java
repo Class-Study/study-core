@@ -52,4 +52,23 @@ public interface ExtraClassRepository extends JpaRepository<ExtraClassEntity, UU
             LocalTime startTime,
             LocalTime endTime
     );
+
+    @Query(value = """
+                SELECT *
+                FROM extra_classes e
+                WHERE e.teacher_id = :teacherId
+                  AND e.date >= :startDate
+                  AND e.date <= :contractEndDate
+                  AND EXTRACT(DOW FROM e.date) IN (:dowNumbers)
+                  AND e.start_time < CAST(:classTimeEnd AS time)
+                  AND (e.start_time + e.duration_min * INTERVAL '1 minute') > CAST(:classTime AS time)
+            """, nativeQuery = true)
+    List<ExtraClassEntity> findExtraConflictsRaw(
+            UUID teacherId,
+            List<Integer> dowNumbers,
+            LocalTime classTime,
+            LocalTime classTimeEnd,
+            LocalDate startDate,
+            LocalDate contractEndDate
+    );
 }

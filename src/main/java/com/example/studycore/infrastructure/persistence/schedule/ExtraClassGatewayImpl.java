@@ -9,10 +9,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +18,16 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
     private final ExtraClassRepository repository;
 
     private final static SchedulerInfraMapper SCHEDULER_INFRA_MAPPER = SchedulerInfraMapper.INSTANCE;
+
+    private static final Map<String, Integer> DAY_TO_DOW = Map.of(
+            "SUNDAY",    0,
+            "MONDAY",    1,
+            "TUESDAY",   2,
+            "WEDNESDAY", 3,
+            "THURSDAY",  4,
+            "FRIDAY",    5,
+            "SATURDAY",  6
+    );
 
     public ExtraClass save(ExtraClass extra) {
         var entity = SCHEDULER_INFRA_MAPPER.toEntity(extra);
@@ -67,6 +74,36 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
             LocalTime endTime
     ) {
         return repository.existsByTeacherAndTimeOverlap(teacherId, date, startTime, endTime);
+    }
+
+
+    @Override
+    public List<ExtraClass> findExtraConflicts(
+            UUID teacherId,
+            List<String> days,
+            LocalTime classTime,
+            int durationMin,
+            LocalDate startDate,
+            LocalDate contractEndDate
+    ) {
+        final var classTimeEnd = classTime.plusMinutes(durationMin);
+
+        final var dowNumbers = days.stream()
+                .map(DAY_TO_DOW::get)
+                .toList();
+
+        return repository
+                .findExtraConflictsRaw(
+                        teacherId,
+                        dowNumbers,
+                        classTime,
+                        classTimeEnd,
+                        startDate,
+                        contractEndDate
+                )
+                .stream()
+                .map(SCHEDULER_INFRA_MAPPER::fromEntity)
+                .toList();
     }
 
 }

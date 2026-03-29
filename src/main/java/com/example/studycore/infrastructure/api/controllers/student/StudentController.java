@@ -7,11 +7,11 @@ import com.example.studycore.infrastructure.api.StudentApi;
 import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.StudentStatsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.*;
 import com.example.studycore.infrastructure.mapper.StudentInfraMapper;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -36,6 +37,8 @@ public class StudentController implements StudentApi {
     private final GetStudentStatsUseCase getStudentStatsUseCase;
     private final UnblockStudentUseCase unblockStudentUseCase;
     private final SearchStudentsUseCase searchStudentsUseCase;
+    private final EvaluateAvailabilityUseCase evaluateAvailabilityUseCase;
+    private final ListRescheduleOptionsUseCase listRescheduleOptionsUseCase;
 
     @Override
     public ResponseEntity<String> create(CreateStudentRequest request) {
@@ -43,6 +46,19 @@ public class StudentController implements StudentApi {
         final var input = STUDENT_INFRA_MAPPER.toCreateStudentInput(teacherId, request);
         final var provisoryPass = createStudentUseCase.execute(input).provisoryPass();
         return ResponseEntity.status(HttpStatus.CREATED).body(provisoryPass);
+    }
+
+    public ResponseEntity<EvaluatedDaysResponse> evaluateAvailability(
+            String days,
+            Integer durationMin,
+            LocalDate startDate,
+            LocalTime classTime,
+            Integer contractMonths
+    ) {
+        final var teacherId = getAuthenticatedUserId();
+        final var input = STUDENT_INFRA_MAPPER.toEvaluateAvailabilityInput(teacherId, days, durationMin, classTime, startDate, contractMonths);
+        final var output = evaluateAvailabilityUseCase.execute(input);
+        return ResponseEntity.ok(STUDENT_INFRA_MAPPER.toEvaluatedDaysResponse(output));
     }
 
     @Override

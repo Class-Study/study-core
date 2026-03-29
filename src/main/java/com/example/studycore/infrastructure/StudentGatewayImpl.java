@@ -13,6 +13,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
@@ -141,6 +142,35 @@ public class StudentGatewayImpl implements StudentGateway {
     @Override
     public boolean existsRecurringClassOverlap(UUID teacherId, String classDays, LocalTime startClass, LocalTime endClass) {
         return studentRepository.existsRecurringClassOverlap(teacherId, classDays, startClass, endClass);
+    }
+
+    @Override
+    public List<Student> findRecurringConflicts(
+            UUID teacherId,
+            List<String> days,
+            LocalTime classTime,
+            int durationMin,
+            LocalDate startDate,
+            LocalDate contractEndDate
+    ) {
+        LocalTime classTimeEnd = classTime.plusMinutes(durationMin);
+
+        List<StudentEntity> entities = studentRepository.findRecurringConflictsRaw(
+                teacherId,
+                days,
+                classTime,
+                classTimeEnd,
+                startDate,
+                contractEndDate
+        );
+
+        return entities.stream()
+                .map(studentEntity -> userRepository.findById(studentEntity.getId())
+                        .filter(user -> UserRole.STUDENT.name().equals(user.getRole()))
+                        .map(user -> STUDENT_INFRA_MAPPER.fromUserAndStudentEntity(user, studentEntity))
+                        .orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .toList();
     }
 }
 

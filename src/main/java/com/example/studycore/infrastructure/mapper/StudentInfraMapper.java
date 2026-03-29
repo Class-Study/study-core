@@ -2,7 +2,9 @@ package com.example.studycore.infrastructure.mapper;
 
 import com.example.studycore.application.usecase.activity.output.StudentActivityOutput;
 import com.example.studycore.application.usecase.student.input.CreateStudentInput;
+import com.example.studycore.application.usecase.student.input.EvaluateAvailabilityInput;
 import com.example.studycore.application.usecase.student.input.UpdateStudentInput;
+import com.example.studycore.application.usecase.student.output.EvaluatedDaysOutput;
 import com.example.studycore.application.usecase.student.output.GetStudentOutput;
 import com.example.studycore.application.usecase.student.output.ListStudentsOutput;
 import com.example.studycore.application.usecase.student.output.StudentStatsOutput;
@@ -12,11 +14,12 @@ import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.StudentStatsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.*;
 import com.example.studycore.infrastructure.persistence.auth.UserEntity;
 import com.example.studycore.infrastructure.persistence.student.StudentEntity;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -24,7 +27,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface StudentInfraMapper {
 
     StudentInfraMapper INSTANCE = Mappers.getMapper(StudentInfraMapper.class);
@@ -88,6 +91,17 @@ public interface StudentInfraMapper {
     @Mapping(target = "teacherId", source = "teacherId")
     CreateStudentInput toCreateStudentInput(UUID teacherId, CreateStudentRequest request);
 
+    default List<String> map(String value) {
+        return Arrays.asList(value.split(","));
+    }
+
+    @Mapping(target = "teacherId", source = "teacherId")
+    @Mapping(target = "days", source = "days")
+    @Mapping(target = "durationMin", source = "durationMin")
+    @Mapping(target = "startDate", source = "startDate")
+    @Mapping(target = "classTime", source = "classTime")
+    @Mapping(target = "contractMonths", source = "contractMonths")
+    EvaluateAvailabilityInput toEvaluateAvailabilityInput(UUID teacherId, String days, Integer durationMin, LocalTime classTime, LocalDate startDate, Integer contractMonths);
 
     default UpdateStudentInput toUpdateStudentInput(UUID id, UUID teacherId, UpdateStudentRequest request) {
         return new UpdateStudentInput(
@@ -114,4 +128,8 @@ public interface StudentInfraMapper {
     StudentActivityResponse toStudentActivityResponse(StudentActivityOutput output);
 
     StudentStatsResponse toStudentStatsResponse(StudentStatsOutput output);
+
+    EvaluatedDaysResponse toEvaluatedDaysResponse(EvaluatedDaysOutput output);
+
+    RescheduleOptionResponse toRescheduleOptionResponse(RescheduleOptionOutput output);
 }

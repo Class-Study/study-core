@@ -18,7 +18,6 @@ public record CreateStudentRequest(
         @NotNull UUID levelProfileId,
         @NotNull LocalDate startDate,
         @NotNull Integer contractMonths,
-        @NotNull LocalDate contractEndDate,
         @NotNull LocalTime classTime,
         @NotNull List<String> classDays,
         @NotNull Integer classDuration,
