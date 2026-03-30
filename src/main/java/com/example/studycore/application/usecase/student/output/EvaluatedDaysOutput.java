@@ -20,6 +20,7 @@ public record EvaluatedDaysOutput(
     public record Conflict(
             String scheduleId,
             String studentId,
+            String type,
             LocalDate date,
             LocalTime startTime,
             int durationMin

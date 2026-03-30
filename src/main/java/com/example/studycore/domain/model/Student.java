@@ -1,5 +1,6 @@
 package com.example.studycore.domain.model;
 
+import com.example.studycore.domain.model.enums.ScheduleType;
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
 import lombok.Getter;
@@ -20,6 +21,7 @@ public class Student {
     private String passwordHash;
     private final UserRole role;
     private UserStatus status;
+    private ScheduleType type;
     private String avatarUrl;
     private String phone;
     private final UUID teacherId;
@@ -43,6 +45,7 @@ public class Student {
             String passwordHash,
             UserRole role,
             UserStatus status,
+            ScheduleType type,
             String avatarUrl,
             String phone,
             UUID teacherId,
@@ -65,6 +68,7 @@ public class Student {
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = status;
+        this.type = type;
         this.avatarUrl = avatarUrl;
         this.phone = phone;
         this.teacherId = teacherId;
@@ -114,6 +118,7 @@ public class Student {
                 passwordHash,
                 UserRole.STUDENT,
                 UserStatus.ACTIVE,
+                ScheduleType.RECURRING,
                 avatarUrl,
                 normalizePhone(phone),
                 teacherId,
@@ -139,6 +144,7 @@ public class Student {
             String passwordHash,
             UserRole role,
             UserStatus status,
+            ScheduleType type,
             String avatarUrl,
             String phone,
             UUID teacherId,
@@ -162,6 +168,7 @@ public class Student {
                 passwordHash,
                 role,
                 status,
+                type,
                 avatarUrl,
                 phone,
                 teacherId,

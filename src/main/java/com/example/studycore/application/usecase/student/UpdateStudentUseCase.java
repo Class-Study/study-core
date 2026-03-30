@@ -69,6 +69,7 @@ public class UpdateStudentUseCase {
                 existing.getPasswordHash(),
                 existing.getRole(),
                 existing.getStatus(),
+                existing.getType(),
                 input.avatarUrl() != null ? input.avatarUrl() : existing.getAvatarUrl(),
                 input.phone() != null ? input.phone() : existing.getPhone(),
                 existing.getTeacherId(),

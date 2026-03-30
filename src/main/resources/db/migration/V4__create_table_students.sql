@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS study.students
     class_days        VARCHAR[]     NOT NULL DEFAULT '{}',
     class_time        TIME          NOT NULL,
     class_duration    INT           NOT NULL DEFAULT 60,
+    type              VARCHAR(20)   NOT NULL,
     class_rate        NUMERIC(8, 2) NOT NULL DEFAULT 0,
     meet_platform     VARCHAR(50),
     meet_link         TEXT,

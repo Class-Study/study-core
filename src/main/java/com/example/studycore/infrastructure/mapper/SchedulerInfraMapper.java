@@ -2,11 +2,14 @@ package com.example.studycore.infrastructure.mapper;
 
 import com.example.studycore.application.usecase.schedule.input.CreateExtraClassInput;
 import com.example.studycore.application.usecase.schedule.input.ScheduleWeekInput;
+import com.example.studycore.application.usecase.schedule.output.RescheduleOptionInput;
+import com.example.studycore.application.usecase.schedule.output.RescheduleOptionOutput;
 import com.example.studycore.application.usecase.schedule.output.ScheduleWeekOutput;
 import com.example.studycore.domain.model.ExtraClass;
 import com.example.studycore.domain.model.enums.ScheduleType;
 import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateExtraClassRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.RescheduleOptionResponse;
 import com.example.studycore.infrastructure.persistence.schedule.ExtraClassEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -57,10 +60,17 @@ public interface SchedulerInfraMapper {
 
     ScheduleWeekInput toScheduleWeekInput(final LocalDate weekStart, final LocalDate weekEnd, final UUID teacherId);
 
+    @Mapping(target = "scheduleType", expression = "java(ScheduleType.valueOf(scheduleType))")
+    RescheduleOptionInput toRescheduleOptionInput(UUID teacherId, UUID schedulerId, String scheduleType, LocalDate date);
+
+
     ScheduleWeekResponse toResponse(ScheduleWeekOutput out);
+
+    RescheduleOptionResponse toRescheduleOptionResponse(RescheduleOptionOutput output);
 
     @Mapping(target = "type", expression = "java(ScheduleType.valueOf(createExtraClassRequest.type()))")
     CreateExtraClassInput toCreateExtraClassInput(CreateExtraClassRequest createExtraClassRequest);
+
 }
 
 

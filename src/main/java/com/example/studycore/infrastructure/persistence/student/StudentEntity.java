@@ -1,5 +1,6 @@
 package com.example.studycore.infrastructure.persistence.student;
 
+import com.example.studycore.domain.model.enums.ScheduleType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +37,9 @@ public class StudentEntity {
 
     @Column(name = "class_duration", nullable = false)
     private Integer classDuration;
+
+    @Column(name = "type", nullable = false)
+    private String type;
 
     @Column(name = "class_rate", nullable = false, precision = 8, scale = 2)
     private BigDecimal classRate;

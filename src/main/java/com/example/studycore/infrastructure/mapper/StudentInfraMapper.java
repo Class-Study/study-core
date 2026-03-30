@@ -9,23 +9,27 @@ import com.example.studycore.application.usecase.student.output.GetStudentOutput
 import com.example.studycore.application.usecase.student.output.ListStudentsOutput;
 import com.example.studycore.application.usecase.student.output.StudentStatsOutput;
 import com.example.studycore.domain.model.Student;
+import com.example.studycore.domain.model.enums.ScheduleType;
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.infrastructure.api.controllers.activity.response.StudentActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.student.request.CreateStudentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.request.UpdateStudentRequest;
-import com.example.studycore.infrastructure.api.controllers.student.response.*;
+import com.example.studycore.infrastructure.api.controllers.student.response.EvaluatedDaysResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.ListStudentsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.StudentStatsResponse;
 import com.example.studycore.infrastructure.persistence.auth.UserEntity;
 import com.example.studycore.infrastructure.persistence.student.StudentEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface StudentInfraMapper {
@@ -41,6 +45,7 @@ public interface StudentInfraMapper {
                 user.getPasswordHash(),
                 UserRole.valueOf(user.getRole()),
                 UserStatus.valueOf(user.getStatus()),
+                ScheduleType.valueOf(student.getType()),
                 user.getAvatarUrl(),
                 user.getPhone(),
                 student != null ? student.getTeacherId() : null,
@@ -130,6 +135,4 @@ public interface StudentInfraMapper {
     StudentStatsResponse toStudentStatsResponse(StudentStatsOutput output);
 
     EvaluatedDaysResponse toEvaluatedDaysResponse(EvaluatedDaysOutput output);
-
-    RescheduleOptionResponse toRescheduleOptionResponse(RescheduleOptionOutput output);
 }

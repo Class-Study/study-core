@@ -6,20 +6,17 @@ import com.example.studycore.domain.model.ExtraClass;
 import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.port.ExtraClassGateway;
 import com.example.studycore.domain.port.StudentGateway;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 
 @Service
+@RequiredArgsConstructor
 public class CreateExtraClassUseCase {
 
     private final ExtraClassGateway extraClassGateway;
     private final StudentGateway studentGateway;
-
-    public CreateExtraClassUseCase(ExtraClassGateway extraClassGateway, StudentGateway studentGateway) {
-        this.extraClassGateway = extraClassGateway;
-        this.studentGateway = studentGateway;
-    }
 
     public void execute(CreateExtraClassInput input) {
 

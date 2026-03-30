@@ -117,8 +117,9 @@ public class EvaluateAvailabilityUseCase {
 
                     return expandDates(overlapStart, overlapEnd, dayOfWeek).stream()
                             .map(date -> new EvaluatedDaysOutput.Conflict(
-                                    null,
                                     s.getId().toString(),
+                                    s.getId().toString(),
+                                    s.getType().toString(),
                                     date,
                                     s.getClassTime(),
                                     s.getClassDuration()
@@ -152,6 +153,7 @@ public class EvaluateAvailabilityUseCase {
                 .map(e -> new EvaluatedDaysOutput.Conflict(
                         e.getId().toString(),
                         e.getStudentId().toString(),
+                        e.getType().toString(),
                         e.getDate(),
                         e.getStartTime(),
                         e.getDurationMin()

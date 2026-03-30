@@ -31,6 +31,7 @@ public class UpdateStudentRateUseCase {
                 student.getPasswordHash(),
                 student.getRole(),
                 student.getStatus(),
+                student.getType(),
                 student.getAvatarUrl(),
                 student.getPhone(),
                 student.getTeacherId(),

@@ -38,7 +38,6 @@ public class StudentController implements StudentApi {
     private final UnblockStudentUseCase unblockStudentUseCase;
     private final SearchStudentsUseCase searchStudentsUseCase;
     private final EvaluateAvailabilityUseCase evaluateAvailabilityUseCase;
-    private final ListRescheduleOptionsUseCase listRescheduleOptionsUseCase;
 
     @Override
     public ResponseEntity<String> create(CreateStudentRequest request) {

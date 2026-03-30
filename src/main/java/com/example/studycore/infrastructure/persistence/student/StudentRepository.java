@@ -53,4 +53,24 @@ public interface StudentRepository extends JpaRepository<StudentEntity, UUID> {
             LocalTime startClass,
             LocalTime endClass
     );
+
+    @Query(value = """
+    SELECT EXISTS (
+        SELECT 1
+        FROM students s
+        WHERE s.teacher_id = :teacherId
+          AND s.class_time < CAST(:endTime AS time)
+          AND (s.class_time + (s.class_duration * INTERVAL '1 minute')) > CAST(:startTime AS time)
+          AND s.start_date <= CAST(:date AS date)
+          AND s.contract_end_date >= CAST(:date AS date)
+    )
+""", nativeQuery = true)
+    boolean existsRecurringOverlapOnDate(
+            UUID teacherId,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime
+    );
 }
+
+

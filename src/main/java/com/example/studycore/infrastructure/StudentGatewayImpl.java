@@ -172,5 +172,10 @@ public class StudentGatewayImpl implements StudentGateway {
                 .filter(java.util.Objects::nonNull)
                 .toList();
     }
+
+    @Override
+    public boolean existsRecurringOverlapOnDate(UUID teacherId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        return studentRepository.existsRecurringOverlapOnDate(teacherId, date, startTime, endTime);
+    }
 }
 

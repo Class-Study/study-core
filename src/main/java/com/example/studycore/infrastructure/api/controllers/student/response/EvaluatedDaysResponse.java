@@ -5,24 +5,25 @@ import java.time.LocalTime;
 import java.util.List;
 
 public record EvaluatedDaysResponse(
-    int totalClassesPerDay,
-    List<DayAvailability> availability
+        int totalClassesPerDay,
+        List<DayAvailability> availability
 ) {
     public record DayAvailability(
-        String day,
-        int totalClasses,
-        int conflictCount,
-        String status,
-        List<Conflict> conflicts
+            String day,
+            int totalClasses,
+            int conflictCount,
+            String status,
+            List<Conflict> conflicts
     ) {
     }
 
     public record Conflict(
-        String scheduleId,
-        String studentId,
-        LocalDate date,
-        LocalTime startTime,
-        int durationMin
+            String scheduleId,
+            String studentId,
+            String type,
+            LocalDate date,
+            LocalTime startTime,
+            int durationMin
     ) {
     }
 }

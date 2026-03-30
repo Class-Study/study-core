@@ -27,4 +27,6 @@ public interface StudentGateway {
             LocalDate startDate,
             LocalDate contractEndDate
     );
+
+    boolean existsRecurringOverlapOnDate(UUID teacherId, LocalDate date, LocalTime startTime, LocalTime endTime);
 }
