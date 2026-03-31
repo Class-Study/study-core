@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class DeleteExtraClassUseCase {
+public class DeleteClassroomUseCase {
 
     private final ClassroomGateway classroomGateway;
 

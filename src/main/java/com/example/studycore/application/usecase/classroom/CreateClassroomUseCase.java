@@ -12,7 +12,7 @@ import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
-public class CreateExtraClassUseCase {
+public class CreateClassroomUseCase {
 
     private final ClassroomGateway classroomGateway;
     private final StudentGateway studentGateway;

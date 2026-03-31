@@ -1,7 +1,7 @@
 package com.example.studycore.infrastructure.api.controllers.schedule;
 
-import com.example.studycore.application.usecase.classroom.CreateExtraClassUseCase;
-import com.example.studycore.application.usecase.classroom.DeleteExtraClassUseCase;
+import com.example.studycore.application.usecase.classroom.CreateClassroomUseCase;
+import com.example.studycore.application.usecase.classroom.DeleteClassroomUseCase;
 import com.example.studycore.application.usecase.classroom.ListRescheduleOptionsUseCase;
 import com.example.studycore.application.usecase.classroom.ListWeekScheduleUseCase;
 import com.example.studycore.infrastructure.api.ScheduleApi;
@@ -27,8 +27,8 @@ import java.util.UUID;
 public class ScheduleController implements ScheduleApi {
 
     private final ListWeekScheduleUseCase listWeekScheduleUseCase;
-    private final CreateExtraClassUseCase createExtraClassUseCase;
-    private final DeleteExtraClassUseCase deleteExtraClassUseCase;
+    private final CreateClassroomUseCase createClassroomUseCase;
+    private final DeleteClassroomUseCase deleteClassroomUseCase;
     private final ListRescheduleOptionsUseCase listRescheduleOptionsUseCase;
 
     private final static SchedulerInfraMapper SCHEDULER_INFRA_MAPPER = SchedulerInfraMapper.INSTANCE;
@@ -48,13 +48,13 @@ public class ScheduleController implements ScheduleApi {
     public ResponseEntity<Void> createExtra(@Valid @RequestBody CreateExtraClassRequest req) {
         final var input = SCHEDULER_INFRA_MAPPER.toCreateExtraClassInput(req);
 
-        createExtraClassUseCase.execute(input);
+        createClassroomUseCase.execute(input);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     public ResponseEntity<Void> deleteExtra(@PathVariable UUID id) {
-        deleteExtraClassUseCase.execute(id);
+        deleteClassroomUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
 
