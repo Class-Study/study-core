@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter
-public class ExtraClass {
+public class Classroom {
 
     private final UUID id;
     private final UUID studentId;
@@ -22,7 +22,7 @@ public class ExtraClass {
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 
-    private ExtraClass(
+    private Classroom(
             UUID id,
             UUID studentId,
             UUID teacherId,
@@ -48,7 +48,7 @@ public class ExtraClass {
         validate();
     }
 
-    public static ExtraClass create(
+    public static Classroom create(
             UUID studentId,
             UUID teacherId,
             LocalDate date,
@@ -60,10 +60,10 @@ public class ExtraClass {
         final UUID id = UUID.randomUUID();
         final var now = OffsetDateTime.now();
 
-        return new ExtraClass(id, studentId, teacherId, date, startTime, durationMin, title, type, now, now);
+        return new Classroom(id, studentId, teacherId, date, startTime, durationMin, title, type, now, now);
     }
 
-    public static ExtraClass with(
+    public static Classroom with(
             UUID id,
             UUID studentId,
             UUID teacherId,
@@ -75,7 +75,7 @@ public class ExtraClass {
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt
     ) {
-        return new ExtraClass(id, studentId, teacherId, date, startTime, durationMin, title, type, createdAt, updatedAt);
+        return new Classroom(id, studentId, teacherId, date, startTime, durationMin, title, type, createdAt, updatedAt);
     }
 
     private void validate() {

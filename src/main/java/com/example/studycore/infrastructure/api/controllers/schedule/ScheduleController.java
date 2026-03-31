@@ -1,9 +1,9 @@
 package com.example.studycore.infrastructure.api.controllers.schedule;
 
-import com.example.studycore.application.usecase.schedule.CreateExtraClassUseCase;
-import com.example.studycore.application.usecase.schedule.DeleteExtraClassUseCase;
-import com.example.studycore.application.usecase.schedule.ListRescheduleOptionsUseCase;
-import com.example.studycore.application.usecase.schedule.ListWeekScheduleUseCase;
+import com.example.studycore.application.usecase.classroom.CreateExtraClassUseCase;
+import com.example.studycore.application.usecase.classroom.DeleteExtraClassUseCase;
+import com.example.studycore.application.usecase.classroom.ListRescheduleOptionsUseCase;
+import com.example.studycore.application.usecase.classroom.ListWeekScheduleUseCase;
 import com.example.studycore.infrastructure.api.ScheduleApi;
 import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateExtraClassRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;

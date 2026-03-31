@@ -1,24 +1,22 @@
-package com.example.studycore.application.usecase.schedule;
+package com.example.studycore.application.usecase.classroom;
 
+import com.example.studycore.domain.model.Classroom;
 import com.example.studycore.domain.model.TeacherScheduleConfig;
-import com.example.studycore.application.usecase.schedule.output.RescheduleOptionInput;
-import com.example.studycore.application.usecase.schedule.output.RescheduleOptionOutput;
+import com.example.studycore.application.usecase.classroom.output.RescheduleOptionInput;
+import com.example.studycore.application.usecase.classroom.output.RescheduleOptionOutput;
 import com.example.studycore.domain.exception.NotFoundException;
-import com.example.studycore.domain.model.ExtraClass;
 import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.model.enums.ScheduleType;
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.port.ClassroomGateway;
 import com.example.studycore.domain.port.StudentGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -29,7 +27,7 @@ public class ListRescheduleOptionsUseCase {
     private static final int MAX_SEARCH_WEEKS = 8;
 
     private final StudentGateway studentGateway;
-    private final ExtraClassGateway extraClassGateway;
+    private final ClassroomGateway classroomGateway;
     // private final TeacherConfigGateway teacherConfigGateway; // descomentar quando implementar
 
     public RescheduleOptionOutput execute(RescheduleOptionInput input) {
@@ -47,12 +45,12 @@ public class ListRescheduleOptionsUseCase {
             durationMin = student.getClassDuration();
             studentName = student.getName();
         } else {
-            ExtraClass extraClass = extraClassGateway.findById(input.schedulerId())
+            Classroom classroom = classroomGateway.findById(input.schedulerId())
                     .orElseThrow(() -> new NotFoundException("Schedule not found"));
-            originalDate = extraClass.getDate();
-            originalTime = extraClass.getStartTime();
-            durationMin = extraClass.getDurationMin();
-            studentName = getStudent(extraClass.getStudentId()).getName();
+            originalDate = classroom.getDate();
+            originalTime = classroom.getStartTime();
+            durationMin = classroom.getDurationMin();
+            studentName = getStudent(classroom.getStudentId()).getName();
         }
 
         // 2. Carrega config do professor — mock até implementar a tabela
@@ -133,7 +131,7 @@ public class ListRescheduleOptionsUseCase {
     }
 
     private boolean isSlotFree(UUID teacherId, LocalDate date, LocalTime startTime, LocalTime endTime) {
-        return !extraClassGateway.existsByTeacherAndTimeOverlap(teacherId, date, startTime, endTime)
+        return !classroomGateway.existsByTeacherAndTimeOverlap(teacherId, date, startTime, endTime)
                 && !studentGateway.existsRecurringOverlapOnDate(teacherId, date, startTime, endTime);
     }
 

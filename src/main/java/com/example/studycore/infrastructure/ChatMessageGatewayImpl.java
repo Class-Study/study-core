@@ -1,4 +1,4 @@
-package com.example.studycore.infrastructure.persistence;
+package com.example.studycore.infrastructure;
 
 import com.example.studycore.domain.model.ChatMessage;
 import com.example.studycore.domain.port.ChatMessageGateway;

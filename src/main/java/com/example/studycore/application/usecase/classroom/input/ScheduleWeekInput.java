@@ -1,4 +1,4 @@
-package com.example.studycore.application.usecase.schedule.input;
+package com.example.studycore.application.usecase.classroom.input;
 
 import java.time.LocalDate;
 import java.util.UUID;

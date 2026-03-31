@@ -1,8 +1,9 @@
-package com.example.studycore.infrastructure.persistence.schedule;
+package com.example.studycore.infrastructure;
 
-import com.example.studycore.domain.model.ExtraClass;
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.model.Classroom;
+import com.example.studycore.domain.port.ClassroomGateway;
 import com.example.studycore.infrastructure.mapper.SchedulerInfraMapper;
+import com.example.studycore.infrastructure.persistence.classroom.ClassroomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +14,9 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class ExtraClassGatewayImpl implements ExtraClassGateway {
+public class ClassroomGatewayImpl implements ClassroomGateway {
 
-    private final ExtraClassRepository repository;
+    private final ClassroomRepository repository;
 
     private final static SchedulerInfraMapper SCHEDULER_INFRA_MAPPER = SchedulerInfraMapper.INSTANCE;
 
@@ -29,14 +30,14 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
             "SATURDAY",  6
     );
 
-    public ExtraClass save(ExtraClass extra) {
+    public Classroom save(Classroom extra) {
         var entity = SCHEDULER_INFRA_MAPPER.toEntity(extra);
         var saved = repository.save(entity);
         return SCHEDULER_INFRA_MAPPER.fromEntity(saved);
 
     }
 
-    public List<ExtraClass> findByStudentIdsAndStartAtUtcBetween(java.util.Collection<java.util.UUID> studentIds, OffsetDateTime start, OffsetDateTime end) {
+    public List<Classroom> findByStudentIdsAndStartAtUtcBetween(java.util.Collection<java.util.UUID> studentIds, OffsetDateTime start, OffsetDateTime end) {
         if (studentIds == null || studentIds.isEmpty() || start == null || end == null)
             return Collections.emptyList();
 
@@ -47,7 +48,7 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
                 .stream().map(SCHEDULER_INFRA_MAPPER::fromEntity).toList();
     }
 
-    public Optional<ExtraClass> findById(UUID id) {
+    public Optional<Classroom> findById(UUID id) {
         return repository.findById(id).map(SCHEDULER_INFRA_MAPPER::fromEntity);
     }
 
@@ -56,7 +57,7 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
     }
 
     @Override
-    public Optional<ExtraClass> findMostRecentByStudentId(UUID studentId) {
+    public Optional<Classroom> findMostRecentByStudentId(UUID studentId) {
         return repository
                 .findMostRecentByStudentId(
                         studentId,
@@ -78,7 +79,7 @@ public class ExtraClassGatewayImpl implements ExtraClassGateway {
 
 
     @Override
-    public List<ExtraClass> findExtraConflicts(
+    public List<Classroom> findExtraConflicts(
             UUID teacherId,
             List<String> days,
             LocalTime classTime,

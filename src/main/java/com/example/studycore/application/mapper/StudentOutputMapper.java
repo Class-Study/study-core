@@ -2,7 +2,7 @@ package com.example.studycore.application.mapper;
 
 import com.example.studycore.application.usecase.student.output.GetStudentOutput;
 import com.example.studycore.application.usecase.student.output.ListStudentsOutput;
-import com.example.studycore.domain.model.ExtraClass;
+import com.example.studycore.domain.model.Classroom;
 import com.example.studycore.domain.model.Student;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -24,7 +24,7 @@ public interface StudentOutputMapper {
     @Mapping(target = "createdAt", source = "student.createdAt")
     @Mapping(target = "provisoryPass", ignore = true)
     @Mapping(target = "extraClass", source = "extraClass")
-    GetStudentOutput toGetStudentOutputAndExtraClass(Student student, ExtraClass extraClass);
+    GetStudentOutput toGetStudentOutputAndExtraClass(Student student, Classroom classroom);
 
     default ListStudentsOutput toListStudentsOutput(List<Student> students) {
         if (students == null) {

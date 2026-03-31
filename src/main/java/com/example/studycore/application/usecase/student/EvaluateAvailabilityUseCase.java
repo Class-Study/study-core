@@ -2,13 +2,10 @@ package com.example.studycore.application.usecase.student;
 
 import com.example.studycore.application.usecase.student.input.EvaluateAvailabilityInput;
 import com.example.studycore.application.usecase.student.output.EvaluatedDaysOutput;
-import com.example.studycore.application.usecase.student.output.ExtraClassOutput;
-import com.example.studycore.domain.model.ExtraClass;
+import com.example.studycore.domain.model.Classroom;
 import com.example.studycore.domain.model.Student;
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.port.ClassroomGateway;
 import com.example.studycore.domain.port.StudentGateway;
-import com.example.studycore.domain.port.TeacherGateway;
-import com.example.studycore.infrastructure.api.controllers.student.response.EvaluatedDaysResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +13,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +23,7 @@ import java.util.stream.Stream;
 public class EvaluateAvailabilityUseCase {
 
     private final StudentGateway studentGateway;
-    private final ExtraClassGateway extraClassGateway;
+    private final ClassroomGateway classroomGateway;
 
     private final static Double RATIO_MAX = 0.30;
     private final static int RATIO_MIN = 0;
@@ -45,7 +41,7 @@ public class EvaluateAvailabilityUseCase {
                 contractEndDate
         );
 
-        final var conflictWithExtraClasses = extraClassGateway.findExtraConflicts(
+        final var conflictWithExtraClasses = classroomGateway.findExtraConflicts(
                 input.teacherId(),
                 input.days(),
                 input.classTime(),
@@ -76,12 +72,12 @@ public class EvaluateAvailabilityUseCase {
             LocalDate startDate,
             LocalDate contractEndDate,
             List<Student> recurringStudents,
-            List<ExtraClass> extraClasses
+            List<Classroom> classrooms
     ) {
         final var totalClasses = calculateTotalClasses(startDate, contractEndDate, day);
 
         final var recurringConflicts = expandRecurringConflicts(day, startDate, contractEndDate, recurringStudents);
-        final var extraConflicts = filterExtraConflictsByDay(day, extraClasses);
+        final var extraConflicts = filterExtraConflictsByDay(day, classrooms);
 
         final var allConflicts = mergeConflicts(recurringConflicts, extraConflicts);
         final var status = calculateStatus(allConflicts.size(), totalClasses);
@@ -144,11 +140,11 @@ public class EvaluateAvailabilityUseCase {
 
     private List<EvaluatedDaysOutput.Conflict> filterExtraConflictsByDay(
             String day,
-            List<ExtraClass> extraClasses
+            List<Classroom> classrooms
     ) {
         final var dayOfWeek = DayOfWeek.valueOf(day);
 
-        return extraClasses.stream()
+        return classrooms.stream()
                 .filter(e -> e.getDate().getDayOfWeek() == dayOfWeek)
                 .map(e -> new EvaluatedDaysOutput.Conflict(
                         e.getId().toString(),

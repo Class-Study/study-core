@@ -1,4 +1,4 @@
-package com.example.studycore.infrastructure.persistence.schedule;
+package com.example.studycore.infrastructure.persistence.classroom;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -10,9 +10,9 @@ import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ExtraClassRepository extends JpaRepository<ExtraClassEntity, UUID> {
+public interface ClassroomRepository extends JpaRepository<ClassroomEntity, UUID> {
 
-    List<ExtraClassEntity> findByStudentIdInAndDateBetweenOrderByDateAsc(Collection<UUID> studentIds, LocalDate start, LocalDate end);
+    List<ClassroomEntity> findByStudentIdInAndDateBetweenOrderByDateAsc(Collection<UUID> studentIds, LocalDate start, LocalDate end);
 
     @Query(value = """
                 SELECT *
@@ -28,13 +28,13 @@ public interface ExtraClassRepository extends JpaRepository<ExtraClassEntity, UU
                 ORDER BY e.date ASC, e.start_time ASC
                 LIMIT 1
             """, nativeQuery = true)
-    Optional<ExtraClassEntity> findMostRecentByStudentId(
+    Optional<ClassroomEntity> findMostRecentByStudentId(
             UUID studentId,
             LocalDate today,
             LocalTime currentTime
     );
 
-    Optional<ExtraClassEntity> findById(UUID id);
+    Optional<ClassroomEntity> findById(UUID id);
 
     @Query(value = """
                 SELECT EXISTS (
@@ -63,7 +63,7 @@ public interface ExtraClassRepository extends JpaRepository<ExtraClassEntity, UU
                   AND e.start_time < CAST(:classTimeEnd AS time)
                   AND (e.start_time + e.duration_min * INTERVAL '1 minute') > CAST(:classTime AS time)
             """, nativeQuery = true)
-    List<ExtraClassEntity> findExtraConflictsRaw(
+    List<ClassroomEntity> findExtraConflictsRaw(
             UUID teacherId,
             List<Integer> dowNumbers,
             LocalTime classTime,

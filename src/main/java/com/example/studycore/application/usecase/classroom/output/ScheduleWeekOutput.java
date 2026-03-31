@@ -1,4 +1,4 @@
-package com.example.studycore.application.usecase.schedule.output;
+package com.example.studycore.application.usecase.classroom.output;
 
 import java.time.LocalDate;
 import java.util.List;

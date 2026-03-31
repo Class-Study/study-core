@@ -1,4 +1,4 @@
-package com.example.studycore.infrastructure.persistence.schedule;
+package com.example.studycore.infrastructure.persistence.classroom;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "extra_classes")
-public class ExtraClassEntity {
+public class ClassroomEntity {
 
     @Id
     private UUID id;

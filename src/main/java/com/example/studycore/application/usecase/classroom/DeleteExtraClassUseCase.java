@@ -1,6 +1,6 @@
-package com.example.studycore.application.usecase.schedule;
+package com.example.studycore.application.usecase.classroom;
 
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.port.ClassroomGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +10,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DeleteExtraClassUseCase {
 
-    private final ExtraClassGateway extraClassGateway;
+    private final ClassroomGateway classroomGateway;
 
     public void execute(UUID id) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
-        extraClassGateway.deleteById(id);
+        classroomGateway.deleteById(id);
     }
 }

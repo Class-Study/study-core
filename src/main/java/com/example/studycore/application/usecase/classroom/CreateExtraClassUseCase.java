@@ -1,10 +1,9 @@
-package com.example.studycore.application.usecase.schedule;
+package com.example.studycore.application.usecase.classroom;
 
-import com.example.studycore.application.usecase.schedule.input.CreateExtraClassInput;
+import com.example.studycore.application.usecase.classroom.input.CreateExtraClassInput;
 import com.example.studycore.domain.exception.ConflictException;
-import com.example.studycore.domain.model.ExtraClass;
-import com.example.studycore.domain.model.Student;
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.model.Classroom;
+import com.example.studycore.domain.port.ClassroomGateway;
 import com.example.studycore.domain.port.StudentGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,7 @@ import java.time.LocalTime;
 @RequiredArgsConstructor
 public class CreateExtraClassUseCase {
 
-    private final ExtraClassGateway extraClassGateway;
+    private final ClassroomGateway classroomGateway;
     private final StudentGateway studentGateway;
 
     public void execute(CreateExtraClassInput input) {
@@ -31,7 +30,7 @@ public class CreateExtraClassUseCase {
             throw new ConflictException("Já existe uma aula recorrente nesse dia e horário");
         }
 
-        if (extraClassGateway.existsByTeacherAndTimeOverlap(
+        if (classroomGateway.existsByTeacherAndTimeOverlap(
                 input.teacherId(),
                 input.date(),
                 input.startTime(),
@@ -42,7 +41,7 @@ public class CreateExtraClassUseCase {
 
 
         // create domain model
-        final ExtraClass domain = ExtraClass.create(
+        final Classroom domain = Classroom.create(
                 input.studentId(),
                 input.teacherId(),
                 input.date(),
@@ -52,7 +51,7 @@ public class CreateExtraClassUseCase {
                 input.type()
         );
 
-        extraClassGateway.save(domain);
+        classroomGateway.save(domain);
     }
 }
 

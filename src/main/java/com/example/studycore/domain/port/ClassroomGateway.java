@@ -1,6 +1,6 @@
 package com.example.studycore.domain.port;
 
-import com.example.studycore.domain.model.ExtraClass;
+import com.example.studycore.domain.model.Classroom;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -10,16 +10,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ExtraClassGateway {
-    ExtraClass save(ExtraClass extra);
+public interface ClassroomGateway {
+    Classroom save(Classroom extra);
 
-    List<ExtraClass> findByStudentIdsAndStartAtUtcBetween(Collection<UUID> studentIds, OffsetDateTime start, OffsetDateTime end);
+    List<Classroom> findByStudentIdsAndStartAtUtcBetween(Collection<UUID> studentIds, OffsetDateTime start, OffsetDateTime end);
 
-    Optional<ExtraClass> findById(UUID id);
+    Optional<Classroom> findById(UUID id);
 
     void deleteById(UUID id);
 
-    Optional<ExtraClass> findMostRecentByStudentId(UUID studentId);
+    Optional<Classroom> findMostRecentByStudentId(UUID studentId);
 
     boolean existsByTeacherAndTimeOverlap(
             UUID teacherId,
@@ -28,7 +28,7 @@ public interface ExtraClassGateway {
             LocalTime endTime
     );
 
-    List<ExtraClass> findExtraConflicts(
+    List<Classroom> findExtraConflicts(
             UUID teacherId,
             List<String> days,
             LocalTime classTime,

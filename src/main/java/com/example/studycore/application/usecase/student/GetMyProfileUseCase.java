@@ -5,7 +5,7 @@ import com.example.studycore.application.usecase.student.output.GetMyProfileOutp
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.model.enums.UserStatus;
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.port.ClassroomGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
 import com.example.studycore.domain.port.StudentGateway;
 import com.example.studycore.domain.port.TeacherGateway;
@@ -22,7 +22,7 @@ public class GetMyProfileUseCase {
     private final StudentGateway studentGateway;
     private final LevelProfileGateway levelProfileGateway;
     private final TeacherGateway teacherGateway;
-    private final ExtraClassGateway extraClassGateway;
+    private final ClassroomGateway classroomGateway;
 
     public GetMyProfileOutput execute(UUID studentId) {
         final var student = studentGateway.findById(studentId)
@@ -60,7 +60,7 @@ public class GetMyProfileUseCase {
             );
         }
 
-        final var extraClass = extraClassGateway.findMostRecentByStudentId(studentId).orElse(null);
+        final var extraClass = classroomGateway.findMostRecentByStudentId(studentId).orElse(null);
 
         return new GetMyProfileOutput(
                 student.getId(),

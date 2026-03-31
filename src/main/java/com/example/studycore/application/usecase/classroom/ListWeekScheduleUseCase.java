@@ -1,12 +1,12 @@
-package com.example.studycore.application.usecase.schedule;
+package com.example.studycore.application.usecase.classroom;
 
-import com.example.studycore.application.usecase.schedule.input.ScheduleWeekInput;
-import com.example.studycore.application.usecase.schedule.output.ScheduleEventOutput;
-import com.example.studycore.application.usecase.schedule.output.ScheduleWeekOutput;
-import com.example.studycore.domain.model.ExtraClass;
+import com.example.studycore.application.usecase.classroom.input.ScheduleWeekInput;
+import com.example.studycore.application.usecase.classroom.output.ScheduleEventOutput;
+import com.example.studycore.application.usecase.classroom.output.ScheduleWeekOutput;
+import com.example.studycore.domain.model.Classroom;
 import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.model.enums.ScheduleType;
-import com.example.studycore.domain.port.ExtraClassGateway;
+import com.example.studycore.domain.port.ClassroomGateway;
 import com.example.studycore.domain.port.StudentGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ListWeekScheduleUseCase {
 
-    private final ExtraClassGateway extraClassGateway;
+    private final ClassroomGateway classroomGateway;
     private final StudentGateway studentGateway;
 
     public ScheduleWeekOutput execute(ScheduleWeekInput input) {
@@ -78,8 +78,8 @@ public class ListWeekScheduleUseCase {
         final OffsetDateTime end = weekEnd.atTime(23, 59, 59).atOffset(ZoneOffset.UTC);
 
         final Collection<UUID> studentIds = students.stream().map(Student::getId).toList();
-        final List<ExtraClass> extras = extraClassGateway.findByStudentIdsAndStartAtUtcBetween(studentIds, start, end);
-        for (ExtraClass extra : extras) {
+        final List<Classroom> extras = classroomGateway.findByStudentIdsAndStartAtUtcBetween(studentIds, start, end);
+        for (Classroom extra : extras) {
             Student s = studentsById.get(extra.getStudentId());
             if (s == null) {
                 s = studentGateway.findById(extra.getStudentId()).orElse(null);

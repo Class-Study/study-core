@@ -1,4 +1,4 @@
-package com.example.studycore.application.usecase.schedule.output;
+package com.example.studycore.application.usecase.classroom.output;
 
 import com.example.studycore.domain.model.enums.ScheduleType;
 

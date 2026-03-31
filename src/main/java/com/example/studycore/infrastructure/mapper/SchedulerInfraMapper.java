@@ -1,16 +1,16 @@
 package com.example.studycore.infrastructure.mapper;
 
-import com.example.studycore.application.usecase.schedule.input.CreateExtraClassInput;
-import com.example.studycore.application.usecase.schedule.input.ScheduleWeekInput;
-import com.example.studycore.application.usecase.schedule.output.RescheduleOptionInput;
-import com.example.studycore.application.usecase.schedule.output.RescheduleOptionOutput;
-import com.example.studycore.application.usecase.schedule.output.ScheduleWeekOutput;
-import com.example.studycore.domain.model.ExtraClass;
+import com.example.studycore.application.usecase.classroom.input.CreateExtraClassInput;
+import com.example.studycore.application.usecase.classroom.input.ScheduleWeekInput;
+import com.example.studycore.application.usecase.classroom.output.RescheduleOptionInput;
+import com.example.studycore.application.usecase.classroom.output.RescheduleOptionOutput;
+import com.example.studycore.application.usecase.classroom.output.ScheduleWeekOutput;
+import com.example.studycore.domain.model.Classroom;
 import com.example.studycore.domain.model.enums.ScheduleType;
 import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateExtraClassRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.RescheduleOptionResponse;
-import com.example.studycore.infrastructure.persistence.schedule.ExtraClassEntity;
+import com.example.studycore.infrastructure.persistence.classroom.ClassroomEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -24,11 +24,11 @@ public interface SchedulerInfraMapper {
     SchedulerInfraMapper INSTANCE = Mappers.getMapper(SchedulerInfraMapper.class);
 
 
-    default ExtraClass fromEntity(ExtraClassEntity entity) {
+    default Classroom fromEntity(ClassroomEntity entity) {
         if (entity == null) {
             return null;
         }
-        return ExtraClass.with(
+        return Classroom.with(
                 entity.getId(),
                 entity.getStudentId(),
                 entity.getTeacherId(),
@@ -42,9 +42,9 @@ public interface SchedulerInfraMapper {
         );
     }
 
-    default ExtraClassEntity toEntity(ExtraClass domain) {
+    default ClassroomEntity toEntity(Classroom domain) {
         if (domain == null) return null;
-        final var entity = new ExtraClassEntity();
+        final var entity = new ClassroomEntity();
         entity.setId(domain.getId());
         entity.setStudentId(domain.getStudentId());
         entity.setTeacherId(domain.getTeacherId());
