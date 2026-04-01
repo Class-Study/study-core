@@ -17,7 +17,7 @@ public interface StudentMeResponseMapper {
 
     StudentMeResponseMapper INSTANCE = Mappers.getMapper(StudentMeResponseMapper.class);
 
-    @Mapping(target = "extraClass", source = "output.extraClass")
+    @Mapping(target = "classroom", source = "output.classroom")
     GetMyProfileResponse toGetMyProfileResponse(GetMyProfileOutput output);
 
     GetMyActivitiesResponse toGetMyActivitiesResponse(GetMyActivitiesOutput output);

@@ -16,7 +16,7 @@ public interface ClassroomRepository extends JpaRepository<ClassroomEntity, UUID
 
     @Query(value = """
                 SELECT *
-                FROM extra_classes e
+                FROM classroom e
                 WHERE e.student_id = ?1
                   AND (
                     e.date > ?2
@@ -39,7 +39,7 @@ public interface ClassroomRepository extends JpaRepository<ClassroomEntity, UUID
     @Query(value = """
                 SELECT EXISTS (
                     SELECT 1
-                    FROM extra_classes e
+                    FROM classroom e
                     WHERE e.teacher_id = :teacherId
                       AND e.date = :date
                       AND e.start_time < :endTime
@@ -55,7 +55,7 @@ public interface ClassroomRepository extends JpaRepository<ClassroomEntity, UUID
 
     @Query(value = """
                 SELECT *
-                FROM extra_classes e
+                FROM classroom e
                 WHERE e.teacher_id = :teacherId
                   AND e.date >= :startDate
                   AND e.date <= :contractEndDate

@@ -23,7 +23,7 @@ public record GetMyProfileResponse(
         LocalDate startDate,
         OffsetDateTime createdAt,
         TeacherInfo teacher,
-        ExtraClassResponse extraClass
+        ClassroomResponse classroom
 ) {
     public record LevelProfileMinimal(
             UUID id,

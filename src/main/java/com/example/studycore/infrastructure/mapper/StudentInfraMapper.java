@@ -38,6 +38,34 @@ public interface StudentInfraMapper {
 
     default Student fromUserAndStudentEntity(UserEntity user, StudentEntity student) {
         if (user == null) return null;
+        if (student == null) {
+            // Student record missing: build a Student with defaults for student-specific fields
+            return Student.with(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getPasswordHash(),
+                    UserRole.valueOf(user.getRole()),
+                    UserStatus.valueOf(user.getStatus()),
+                    ScheduleType.RECURRING,
+                    user.getAvatarUrl(),
+                    user.getPhone(),
+                    null, // teacherId
+                    null, // levelProfileId
+                    List.of(), // classDays
+                    null, // classTime
+                    null, // classDuration
+                    null, // classRate
+                    null, // meetPlatform
+                    null, // meetLink
+                    null, // startDate
+                    null, // contractMonths
+                    null, // contractEndDate
+                    null, // notesPrivate
+                    null  // createdAt
+            );
+        }
+
         return Student.with(
                 user.getId(),
                 user.getName(),
@@ -48,19 +76,19 @@ public interface StudentInfraMapper {
                 ScheduleType.valueOf(student.getType()),
                 user.getAvatarUrl(),
                 user.getPhone(),
-                student != null ? student.getTeacherId() : null,
-                student != null ? student.getLevelProfileId() : null,
-                student != null && student.getClassDays() != null ? Arrays.asList(student.getClassDays()) : List.of(),
-                student != null ? student.getClassTime() : null,
-                student != null ? student.getClassDuration() : null,
-                student != null ? student.getClassRate() : null,
-                student != null ? student.getMeetPlatform() : null,
-                student != null ? student.getMeetLink() : null,
-                student != null ? student.getStartDate() : null,
-                student != null ? student.getContractMonths() : null,
-                student != null ? student.getContractEndDate() : null,
-                student != null ? student.getNotesPrivate() : null,
-                student != null ? student.getCreatedAt() : user.getCreatedAt()
+                student.getTeacherId(),
+                student.getLevelProfileId(),
+                student.getClassDays() != null ? Arrays.asList(student.getClassDays()) : List.of(),
+                student.getClassTime(),
+                student.getClassDuration(),
+                student.getClassRate(),
+                student.getMeetPlatform(),
+                student.getMeetLink(),
+                student.getStartDate(),
+                student.getContractMonths(),
+                student.getContractEndDate(),
+                student.getNotesPrivate(),
+                student.getCreatedAt()
         );
     }
 

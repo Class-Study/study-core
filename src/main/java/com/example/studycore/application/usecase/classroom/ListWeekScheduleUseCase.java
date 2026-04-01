@@ -43,61 +43,34 @@ public class ListWeekScheduleUseCase {
         for (Student s : students) {
             final List<String> classDays = s.getClassDays();
             final var classTime = s.getClassTime();
-            final var duration = s.getClassDuration();
 
             if (classDays == null || classDays.isEmpty() || classTime == null) continue;
-
-            for (String dayStr : classDays) {
-                if (dayStr == null) continue;
-                try {
-                    final DayOfWeek dow = DayOfWeek.valueOf(dayStr.toUpperCase());
-                    final LocalDate occurrence = weekStart.with(TemporalAdjusters.nextOrSame(dow));
-                    if (occurrence.isAfter(weekEnd)) continue;
-
-                    events.add(new ScheduleEventOutput(
-                            s.getId().toString(),
-                            s.getId(),
-                            s.getName(),
-                            occurrence,
-                            classTime,
-                            duration,
-                            ScheduleType.RECURRING.name(),
-                            null,
-                            s.getMeetLink(),
-                            s.getMeetPlatform(),
-                            s.getStatus() != null ? s.getStatus().name() : null,
-                            s.getLevelProfileId() != null ? s.getLevelProfileId().toString() : null
-                    ));
-                } catch (Exception ex) {
-                    // ignore invalid day strings
-                }
-            }
         }
 
         final OffsetDateTime start = weekStart.atStartOfDay().atOffset(ZoneOffset.UTC);
         final OffsetDateTime end = weekEnd.atTime(23, 59, 59).atOffset(ZoneOffset.UTC);
 
         final Collection<UUID> studentIds = students.stream().map(Student::getId).toList();
-        final List<Classroom> extras = classroomGateway.findByStudentIdsAndStartAtUtcBetween(studentIds, start, end);
-        for (Classroom extra : extras) {
-            Student s = studentsById.get(extra.getStudentId());
+        final List<Classroom> classrooms = classroomGateway.findByStudentIdsAndStartAtUtcBetween(studentIds, start, end);
+        for (Classroom classroom : classrooms) {
+            Student s = studentsById.get(classroom.getStudentId());
             if (s == null) {
-                s = studentGateway.findById(extra.getStudentId()).orElse(null);
+                s = studentGateway.findById(classroom.getStudentId()).orElse(null);
             }
 
             events.add(new ScheduleEventOutput(
-                    extra.getId().toString(),
-                    extra.getStudentId(),
-                    s != null ? s.getName() : null,
-                    extra.getDate(),
-                    extra.getStartTime(),
-                    extra.getDurationMin(),
-                    extra.getType() != null ? extra.getType().name() : null,
-                    extra.getTitle(),
-                    s != null ? s.getMeetLink() : null,
-                    s != null ? s.getMeetPlatform() : null,
-                    s != null && s.getStatus() != null ? s.getStatus().name() : null,
-                    s != null && s.getLevelProfileId() != null ? s.getLevelProfileId().toString() : null
+                    classroom.getId(),
+                    classroom.getStudentId(),
+                    s.getName(),
+                    classroom.getDate(),
+                    classroom.getStartTime(),
+                    classroom.getDurationMin(),
+                    classroom.getType() != null ? classroom.getType().name() : null,
+                    classroom.getTitle(),
+                    s.getMeetLink(),
+                    s.getMeetPlatform(),
+                    s.getStatus() != null ? s.getStatus().name() : null,
+                    s.getLevelProfileId() != null ? s.getLevelProfileId().toString() : null
             ));
         }
 

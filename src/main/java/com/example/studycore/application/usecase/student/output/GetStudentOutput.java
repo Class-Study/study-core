@@ -25,6 +25,6 @@ public record GetStudentOutput(
         String meetLink,
         LocalDate startDate,
         OffsetDateTime createdAt,
-        ExtraClassOutput extraClass
+        ClassroomOutput classroom
 ) {
 }

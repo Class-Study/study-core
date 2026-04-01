@@ -19,11 +19,11 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("""
             select u from UserEntity u
-                         where u.role = :role and
-                         (lower(u.name) 
-                          like lower(concat('%', :q, '%')) or lower(u.email) 
-                          like lower(concat('%', :q, '%'))
-                                      and u.role = :role)
+            where u.role = :role
+              and (
+                lower(u.name) like lower(concat('%', :q, '%'))
+                or lower(u.email) like lower(concat('%', :q, '%'))
+              )
             """)
     List<UserEntity> searchByRoleAndNameOrEmail(
             @Param("role") String role,

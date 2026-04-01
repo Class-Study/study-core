@@ -1,7 +1,7 @@
 -- Migration: create table extra_classes
 -- Fields: id (uuid), student_id (uuid FK -> students.id), date, start_time, duration_min, title, timezone, start_at_utc, created_at, updated_at
 
-CREATE TABLE IF NOT EXISTS extra_classes
+CREATE TABLE IF NOT EXISTS classroom
 (
     id           uuid PRIMARY KEY      DEFAULT gen_random_uuid(),
     student_id   uuid         NOT NULL REFERENCES students (id) ON DELETE CASCADE,
@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS extra_classes
     created_at   timestamptz  NOT NULL DEFAULT now(),
     updated_at   timestamptz  NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_extra_student_id ON extra_classes (student_id);
+CREATE INDEX IF NOT EXISTS idx_extra_student_id ON classroom (student_id);
 

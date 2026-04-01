@@ -41,7 +41,7 @@ public class EvaluateAvailabilityUseCase {
                 contractEndDate
         );
 
-        final var conflictWithExtraClasses = classroomGateway.findExtraConflicts(
+        final var conflictWithClassroom = classroomGateway.findExtraConflicts(
                 input.teacherId(),
                 input.days(),
                 input.classTime(),
@@ -56,7 +56,7 @@ public class EvaluateAvailabilityUseCase {
                         input.startDate(),
                         contractEndDate,
                         conflictWithRegularClasses,
-                        conflictWithExtraClasses
+                        conflictWithClassroom
                 ))
                 .toList();
 

@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-public record CreateExtraClassInput(
+public record CreateClassroomInput(
         UUID studentId,
         UUID teacherId,
         ScheduleType type,

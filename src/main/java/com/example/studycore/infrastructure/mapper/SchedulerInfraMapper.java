@@ -1,13 +1,13 @@
 package com.example.studycore.infrastructure.mapper;
 
-import com.example.studycore.application.usecase.classroom.input.CreateExtraClassInput;
+import com.example.studycore.application.usecase.classroom.input.CreateClassroomInput;
 import com.example.studycore.application.usecase.classroom.input.ScheduleWeekInput;
 import com.example.studycore.application.usecase.classroom.output.RescheduleOptionInput;
 import com.example.studycore.application.usecase.classroom.output.RescheduleOptionOutput;
 import com.example.studycore.application.usecase.classroom.output.ScheduleWeekOutput;
 import com.example.studycore.domain.model.Classroom;
 import com.example.studycore.domain.model.enums.ScheduleType;
-import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateExtraClassRequest;
+import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateClassroomRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.RescheduleOptionResponse;
 import com.example.studycore.infrastructure.persistence.classroom.ClassroomEntity;
@@ -68,8 +68,8 @@ public interface SchedulerInfraMapper {
 
     RescheduleOptionResponse toRescheduleOptionResponse(RescheduleOptionOutput output);
 
-    @Mapping(target = "type", expression = "java(ScheduleType.valueOf(createExtraClassRequest.type()))")
-    CreateExtraClassInput toCreateExtraClassInput(CreateExtraClassRequest createExtraClassRequest);
+    @Mapping(target = "type", expression = "java(ScheduleType.valueOf(createClassroomRequest.type()))")
+    CreateClassroomInput toCreateClassroomInput(CreateClassroomRequest createClassroomRequest);
 
 }
 

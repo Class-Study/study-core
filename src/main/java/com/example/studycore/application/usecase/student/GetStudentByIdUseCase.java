@@ -23,13 +23,13 @@ public class GetStudentByIdUseCase {
         final var student = studentGateway.findById(studentId)
                 .orElseThrow(() -> new NotFoundException("Student not found with id: " + studentId));
 
-        final var extraClassRecent = classroomGateway.findMostRecentByStudentId(studentId).orElse(null);
+        final var classroomRecent = classroomGateway.findMostRecentByStudentId(studentId).orElse(null);
 
         if (!teacherId.equals(student.getTeacherId())) {
             throw new BusinessException("Student does not belong to authenticated teacher.");
         }
 
-        return MAPPER.toGetStudentOutputAndExtraClass(student, extraClassRecent);
+        return MAPPER.toGetStudentOutputAndClassroom(student, classroomRecent);
     }
 }
 

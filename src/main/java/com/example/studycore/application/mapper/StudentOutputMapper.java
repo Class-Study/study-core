@@ -23,8 +23,8 @@ public interface StudentOutputMapper {
     @Mapping(target = "status", expression = "java(student.getStatus().name())")
     @Mapping(target = "createdAt", source = "student.createdAt")
     @Mapping(target = "provisoryPass", ignore = true)
-    @Mapping(target = "extraClass", source = "extraClass")
-    GetStudentOutput toGetStudentOutputAndExtraClass(Student student, Classroom classroom);
+    @Mapping(target = "classroom", source = "classroom")
+    GetStudentOutput toGetStudentOutputAndClassroom(Student student, Classroom classroom);
 
     default ListStudentsOutput toListStudentsOutput(List<Student> students) {
         if (students == null) {

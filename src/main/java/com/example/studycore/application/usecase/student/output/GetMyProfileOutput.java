@@ -23,7 +23,7 @@ public record GetMyProfileOutput(
         LocalDate startDate,
         OffsetDateTime createdAt,
         TeacherInfo teacher,
-        ExtraClassOutput extraClass
+        ClassroomOutput classroom
 ) {
     public record LevelProfileMinimal(
             UUID id,

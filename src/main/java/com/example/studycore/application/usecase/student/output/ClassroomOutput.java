@@ -1,11 +1,10 @@
-package com.example.studycore.infrastructure.api.controllers.student.response;
+package com.example.studycore.application.usecase.student.output;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
-public record ExtraClassResponse(
+public record ClassroomOutput(
         UUID id,
         LocalDate date,
         LocalTime startTime,

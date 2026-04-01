@@ -1,6 +1,6 @@
 package com.example.studycore.application.usecase.student;
 
-import com.example.studycore.application.usecase.student.output.ExtraClassOutput;
+import com.example.studycore.application.usecase.student.output.ClassroomOutput;
 import com.example.studycore.application.usecase.student.output.GetMyProfileOutput;
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
@@ -60,7 +60,7 @@ public class GetMyProfileUseCase {
             );
         }
 
-        final var extraClass = classroomGateway.findMostRecentByStudentId(studentId).orElse(null);
+        final var classroom = classroomGateway.findMostRecentByStudentId(studentId).orElse(null);
 
         return new GetMyProfileOutput(
                 student.getId(),
@@ -78,11 +78,11 @@ public class GetMyProfileUseCase {
                 student.getStartDate(),
                 student.getCreatedAt(),
                 teacherInfo,
-                extraClass == null ? null : new ExtraClassOutput(
-                        extraClass.getId(),
-                        extraClass.getDate(),
-                        extraClass.getStartTime(),
-                        extraClass.getDurationMin()
+                classroom == null ? null : new ClassroomOutput(
+                        classroom.getId(),
+                        classroom.getDate(),
+                        classroom.getStartTime(),
+                        classroom.getDurationMin()
                 )
         );
     }

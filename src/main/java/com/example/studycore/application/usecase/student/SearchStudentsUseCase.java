@@ -19,6 +19,7 @@ public class SearchStudentsUseCase {
 
         final List<Student> students = studentGateway.searchByNameOrEmail(q.trim());
         return students.stream()
+                .filter(java.util.Objects::nonNull)
                 .map(s -> new SearchStudentOutput(s.getId(), s.getName()))
                 .toList();
     }

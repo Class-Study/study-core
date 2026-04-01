@@ -5,7 +5,7 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 public record ScheduleEventOutput(
-        String id,
+        UUID id,
         UUID studentId,
         String studentName,
         LocalDate date,

@@ -5,7 +5,7 @@ import com.example.studycore.application.usecase.classroom.DeleteClassroomUseCas
 import com.example.studycore.application.usecase.classroom.ListRescheduleOptionsUseCase;
 import com.example.studycore.application.usecase.classroom.ListWeekScheduleUseCase;
 import com.example.studycore.infrastructure.api.ScheduleApi;
-import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateExtraClassRequest;
+import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateClassroomRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.RescheduleOptionResponse;
 import com.example.studycore.infrastructure.mapper.SchedulerInfraMapper;
@@ -45,8 +45,8 @@ public class ScheduleController implements ScheduleApi {
         return ResponseEntity.ok(SCHEDULER_INFRA_MAPPER.toResponse(out));
     }
 
-    public ResponseEntity<Void> createExtra(@Valid @RequestBody CreateExtraClassRequest req) {
-        final var input = SCHEDULER_INFRA_MAPPER.toCreateExtraClassInput(req);
+    public ResponseEntity<Void> createExtra(@Valid @RequestBody CreateClassroomRequest req) {
+        final var input = SCHEDULER_INFRA_MAPPER.toCreateClassroomInput(req);
 
         createClassroomUseCase.execute(input);
 

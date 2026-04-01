@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-public record CreateExtraClassRequest(
+public record CreateClassroomRequest(
         @NotNull UUID studentId,
         @NotNull UUID teacherId,
         @NotNull String type,
