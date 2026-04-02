@@ -14,8 +14,8 @@ public class Classroom {
     private final UUID id;
     private final UUID studentId;
     private final UUID teacherId;
-    private final LocalDate date;
-    private final LocalTime startTime;
+    private LocalDate date;
+    private LocalTime startTime;
     private final Integer durationMin;
     private final String title;
     private final ScheduleType type;
@@ -63,6 +63,12 @@ public class Classroom {
         return new Classroom(id, studentId, teacherId, date, startTime, durationMin, title, type, now, now);
     }
 
+    public Classroom updateDateAndTime(LocalDate newDate, LocalTime newTime) {
+        this.date = newDate;
+        this.startTime = newTime;
+        return this;
+    }
+
     public static Classroom with(
             UUID id,
             UUID studentId,
@@ -77,6 +83,7 @@ public class Classroom {
     ) {
         return new Classroom(id, studentId, teacherId, date, startTime, durationMin, title, type, createdAt, updatedAt);
     }
+
 
     private void validate() {
         if (id == null) throw new IllegalArgumentException("id não pode ser nulo");

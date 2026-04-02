@@ -1,5 +1,6 @@
 package com.example.studycore.infrastructure.api;
 
+import com.example.studycore.infrastructure.api.controllers.schedule.request.ClassroomUpdatedRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateClassroomRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.RescheduleOptionResponse;
@@ -33,5 +34,12 @@ public interface ScheduleApi {
             @PathVariable UUID schedulerId,
             @RequestParam String scheduleType,
             @RequestParam LocalDate date
+    );
+
+    @PatchMapping("{scheduleId}/reschedule")
+    @PreAuthorize("hasRole('TEACHER')")
+    ResponseEntity<Void> reschedule(
+            @PathVariable UUID scheduleId,
+            @RequestBody ClassroomUpdatedRequest request
     );
 }

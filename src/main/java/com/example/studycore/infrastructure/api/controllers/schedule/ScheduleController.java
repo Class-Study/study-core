@@ -1,10 +1,8 @@
 package com.example.studycore.infrastructure.api.controllers.schedule;
 
-import com.example.studycore.application.usecase.classroom.CreateClassroomUseCase;
-import com.example.studycore.application.usecase.classroom.DeleteClassroomUseCase;
-import com.example.studycore.application.usecase.classroom.ListRescheduleOptionsUseCase;
-import com.example.studycore.application.usecase.classroom.ListWeekScheduleUseCase;
+import com.example.studycore.application.usecase.classroom.*;
 import com.example.studycore.infrastructure.api.ScheduleApi;
+import com.example.studycore.infrastructure.api.controllers.schedule.request.ClassroomUpdatedRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.request.CreateClassroomRequest;
 import com.example.studycore.infrastructure.api.controllers.schedule.response.ScheduleWeekResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.RescheduleOptionResponse;
@@ -30,6 +28,7 @@ public class ScheduleController implements ScheduleApi {
     private final CreateClassroomUseCase createClassroomUseCase;
     private final DeleteClassroomUseCase deleteClassroomUseCase;
     private final ListRescheduleOptionsUseCase listRescheduleOptionsUseCase;
+    private final UpdateClassroomUseCase updateClassroomUseCase;
 
     private final static SchedulerInfraMapper SCHEDULER_INFRA_MAPPER = SchedulerInfraMapper.INSTANCE;
 
@@ -67,6 +66,16 @@ public class ScheduleController implements ScheduleApi {
         final var output = listRescheduleOptionsUseCase.execute(input);
 
         return ResponseEntity.ok(SCHEDULER_INFRA_MAPPER.toRescheduleOptionResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<Void> reschedule(UUID scheduleId, ClassroomUpdatedRequest request) {
+
+        final var input = SCHEDULER_INFRA_MAPPER.toClassroomUpdatedInput(scheduleId, request);
+
+        updateClassroomUseCase.execute(input);
+
+        return ResponseEntity.ok().build();
     }
 
     private UUID getAuthenticatedUserId() {
