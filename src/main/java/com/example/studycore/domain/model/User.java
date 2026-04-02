@@ -21,6 +21,7 @@ public class User {
     private String phone;
     private ThemePreference preferenceTheme;
     private OffsetDateTime lastSeenAt;
+    private String pixKey;
     private final OffsetDateTime createdAt;
 
     private User(
@@ -34,6 +35,7 @@ public class User {
             String phone,
             ThemePreference preferenceTheme,
             OffsetDateTime lastSeenAt,
+            String pixKey,
             OffsetDateTime createdAt
     ) {
         this.id = id;
@@ -46,6 +48,7 @@ public class User {
         this.phone = phone;
         this.preferenceTheme = preferenceTheme != null ? preferenceTheme : ThemePreference.LIGHT;
         this.lastSeenAt = lastSeenAt;
+        this.pixKey = pixKey;
         this.createdAt = createdAt;
 
         validate();
@@ -72,6 +75,7 @@ public class User {
                 normalizePhone(phone),
                 ThemePreference.LIGHT,
                 null,
+                null,
                 OffsetDateTime.now()
         );
     }
@@ -87,6 +91,7 @@ public class User {
             String phone,
             ThemePreference preferenceTheme,
             OffsetDateTime lastSeenAt,
+            String pixKey,
             OffsetDateTime createdAt
     ) {
         return new User(
@@ -100,6 +105,7 @@ public class User {
                 phone,
                 preferenceTheme,
                 lastSeenAt,
+                pixKey,
                 createdAt
         );
     }

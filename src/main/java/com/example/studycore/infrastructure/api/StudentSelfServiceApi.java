@@ -3,6 +3,7 @@ package com.example.studycore.infrastructure.api;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyActivitiesResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentBillingResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
@@ -30,5 +31,11 @@ public interface StudentSelfServiceApi {
     @GetMapping("/notes")
     @PreAuthorize("hasRole('STUDENT')")
     ResponseEntity<List<GetMyNotesResponse>> getMyNotes();
+
+    @GetMapping("/billing")
+    @PreAuthorize("hasRole('STUDENT')")
+    ResponseEntity<GetStudentBillingResponse> getMyBilling();
 }
+
+
 

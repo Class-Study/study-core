@@ -5,10 +5,12 @@ import com.example.studycore.application.usecase.billing.input.MarkAsPaidInput;
 import com.example.studycore.application.usecase.billing.output.BillingRecordOutput;
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
+import com.example.studycore.domain.model.LevelProfile;
+import com.example.studycore.domain.model.Student;
 import com.example.studycore.domain.port.BillingRecordGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
+import com.example.studycore.domain.port.StudentBillingGateway;
 import com.example.studycore.domain.port.StudentGateway;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class MarkAsPaidUseCase {
     private final BillingRecordGateway billingRecordGateway;
     private final StudentGateway studentGateway;
     private final LevelProfileGateway levelProfileGateway;
+    private final StudentBillingGateway studentBillingGateway;
 
     @Transactional
     public BillingRecordOutput execute(MarkAsPaidInput input) {
@@ -35,35 +38,35 @@ public class MarkAsPaidUseCase {
         final var student = studentGateway.findById(record.getStudentId())
                 .orElseThrow(() -> new NotFoundException("Aluno da cobrança não encontrado."));
 
-        // Validar autorização
         if (!input.teacherId().equals(student.getTeacherId())) {
             log.warn("✗ MarkAsPaid | billingId={} | Autorização negada", input.billingId());
             throw new BusinessException("Cobrança não pertence ao professor autenticado.");
         }
 
-        // Idempotência: se já está pago, retornar como está
         if ("PAID".equals(record.getStatus())) {
             log.info("✓ MarkAsPaid | billingId={} | Status=PAID (idempotente)", input.billingId());
-            final var levelName = getLevelName(student);
-            return MAPPER.toBillingRecordOutput(record, student.getName(), levelName);
+            return MAPPER.toBillingRecordOutput(record, student.getName(), getLevelName(student));
         }
 
-        // Marcar como pago usando método domain
         final var updated = record.markAsPaid();
-
         final var saved = billingRecordGateway.save(updated);
-        final var levelName = getLevelName(student);
+
+        // Sync StudentBilling status to PAID
+        final int month = record.getReferenceMonth().getMonthValue();
+        final int year = record.getReferenceMonth().getYear();
+        studentBillingGateway.findByStudentIdAndMonthAndYear(record.getStudentId(), month, year)
+                .ifPresent(sb -> studentBillingGateway.save(sb.markAsPaid()));
 
         log.info("✓ MarkAsPaid | billingId={} | studentName={}", input.billingId(), student.getName());
 
-        return MAPPER.toBillingRecordOutput(saved, student.getName(), levelName);
+        return MAPPER.toBillingRecordOutput(saved, student.getName(), getLevelName(student));
     }
 
-    private String getLevelName(com.example.studycore.domain.model.Student student) {
+    private String getLevelName(Student student) {
         return student.getLevelProfileId() == null
                 ? "-"
                 : levelProfileGateway.findById(student.getLevelProfileId())
-                .map(lp -> lp.getName())
+                .map(LevelProfile::getName)
                 .orElse("-");
     }
 }

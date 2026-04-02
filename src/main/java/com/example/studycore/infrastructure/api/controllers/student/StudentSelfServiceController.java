@@ -1,6 +1,7 @@
 package com.example.studycore.infrastructure.api.controllers.student;
 
 import com.example.studycore.application.usecase.activity.GetMyActivitiesUseCase;
+import com.example.studycore.application.usecase.billing.GetStudentBillingUseCase;
 import com.example.studycore.application.usecase.student.GetMyProfileUseCase;
 import com.example.studycore.application.usecase.student.GetMyStatsUseCase;
 import com.example.studycore.application.usecase.studentnote.GetMyNotesUseCase;
@@ -8,6 +9,7 @@ import com.example.studycore.infrastructure.api.StudentSelfServiceApi;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyActivitiesResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentBillingResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import com.example.studycore.infrastructure.mapper.StudentMeResponseMapper;
 import java.util.List;
@@ -27,6 +29,7 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
     private final GetMyActivitiesUseCase getMyActivitiesUseCase;
     private final GetMyStatsUseCase getMyStatsUseCase;
     private final GetMyNotesUseCase getMyNotesUseCase;
+    private final GetStudentBillingUseCase getStudentBillingUseCase;
 
     @Override
     public ResponseEntity<GetMyProfileResponse> getMyProfile() {
@@ -54,6 +57,13 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
         final var studentId = getAuthenticatedUserId();
         final var output = getMyNotesUseCase.execute(studentId);
         return ResponseEntity.ok(output.stream().map(MAPPER::toGetMyNotesResponse).toList());
+    }
+
+    @Override
+    public ResponseEntity<GetStudentBillingResponse> getMyBilling() {
+        final var studentId = getAuthenticatedUserId();
+        final var output = getStudentBillingUseCase.execute(studentId);
+        return ResponseEntity.ok(MAPPER.toGetStudentBillingResponse(output));
     }
 
     private UUID getAuthenticatedUserId() {

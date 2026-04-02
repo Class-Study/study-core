@@ -6,9 +6,11 @@ import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.domain.port.TeacherGateway;
 import com.example.studycore.infrastructure.mapper.TeacherInfraMapper;
 import com.example.studycore.infrastructure.persistence.auth.UserRepository;
+import com.example.studycore.infrastructure.persistence.teacher.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,48 +20,63 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TeacherGatewayImpl implements TeacherGateway {
 
-    private static final TeacherInfraMapper TEACHER_INFRA_MAPPER = TeacherInfraMapper.INSTANCE;
+    private static final TeacherInfraMapper MAPPER = TeacherInfraMapper.INSTANCE;
 
     private final UserRepository userRepository;
+    private final TeacherRepository teacherRepository;
 
     @Override
+    @Transactional
     public User save(User teacher) {
-        final var entity = TEACHER_INFRA_MAPPER.toEntity(teacher);
-
-        // Set default values if creating new teacher
-        if (teacher.getId() == null) {
-            entity.setRole(UserRole.TEACHER.name());
-            entity.setStatus(UserStatus.ACTIVE.name());
+        final var userEntity = MAPPER.toUserEntity(teacher);
+        if (userEntity.getRole() == null) {
+            userEntity.setRole(UserRole.TEACHER.name());
         }
+        if (userEntity.getStatus() == null) {
+            userEntity.setStatus(UserStatus.ACTIVE.name());
+        }
+        final var savedUser = userRepository.save(userEntity);
 
-        final var savedEntity = userRepository.save(entity);
-        return TEACHER_INFRA_MAPPER.fromEntity(savedEntity);
+        final var teacherEntity = MAPPER.toTeacherEntity(teacher);
+        teacherEntity.setId(savedUser.getId());
+        final var savedTeacher = teacherRepository.save(teacherEntity);
+
+        return MAPPER.fromUserAndTeacherEntity(savedUser, savedTeacher);
     }
 
     @Override
+    @Transactional
     public User save(User teacher, String passwordHash) {
-        final var entity = TEACHER_INFRA_MAPPER.toEntity(teacher);
+        final var userEntity = MAPPER.toUserEntity(teacher);
+        userEntity.setPasswordHash(passwordHash);
+        userEntity.setRole(UserRole.TEACHER.name());
+        userEntity.setStatus(UserStatus.ACTIVE.name());
+        final var savedUser = userRepository.save(userEntity);
 
-        // Set password hash for new teacher
-        entity.setPasswordHash(passwordHash);
-        entity.setRole(UserRole.TEACHER.name());
-        entity.setStatus(UserStatus.ACTIVE.name());
+        final var teacherEntity = MAPPER.toTeacherEntity(teacher);
+        teacherEntity.setId(savedUser.getId());
+        final var savedTeacher = teacherRepository.save(teacherEntity);
 
-        final var savedEntity = userRepository.save(entity);
-        return TEACHER_INFRA_MAPPER.fromEntity(savedEntity);
+        return MAPPER.fromUserAndTeacherEntity(savedUser, savedTeacher);
     }
 
     @Override
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id)
-                .filter(entity -> UserRole.TEACHER.name().equals(entity.getRole()))
-                .map(TEACHER_INFRA_MAPPER::fromEntity);
+                .filter(u -> UserRole.TEACHER.name().equals(u.getRole()))
+                .map(user -> MAPPER.fromUserAndTeacherEntity(
+                        user,
+                        teacherRepository.findById(id).orElse(null)
+                ));
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmailIgnoreCaseAndRole(email.trim().toLowerCase(), UserRole.TEACHER.name())
-                .map(TEACHER_INFRA_MAPPER::fromEntity);
+                .map(user -> MAPPER.fromUserAndTeacherEntity(
+                        user,
+                        teacherRepository.findById(user.getId()).orElse(null)
+                ));
     }
 
     @Override
@@ -67,19 +84,20 @@ public class TeacherGatewayImpl implements TeacherGateway {
         final var sort = Sort.by(Sort.Direction.ASC, "name");
         return userRepository.findByRole(UserRole.TEACHER.name(), sort)
                 .stream()
-                .map(TEACHER_INFRA_MAPPER::fromEntity)
+                .map(user -> MAPPER.fromUserAndTeacherEntity(
+                        user,
+                        teacherRepository.findById(user.getId()).orElse(null)
+                ))
                 .toList();
     }
 
     @Override
     public void block(UUID id) {
         userRepository.findById(id)
-                .filter(entity -> UserRole.TEACHER.name().equals(entity.getRole()))
-                .ifPresent(entity -> {
-                    entity.setStatus(UserStatus.BLOCKED.name());
-                    userRepository.save(entity);
+                .filter(u -> UserRole.TEACHER.name().equals(u.getRole()))
+                .ifPresent(u -> {
+                    u.setStatus(UserStatus.BLOCKED.name());
+                    userRepository.save(u);
                 });
     }
 }
-
-

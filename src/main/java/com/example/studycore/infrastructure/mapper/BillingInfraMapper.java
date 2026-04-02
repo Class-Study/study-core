@@ -5,11 +5,13 @@ import com.example.studycore.application.usecase.billing.output.BillingRecordOut
 import com.example.studycore.application.usecase.billing.output.NotifyOutput;
 import com.example.studycore.domain.model.BillingRecord;
 import com.example.studycore.domain.model.EmailNotification;
+import com.example.studycore.domain.model.StudentBilling;
 import com.example.studycore.infrastructure.api.controllers.billing.response.BillingMonthResponse;
 import com.example.studycore.infrastructure.api.controllers.billing.response.BillingRecordResponse;
 import com.example.studycore.infrastructure.api.controllers.billing.response.NotifyResponse;
 import com.example.studycore.infrastructure.persistence.billing.BillingRecordEntity;
 import com.example.studycore.infrastructure.persistence.billing.EmailNotificationEntity;
+import com.example.studycore.infrastructure.persistence.billing.StudentBillingEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -76,5 +78,39 @@ public interface BillingInfraMapper {
     BillingRecordResponse toBillingRecordResponse(BillingRecordOutput output);
     BillingMonthResponse toBillingMonthResponse(BillingMonthOutput output);
     NotifyResponse toNotifyResponse(NotifyOutput output);
+
+    default StudentBilling fromStudentBillingEntity(StudentBillingEntity entity) {
+        if (entity == null) return null;
+        return StudentBilling.with(
+                entity.getId(),
+                entity.getStudentId(),
+                entity.getMonth(),
+                entity.getYear(),
+                entity.getClassCount(),
+                entity.getClassValue(),
+                entity.getTotalValue(),
+                entity.getDueDate(),
+                entity.getStatus(),
+                entity.getCreatedAt(),
+                entity.getPaidAt()
+        );
+    }
+
+    default StudentBillingEntity toStudentBillingEntity(StudentBilling billing) {
+        if (billing == null) return null;
+        final var entity = new StudentBillingEntity();
+        entity.setId(billing.getId());
+        entity.setStudentId(billing.getStudentId());
+        entity.setMonth(billing.getMonth());
+        entity.setYear(billing.getYear());
+        entity.setClassCount(billing.getClassCount());
+        entity.setClassValue(billing.getClassValue());
+        entity.setTotalValue(billing.getTotalValue());
+        entity.setDueDate(billing.getDueDate());
+        entity.setStatus(billing.getStatus());
+        entity.setCreatedAt(billing.getCreatedAt());
+        entity.setPaidAt(billing.getPaidAt());
+        return entity;
+    }
 }
 

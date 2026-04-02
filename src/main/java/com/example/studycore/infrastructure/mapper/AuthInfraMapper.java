@@ -76,6 +76,7 @@ public interface AuthInfraMapper {
                         ? ThemePreference.valueOf(entity.getPreferenceTheme().toUpperCase())
                         : ThemePreference.LIGHT,
                 entity.getLastSeenAt(),
+                null, // pixKey não está em users — vem da tabela teachers via TeacherGateway
                 entity.getCreatedAt()
         );
     }

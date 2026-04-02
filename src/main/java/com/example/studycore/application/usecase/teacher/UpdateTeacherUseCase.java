@@ -34,14 +34,15 @@ public class UpdateTeacherUseCase {
         final var updatedTeacher = User.with(
                 existingTeacher.getId(),
                 input.name() != null ? input.name().trim() : existingTeacher.getName(),
-                existingTeacher.getEmail(), // E-mail não pode ser alterado
-                existingTeacher.getPasswordHash(), // Password não pode ser alterado
-                existingTeacher.getRole(), // Role não pode ser alterado
-                existingTeacher.getStatus(), // Status não pode ser alterado via update
+                existingTeacher.getEmail(),
+                existingTeacher.getPasswordHash(),
+                existingTeacher.getRole(),
+                existingTeacher.getStatus(),
                 input.avatarUrl() != null ? input.avatarUrl() : existingTeacher.getAvatarUrl(),
                 input.phone() != null ? input.phone() : existingTeacher.getPhone(),
                 existingTeacher.getPreferenceTheme(),
                 existingTeacher.getLastSeenAt(),
+                existingTeacher.getPixKey(),
                 existingTeacher.getCreatedAt()
         );
 

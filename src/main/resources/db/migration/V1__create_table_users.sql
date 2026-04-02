@@ -16,3 +16,9 @@ CREATE TABLE study.users
     CONSTRAINT chk_user_status CHECK (status IN ('ACTIVE', 'BLOCKED', 'INACTIVE')),
     CONSTRAINT chk_preference_theme CHECK (preference_theme IN ('light', 'dark'))
 );
+
+CREATE TABLE study.teachers
+(
+    id      UUID PRIMARY KEY REFERENCES study.users (id) ON DELETE CASCADE,
+    pix_key VARCHAR(255)
+);
