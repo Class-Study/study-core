@@ -36,4 +36,6 @@ public interface ClassroomGateway {
             LocalDate startDate,
             LocalDate contractEndDate
     );
+
+    List<Classroom> findByStudentIdAndDateBetween(UUID studentId, LocalDate from, LocalDate to);
 }

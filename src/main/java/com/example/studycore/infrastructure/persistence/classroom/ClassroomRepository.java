@@ -14,6 +14,8 @@ public interface ClassroomRepository extends JpaRepository<ClassroomEntity, UUID
 
     List<ClassroomEntity> findByStudentIdInAndDateBetweenOrderByDateAsc(Collection<UUID> studentIds, LocalDate start, LocalDate end);
 
+    List<ClassroomEntity> findByStudentIdAndDateBetweenOrderByDateAsc(UUID studentId, LocalDate from, LocalDate to);
+
     @Query(value = """
                 SELECT *
                 FROM classroom e

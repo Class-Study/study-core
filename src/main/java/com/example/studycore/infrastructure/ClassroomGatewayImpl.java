@@ -88,24 +88,15 @@ public class ClassroomGatewayImpl implements ClassroomGateway {
             LocalDate contractEndDate
     ) {
         final var classTimeEnd = classTime.plusMinutes(durationMin);
-
-        final var dowNumbers = days.stream()
-                .map(DAY_TO_DOW::get)
-                .toList();
-
+        final var dowNumbers = days.stream().map(DAY_TO_DOW::get).toList();
         return repository
-                .findExtraConflictsRaw(
-                        teacherId,
-                        dowNumbers,
-                        classTime,
-                        classTimeEnd,
-                        startDate,
-                        contractEndDate
-                )
-                .stream()
-                .map(SCHEDULER_INFRA_MAPPER::fromEntity)
-                .toList();
+                .findExtraConflictsRaw(teacherId, dowNumbers, classTime, classTimeEnd, startDate, contractEndDate)
+                .stream().map(SCHEDULER_INFRA_MAPPER::fromEntity).toList();
     }
 
+    @Override
+    public List<Classroom> findByStudentIdAndDateBetween(UUID studentId, LocalDate from, LocalDate to) {
+        return repository.findByStudentIdAndDateBetweenOrderByDateAsc(studentId, from, to)
+                .stream().map(SCHEDULER_INFRA_MAPPER::fromEntity).toList();
+    }
 }
-

@@ -4,6 +4,7 @@ import com.example.studycore.infrastructure.api.controllers.student.response.Get
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentBillingResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentScheduleResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
@@ -35,7 +36,8 @@ public interface StudentSelfServiceApi {
     @GetMapping("/billing")
     @PreAuthorize("hasRole('STUDENT')")
     ResponseEntity<GetStudentBillingResponse> getMyBilling();
+
+    @GetMapping("/schedule")
+    @PreAuthorize("hasRole('STUDENT')")
+    ResponseEntity<GetStudentScheduleResponse> getMySchedule();
 }
-
-
-

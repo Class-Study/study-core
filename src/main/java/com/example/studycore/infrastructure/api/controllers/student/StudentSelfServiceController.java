@@ -2,6 +2,7 @@ package com.example.studycore.infrastructure.api.controllers.student;
 
 import com.example.studycore.application.usecase.activity.GetMyActivitiesUseCase;
 import com.example.studycore.application.usecase.billing.GetStudentBillingUseCase;
+import com.example.studycore.application.usecase.classroom.GetStudentScheduleUseCase;
 import com.example.studycore.application.usecase.student.GetMyProfileUseCase;
 import com.example.studycore.application.usecase.student.GetMyStatsUseCase;
 import com.example.studycore.application.usecase.studentnote.GetMyNotesUseCase;
@@ -10,6 +11,7 @@ import com.example.studycore.infrastructure.api.controllers.student.response.Get
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentBillingResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentScheduleResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import com.example.studycore.infrastructure.mapper.StudentMeResponseMapper;
 import java.util.List;
@@ -30,6 +32,7 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
     private final GetMyStatsUseCase getMyStatsUseCase;
     private final GetMyNotesUseCase getMyNotesUseCase;
     private final GetStudentBillingUseCase getStudentBillingUseCase;
+    private final GetStudentScheduleUseCase getStudentScheduleUseCase;
 
     @Override
     public ResponseEntity<GetMyProfileResponse> getMyProfile() {
@@ -66,9 +69,15 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
         return ResponseEntity.ok(MAPPER.toGetStudentBillingResponse(output));
     }
 
+    @Override
+    public ResponseEntity<GetStudentScheduleResponse> getMySchedule() {
+        final var studentId = getAuthenticatedUserId();
+        final var output = getStudentScheduleUseCase.execute(studentId);
+        return ResponseEntity.ok(MAPPER.toGetStudentScheduleResponse(output));
+    }
+
     private UUID getAuthenticatedUserId() {
         final var authentication = SecurityContextHolder.getContext().getAuthentication();
         return UUID.fromString((String) authentication.getPrincipal());
     }
 }
-
