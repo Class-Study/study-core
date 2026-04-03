@@ -5,12 +5,14 @@ import com.example.studycore.application.usecase.billing.output.BillingRecordOut
 import com.example.studycore.application.usecase.billing.output.NotifyOutput;
 import com.example.studycore.domain.model.BillingRecord;
 import com.example.studycore.domain.model.EmailNotification;
+import com.example.studycore.domain.model.PaymentConfirmation;
 import com.example.studycore.domain.model.StudentBilling;
 import com.example.studycore.infrastructure.api.controllers.billing.response.BillingMonthResponse;
 import com.example.studycore.infrastructure.api.controllers.billing.response.BillingRecordResponse;
 import com.example.studycore.infrastructure.api.controllers.billing.response.NotifyResponse;
 import com.example.studycore.infrastructure.persistence.billing.BillingRecordEntity;
 import com.example.studycore.infrastructure.persistence.billing.EmailNotificationEntity;
+import com.example.studycore.infrastructure.persistence.billing.PaymentConfirmationEntity;
 import com.example.studycore.infrastructure.persistence.billing.StudentBillingEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -112,5 +114,30 @@ public interface BillingInfraMapper {
         entity.setPaidAt(billing.getPaidAt());
         return entity;
     }
-}
 
+    default PaymentConfirmation fromPaymentConfirmationEntity(PaymentConfirmationEntity entity) {
+        if (entity == null) return null;
+        return PaymentConfirmation.with(
+                entity.getId(),
+                entity.getBillingId(),
+                entity.getPaymentMethod(),
+                entity.getPixKey(),
+                entity.getAmount(),
+                entity.isConfirmedByTeacher(),
+                entity.getCreatedAt()
+        );
+    }
+
+    default PaymentConfirmationEntity toPaymentConfirmationEntity(PaymentConfirmation domain) {
+        if (domain == null) return null;
+        final var entity = new PaymentConfirmationEntity();
+        entity.setId(domain.getId());
+        entity.setBillingId(domain.getBillingId());
+        entity.setPaymentMethod(domain.getPaymentMethod());
+        entity.setPixKey(domain.getPixKey());
+        entity.setAmount(domain.getAmount());
+        entity.setConfirmedByTeacher(domain.isConfirmedByTeacher());
+        entity.setCreatedAt(domain.getCreatedAt());
+        return entity;
+    }
+}

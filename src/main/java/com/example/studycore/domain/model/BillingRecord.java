@@ -11,7 +11,7 @@ import java.util.UUID;
 @Getter
 public class BillingRecord {
 
-    private static final Set<String> ALLOWED_STATUS = Set.of("PAID", "PENDING", "OVERDUE");
+    private static final Set<String> ALLOWED_STATUS = Set.of("PAID", "PENDING", "OVERDUE", "AWAITING_CONFIRMATION");
 
     private final UUID id;
     private final UUID studentId;
@@ -110,18 +110,17 @@ public class BillingRecord {
 
     public BillingRecord markAsPaid() {
         return new BillingRecord(
-                this.id,
-                this.studentId,
-                this.referenceMonth,
-                this.dueDate,
-                this.amount,
-                this.amountAtBillingTime,
-                "PAID",
-                OffsetDateTime.now(),
-                this.notifiedAt,
-                this.notifyCount,
-                this.notes,
-                this.createdAt
+                this.id, this.studentId, this.referenceMonth, this.dueDate,
+                this.amount, this.amountAtBillingTime, "PAID", OffsetDateTime.now(),
+                this.notifiedAt, this.notifyCount, this.notes, this.createdAt
+        );
+    }
+
+    public BillingRecord markAsAwaitingConfirmation() {
+        return new BillingRecord(
+                this.id, this.studentId, this.referenceMonth, this.dueDate,
+                this.amount, this.amountAtBillingTime, "AWAITING_CONFIRMATION",
+                this.paidAt, this.notifiedAt, this.notifyCount, this.notes, this.createdAt
         );
     }
 

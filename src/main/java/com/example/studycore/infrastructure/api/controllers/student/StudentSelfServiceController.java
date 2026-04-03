@@ -1,17 +1,15 @@
 package com.example.studycore.infrastructure.api.controllers.student;
 
 import com.example.studycore.application.usecase.activity.GetMyActivitiesUseCase;
+import com.example.studycore.application.usecase.billing.ConfirmStudentPaymentUseCase;
 import com.example.studycore.application.usecase.billing.GetStudentBillingUseCase;
 import com.example.studycore.application.usecase.classroom.GetStudentScheduleUseCase;
 import com.example.studycore.application.usecase.student.GetMyProfileUseCase;
 import com.example.studycore.application.usecase.student.GetMyStatsUseCase;
 import com.example.studycore.application.usecase.studentnote.GetMyNotesUseCase;
 import com.example.studycore.infrastructure.api.StudentSelfServiceApi;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetMyActivitiesResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentBillingResponse;
-import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentScheduleResponse;
+import com.example.studycore.infrastructure.api.controllers.student.request.ConfirmPaymentRequest;
+import com.example.studycore.infrastructure.api.controllers.student.response.*;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import com.example.studycore.infrastructure.mapper.StudentMeResponseMapper;
 import java.util.List;
@@ -33,6 +31,7 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
     private final GetMyNotesUseCase getMyNotesUseCase;
     private final GetStudentBillingUseCase getStudentBillingUseCase;
     private final GetStudentScheduleUseCase getStudentScheduleUseCase;
+    private final ConfirmStudentPaymentUseCase confirmStudentPaymentUseCase;
 
     @Override
     public ResponseEntity<GetMyProfileResponse> getMyProfile() {
@@ -74,6 +73,13 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
         final var studentId = getAuthenticatedUserId();
         final var output = getStudentScheduleUseCase.execute(studentId);
         return ResponseEntity.ok(MAPPER.toGetStudentScheduleResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<ConfirmPaymentResponse> confirmPayment(ConfirmPaymentRequest request) {
+        final var input = MAPPER.toConfirmPaymentInput(request, getAuthenticatedUserId());
+        final var output = confirmStudentPaymentUseCase.execute(input);
+        return ResponseEntity.ok(MAPPER.toConfirmPaymentResponse(output));
     }
 
     private UUID getAuthenticatedUserId() {

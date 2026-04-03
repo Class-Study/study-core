@@ -26,6 +26,11 @@ public class StudentBillingGatewayImpl implements StudentBillingGateway {
     }
 
     @Override
+    public Optional<StudentBilling> findById(UUID id) {
+        return studentBillingRepository.findById(id).map(MAPPER::fromStudentBillingEntity);
+    }
+
+    @Override
     public List<StudentBilling> findAllByStudentId(UUID studentId) {
         return studentBillingRepository.findAllByStudentId(studentId)
                 .stream()
@@ -39,4 +44,3 @@ public class StudentBillingGatewayImpl implements StudentBillingGateway {
                 .map(MAPPER::fromStudentBillingEntity);
     }
 }
-

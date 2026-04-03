@@ -1,5 +1,7 @@
 package com.example.studycore.infrastructure.api;
 
+import com.example.studycore.infrastructure.api.controllers.student.request.ConfirmPaymentRequest;
+import com.example.studycore.infrastructure.api.controllers.student.response.ConfirmPaymentResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyActivitiesResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyProfileResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
@@ -11,6 +13,8 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("/students/me")
@@ -40,4 +44,8 @@ public interface StudentSelfServiceApi {
     @GetMapping("/schedule")
     @PreAuthorize("hasRole('STUDENT')")
     ResponseEntity<GetStudentScheduleResponse> getMySchedule();
+
+    @PostMapping("/billing/confirm-payment")
+    @PreAuthorize("hasRole('STUDENT')")
+    ResponseEntity<ConfirmPaymentResponse> confirmPayment(@RequestBody ConfirmPaymentRequest request);
 }
