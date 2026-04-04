@@ -4,9 +4,8 @@ import com.example.studycore.application.mapper.TeacherOutputMapper;
 import com.example.studycore.application.usecase.teacher.input.UpdateTeacherInput;
 import com.example.studycore.application.usecase.teacher.output.GetTeacherOutput;
 import com.example.studycore.domain.exception.NotFoundException;
-import com.example.studycore.domain.model.User;
-import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.port.TeacherGateway;
+import com.example.studycore.domain.port.WorkHourGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,38 +17,36 @@ public class UpdateTeacherUseCase {
     private static final TeacherOutputMapper MAPPER = TeacherOutputMapper.INSTANCE;
 
     private final TeacherGateway teacherGateway;
+    private final WorkHourGateway workHourGateway;
 
     @Transactional
-    public GetTeacherOutput execute(final UpdateTeacherInput input) {
-        // Buscar professor existente
+    public void execute(final UpdateTeacherInput input) {
+
         final var existingTeacher = teacherGateway.findById(input.id())
                 .orElseThrow(() -> new NotFoundException("Teacher not found with id: " + input.id()));
 
-        // Validar que é realmente um professor
-        if (existingTeacher.getRole() != UserRole.TEACHER) {
-            throw new NotFoundException("Teacher not found with id: " + input.id());
-        }
+        final var existingWork = workHourGateway.findByTeacherId(input.id())
+                .orElseThrow(() -> new NotFoundException("WorkHour not found for teacher: " + input.id()));
 
-        // Criar professor atualizado (mantendo campos que não podem ser alterados)
-        final var updatedTeacher = User.with(
-                existingTeacher.getId(),
-                input.name() != null ? input.name().trim() : existingTeacher.getName(),
-                existingTeacher.getEmail(),
-                existingTeacher.getPasswordHash(),
-                existingTeacher.getRole(),
-                existingTeacher.getStatus(),
-                input.avatarUrl() != null ? input.avatarUrl() : existingTeacher.getAvatarUrl(),
-                input.phone() != null ? input.phone() : existingTeacher.getPhone(),
-                existingTeacher.getPreferenceTheme(),
-                existingTeacher.getLastSeenAt(),
-                existingTeacher.getPixKey(),
-                existingTeacher.getCreatedAt()
+        final var updatedTeacher = existingTeacher.update(
+                input.name(),
+                input.email(),
+                input.phone(),
+                input.pixKey(),
+                input.pixKeyType(),
+                input.preferenceTheme()
         );
 
-        // Salvar alterações
-        final var savedTeacher = teacherGateway.save(updatedTeacher);
+        final var updateWorkHour =  existingWork.update(
+                input.workHour().startTimeMorning(),
+                input.workHour().endTimeMorning(),
+                input.workHour().startTimeAfternoon(),
+                input.workHour().endTimeAfternoon()
+        );
 
-        return MAPPER.toGetTeacherOutput(savedTeacher, null);
+        workHourGateway.save(updateWorkHour);
+
+        teacherGateway.save(updatedTeacher);
     }
 }
 

@@ -10,6 +10,7 @@ public record LoginOutput(
         UUID userId,
         String userName,
         String userEmail,
+        String userPhone,
         String userRole,
         ThemePreference preferenceTheme
 ) {

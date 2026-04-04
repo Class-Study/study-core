@@ -1,13 +1,10 @@
 package com.example.studycore.infrastructure.api.controllers.teacher;
 
-import com.example.studycore.application.usecase.teacher.BlockTeacherUseCase;
-import com.example.studycore.application.usecase.teacher.CreateTeacherUseCase;
-import com.example.studycore.application.usecase.teacher.GetTeacherByIdUseCase;
-import com.example.studycore.application.usecase.teacher.ListTeachersUseCase;
-import com.example.studycore.application.usecase.teacher.UpdateTeacherUseCase;
+import com.example.studycore.application.usecase.teacher.*;
 import com.example.studycore.infrastructure.api.TeacherApi;
 import com.example.studycore.infrastructure.api.controllers.teacher.request.CreateTeacherRequest;
 import com.example.studycore.infrastructure.api.controllers.teacher.request.UpdateTeacherRequest;
+import com.example.studycore.infrastructure.api.controllers.teacher.response.GetTeacherConfigResponse;
 import com.example.studycore.infrastructure.api.controllers.teacher.response.GetTeacherResponse;
 import com.example.studycore.infrastructure.api.controllers.teacher.response.ListTeachersResponse;
 import com.example.studycore.infrastructure.mapper.TeacherInfraMapper;
@@ -17,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+
+import static com.example.studycore.infrastructure.security.SecurityUtils.getAuthenticatedUserId;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,6 +28,7 @@ public class TeacherController implements TeacherApi {
     private final ListTeachersUseCase listTeachersUseCase;
     private final UpdateTeacherUseCase updateTeacherUseCase;
     private final BlockTeacherUseCase blockTeacherUseCase;
+    private final GetTeacherConfigUserCase getTeacherConfigUserCase;
 
     @Override
     public ResponseEntity<GetTeacherResponse> create(CreateTeacherRequest request) {
@@ -51,10 +51,25 @@ public class TeacherController implements TeacherApi {
     }
 
     @Override
-    public ResponseEntity<GetTeacherResponse> update(UUID id, UpdateTeacherRequest request) {
+    public ResponseEntity<GetTeacherConfigResponse> getConfigById() {
+
+        final var id  = getAuthenticatedUserId();
+
+        final var output = getTeacherConfigUserCase.execute(id);
+
+        return ResponseEntity.ok(TEACHER_INFRA_MAPPER.toGetTeacherConfigResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<Void> update(UpdateTeacherRequest request) {
+
+        final var id = getAuthenticatedUserId();
+
         final var input = TEACHER_INFRA_MAPPER.toUpdateTeacherInput(id, request);
-        final var output = updateTeacherUseCase.execute(input);
-        return ResponseEntity.ok(TEACHER_INFRA_MAPPER.toGetTeacherResponse(output));
+
+        updateTeacherUseCase.execute(input);
+
+        return ResponseEntity.noContent().build();
     }
 
     @Override

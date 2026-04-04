@@ -1,6 +1,6 @@
 CREATE TABLE study.users
 (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id               UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
     name             VARCHAR(150) NOT NULL,
     email            VARCHAR(255) NOT NULL UNIQUE,
     password_hash    VARCHAR(255) NOT NULL,
@@ -12,13 +12,14 @@ CREATE TABLE study.users
     last_seen_at     TIMESTAMPTZ,
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT chk_user_role   CHECK (role IN ('TEACHER', 'STUDENT', 'ADMIN')),
+    CONSTRAINT chk_user_role CHECK (role IN ('TEACHER', 'STUDENT', 'ADMIN')),
     CONSTRAINT chk_user_status CHECK (status IN ('ACTIVE', 'BLOCKED', 'INACTIVE')),
     CONSTRAINT chk_preference_theme CHECK (preference_theme IN ('light', 'dark'))
 );
 
 CREATE TABLE study.teachers
 (
-    id      UUID PRIMARY KEY REFERENCES study.users (id) ON DELETE CASCADE,
-    pix_key VARCHAR(255)
+    id           UUID PRIMARY KEY REFERENCES study.users (id) ON DELETE CASCADE,
+    pix_key      VARCHAR(255),
+    pix_key_type VARCHAR(50)
 );

@@ -22,6 +22,7 @@ public class User {
     private ThemePreference preferenceTheme;
     private OffsetDateTime lastSeenAt;
     private String pixKey;
+    private String pixKeyType;
     private final OffsetDateTime createdAt;
 
     private User(
@@ -36,6 +37,7 @@ public class User {
             ThemePreference preferenceTheme,
             OffsetDateTime lastSeenAt,
             String pixKey,
+            String pixKeyType,
             OffsetDateTime createdAt
     ) {
         this.id = id;
@@ -49,6 +51,7 @@ public class User {
         this.preferenceTheme = preferenceTheme != null ? preferenceTheme : ThemePreference.LIGHT;
         this.lastSeenAt = lastSeenAt;
         this.pixKey = pixKey;
+        this.pixKeyType = pixKeyType;
         this.createdAt = createdAt;
 
         validate();
@@ -76,6 +79,7 @@ public class User {
                 ThemePreference.LIGHT,
                 null,
                 null,
+                null,
                 OffsetDateTime.now()
         );
     }
@@ -92,6 +96,7 @@ public class User {
             ThemePreference preferenceTheme,
             OffsetDateTime lastSeenAt,
             String pixKey,
+            String pixKeyType,
             OffsetDateTime createdAt
     ) {
         return new User(
@@ -106,8 +111,28 @@ public class User {
                 preferenceTheme,
                 lastSeenAt,
                 pixKey,
+                pixKeyType,
                 createdAt
         );
+    }
+
+    public User update(
+            String name,
+            String email,
+            String phone,
+            String pixKey,
+            String pixKeyType,
+            String preferenceTheme
+    ) {
+        this.name = name != null ? normalize(name) : this.name;
+        this.email = email != null ? normalize(email).toLowerCase() : this.email;
+        this.phone = phone != null ? normalizePhone(phone) : this.phone;
+        this.pixKey = pixKey != null ? pixKey.trim() : this.pixKey;
+        this.pixKeyType = pixKeyType != null ? pixKeyType.trim() : this.pixKeyType;
+        this.preferenceTheme = preferenceTheme != null ? ThemePreference.valueOf(preferenceTheme.toUpperCase()) : this.preferenceTheme;
+        this.lastSeenAt = OffsetDateTime.now();
+
+        return this;
     }
 
     public void updateTheme(ThemePreference theme) {

@@ -5,9 +5,11 @@ import com.example.studycore.application.usecase.teacher.input.CreateTeacherInpu
 import com.example.studycore.application.usecase.teacher.output.GetTeacherOutput;
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.model.User;
+import com.example.studycore.domain.model.WorkHour;
 import com.example.studycore.domain.model.enums.UserRole;
 import com.example.studycore.domain.model.enums.UserStatus;
 import com.example.studycore.domain.port.TeacherGateway;
+import com.example.studycore.domain.port.WorkHourGateway;
 import com.example.studycore.infrastructure.service.email.NotifyEmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -25,6 +27,7 @@ public class CreateTeacherUseCase {
     private static final int TEMPORARY_PASSWORD_LENGTH = 10;
 
     private final TeacherGateway teacherGateway;
+    private final WorkHourGateway workHourGateway;
     private final PasswordEncoder passwordEncoder;
     private final NotifyEmailService notifyEmailService;
 
@@ -52,6 +55,9 @@ public class CreateTeacherUseCase {
         );
 
         final var savedTeacher = teacherGateway.save(teacher, passwordHash);
+
+        final var workHour = WorkHour.createDefault(savedTeacher.getId());
+        workHourGateway.save(workHour);
 
         notifyEmailService.sendWelcomeTeacher(
                 savedTeacher.getEmail(),

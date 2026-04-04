@@ -24,5 +24,8 @@ public class TeacherEntity {
 
     @Column(name = "pix_key")
     private String pixKey;
+
+    @Column(name = "pix_key_type")
+    private String pixKeyType;
 }
 

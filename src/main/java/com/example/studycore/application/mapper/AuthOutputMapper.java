@@ -20,6 +20,7 @@ public interface AuthOutputMapper {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.getPhone(),
                 user.getRole().name(),
                 user.getPreferenceTheme()
         );

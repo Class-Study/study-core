@@ -43,6 +43,7 @@ public interface AuthInfraMapper {
     @Mapping(target = "user.id", source = "userId", qualifiedByName = "uuidToString")
     @Mapping(target = "user.name", source = "userName")
     @Mapping(target = "user.email", source = "userEmail")
+    @Mapping(target = "user.phone", source = "userPhone")
     @Mapping(target = "user.role", source = "userRole")
     @Mapping(target = "user.preferenceTheme", expression = "java(loginOutput.preferenceTheme() != null ? loginOutput.preferenceTheme().name().toLowerCase() : \"light\")")
     AuthResponse toAuthResponse(LoginOutput loginOutput);
@@ -76,7 +77,8 @@ public interface AuthInfraMapper {
                         ? ThemePreference.valueOf(entity.getPreferenceTheme().toUpperCase())
                         : ThemePreference.LIGHT,
                 entity.getLastSeenAt(),
-                null, // pixKey não está em users — vem da tabela teachers via TeacherGateway
+                null,
+                null,
                 entity.getCreatedAt()
         );
     }
@@ -94,7 +96,6 @@ public interface AuthInfraMapper {
         );
     }
 
-    // Domain → Entity using automatic mapping with enum conversion
     @Mapping(target = "role", expression = "java(user.getRole().name())")
     @Mapping(target = "status", expression = "java(user.getStatus().name())")
     @Mapping(target = "preferenceTheme", expression = "java(user.getPreferenceTheme().name().toLowerCase())")
