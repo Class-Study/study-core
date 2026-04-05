@@ -27,7 +27,7 @@ public interface BillingRecordRepository extends JpaRepository<BillingRecordEnti
 
     @Modifying
     @Query(value = """
-            INSERT INTO study.billing_records (student_id, reference_month, amount, status, notify_count)
+            INSERT INTO billing_records (student_id, reference_month, amount, status, notify_count)
             VALUES (:studentId, :referenceMonth, :amount, 'PENDING', 0)
             ON CONFLICT (student_id, reference_month) DO NOTHING
             """, nativeQuery = true)
@@ -39,12 +39,12 @@ public interface BillingRecordRepository extends JpaRepository<BillingRecordEnti
 
     @Modifying
     @Query(value = """
-        UPDATE study.billing_records br
+        UPDATE billing_records br
         SET status = 'OVERDUE'
         WHERE br.status = 'PENDING'
           AND br.reference_month = :referenceMonth
           AND br.student_id IN (
-            SELECT s.id FROM study.students s WHERE s.teacher_id = :teacherId
+            SELECT s.id FROM students s WHERE s.teacher_id = :teacherId
           )
     """, nativeQuery = true)
     void updatePendingToOverdue(
