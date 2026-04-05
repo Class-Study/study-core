@@ -1,4 +1,4 @@
-  server:
+server:
   servlet:
     context-path: /api/v1
   # Forward headers from Nginx (X-Forwarded-Proto, etc.)
