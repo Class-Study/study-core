@@ -52,41 +52,8 @@ public class GetStudentScheduleUseCase {
 
         final List<ClassItemOutput> allClasses = new ArrayList<>();
 
-        // --- 1. Generate RECURRING slots on-the-fly ---
-        if (contractStart != null && contractEnd != null
-                && student.getClassDays() != null && !student.getClassDays().isEmpty()
-                && student.getClassTime() != null) {
-
-            final List<DayOfWeek> classDaysList = student.getClassDays().stream()
-                    .map(d -> {
-                        try {
-                            return DayOfWeek.valueOf(d.toUpperCase());
-                        } catch (IllegalArgumentException e) {
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .toList();
-
-            for (LocalDate d = contractStart; !d.isAfter(contractEnd); d = d.plusDays(1)) {
-                if (classDaysList.contains(d.getDayOfWeek())) {
-                    allClasses.add(new ClassItemOutput(
-                            generateRecurringId(studentId, d),
-                            d,
-                            student.getClassTime(),
-                            computeStatus(d, today),
-                            "RECORRENTE",
-                            false
-                    ));
-                }
-            }
-        }
-
-        // --- 2. Add stored EXTRA / RECOVERY classrooms ---
         if (contractStart != null && contractEnd != null) {
             classroomGateway.findByStudentIdAndDateBetween(studentId, contractStart, contractEnd)
-                    .stream()
-                    .filter(c -> c.getType() != ScheduleType.RECURRING)
                     .forEach(c -> allClasses.add(new ClassItemOutput(
                             c.getId(),
                             c.getDate(),
@@ -161,10 +128,5 @@ public class GetStudentScheduleUseCase {
         return date.getYear() == nextMonthRef.getYear()
                 && date.getMonthValue() == nextMonthRef.getMonthValue()
                 && currentMonthPaid;
-    }
-
-    private UUID generateRecurringId(UUID studentId, LocalDate date) {
-        final String seed = studentId.toString() + ":" + date + ":RECURRING";
-        return UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8));
     }
 }
