@@ -1,8 +1,6 @@
 package com.example.studycore.application.usecase.teacher;
 
-import com.example.studycore.application.mapper.TeacherOutputMapper;
 import com.example.studycore.application.usecase.teacher.input.UpdateTeacherInput;
-import com.example.studycore.application.usecase.teacher.output.GetTeacherOutput;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.port.TeacherGateway;
 import com.example.studycore.domain.port.WorkHourGateway;
@@ -14,8 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UpdateTeacherUseCase {
 
-    private static final TeacherOutputMapper MAPPER = TeacherOutputMapper.INSTANCE;
-
     private final TeacherGateway teacherGateway;
     private final WorkHourGateway workHourGateway;
 
@@ -24,9 +20,6 @@ public class UpdateTeacherUseCase {
 
         final var existingTeacher = teacherGateway.findById(input.id())
                 .orElseThrow(() -> new NotFoundException("Teacher not found with id: " + input.id()));
-
-        final var existingWork = workHourGateway.findByTeacherId(input.id())
-                .orElseThrow(() -> new NotFoundException("WorkHour not found for teacher: " + input.id()));
 
         final var updatedTeacher = existingTeacher.update(
                 input.name(),
@@ -37,14 +30,19 @@ public class UpdateTeacherUseCase {
                 input.preferenceTheme()
         );
 
-        final var updateWorkHour =  existingWork.update(
-                input.workHour().startTimeMorning(),
-                input.workHour().endTimeMorning(),
-                input.workHour().startTimeAfternoon(),
-                input.workHour().endTimeAfternoon()
-        );
+        if (input.workHour() != null) {
+            final var existingWork = workHourGateway.findByTeacherId(input.id())
+                    .orElseThrow(() -> new NotFoundException("WorkHour not found for teacher: " + input.id()));
 
-        workHourGateway.save(updateWorkHour);
+            final var updateWorkHour = existingWork.update(
+                    input.workHour().startTimeMorning(),
+                    input.workHour().endTimeMorning(),
+                    input.workHour().startTimeAfternoon(),
+                    input.workHour().endTimeAfternoon()
+            );
+
+            workHourGateway.save(updateWorkHour);
+        }
 
         teacherGateway.save(updatedTeacher);
     }
