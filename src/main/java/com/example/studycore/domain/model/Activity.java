@@ -10,10 +10,11 @@ import java.util.UUID;
 @Getter
 public class Activity {
 
-    private static final Set<String> ALLOWED_TYPES = Set.of("EXERCISE", "WORKSPACE");
+    private static final Set<String> ALLOWED_TYPES = Set.of("EXERCISE", "WORKSPACE", "MATERIAL");
 
     private final UUID id;
     private final UUID folderId;
+    private UUID levelSubfolderId; // nullable — links activity to a level subfolder for grouping
     private String title;
     private String type;
     private String convertedHtml;
@@ -26,6 +27,7 @@ public class Activity {
     private Activity(
             UUID id,
             UUID folderId,
+            UUID levelSubfolderId,
             String title,
             String type,
             String convertedHtml,
@@ -35,6 +37,7 @@ public class Activity {
     ) {
         this.id = id;
         this.folderId = folderId;
+        this.levelSubfolderId = levelSubfolderId;
         this.title = normalize(title);
         this.type = normalizeType(type);
         this.convertedHtml = convertedHtml == null ? "" : convertedHtml;
@@ -45,18 +48,16 @@ public class Activity {
         validate();
     }
 
+    /** Legacy factory — no subfolder context */
     public static Activity create(UUID folderId, String title, String type, String convertedHtml, UUID createdBy) {
         final var now = OffsetDateTime.now();
-        return new Activity(
-                UUID.randomUUID(),
-                folderId,
-                title,
-                type,
-                convertedHtml,
-                createdBy,
-                now,
-                now
-        );
+        return new Activity(UUID.randomUUID(), folderId, null, title, type, convertedHtml, createdBy, now, now);
+    }
+
+    /** Factory with subfolder context for template/material propagation */
+    public static Activity createWithSubfolder(UUID folderId, UUID levelSubfolderId, String title, String type, String convertedHtml, UUID createdBy) {
+        final var now = OffsetDateTime.now();
+        return new Activity(UUID.randomUUID(), folderId, levelSubfolderId, title, type, convertedHtml, createdBy, now, now);
     }
 
     public static Activity with(
@@ -69,12 +70,13 @@ public class Activity {
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt
     ) {
-        return new Activity(id, folderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
+        return new Activity(id, folderId, null, title, type, convertedHtml, createdBy, createdAt, updatedAt);
     }
 
     public static Activity withYjsState(
             UUID id,
             UUID folderId,
+            UUID levelSubfolderId,
             String title,
             String type,
             String convertedHtml,
@@ -83,7 +85,7 @@ public class Activity {
             OffsetDateTime updatedAt,
             String snapshot
     ) {
-        Activity activity = new Activity(id, folderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
+        Activity activity = new Activity(id, folderId, levelSubfolderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
         activity.snapshot = snapshot;
         return activity;
     }
@@ -99,7 +101,7 @@ public class Activity {
             throw new IllegalArgumentException("Activity title cannot be blank.");
         }
         if (type == null || !ALLOWED_TYPES.contains(type)) {
-            throw new IllegalArgumentException("Activity type must be EXERCISE or WORKSPACE.");
+            throw new IllegalArgumentException("Activity type must be EXERCISE, MATERIAL or WORKSPACE.");
         }
         if (createdAt == null) {
             throw new IllegalArgumentException("Activity createdAt cannot be null.");
@@ -121,15 +123,6 @@ public class Activity {
         if (newFolderId == null) {
             throw new IllegalArgumentException("Nova pasta (folderId) não pode ser nula.");
         }
-        return Activity.with(
-                this.id,
-                newFolderId,
-                this.title,
-                this.type,
-                this.convertedHtml,
-                this.createdBy,
-                this.createdAt,
-                OffsetDateTime.now()
-        );
+        return new Activity(this.id, newFolderId, this.levelSubfolderId, this.title, this.type, this.convertedHtml, this.createdBy, this.createdAt, OffsetDateTime.now());
     }
 }

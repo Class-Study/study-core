@@ -29,7 +29,7 @@ public interface ActivityApi {
 
     @PatchMapping("/activities/{id}")
     @PreAuthorize("hasRole('TEACHER')")
-    ResponseEntity<GetActivityResponse> updateActivity(@PathVariable UUID id, @RequestBody @Valid UpdateActivityRequest request);
+    ResponseEntity<Void> updateActivity(@PathVariable UUID id, @RequestBody @Valid UpdateActivityRequest request);
 
     @PatchMapping("/activities/{id}/content")
     @PreAuthorize("hasAnyRole('TEACHER','STUDENT')")

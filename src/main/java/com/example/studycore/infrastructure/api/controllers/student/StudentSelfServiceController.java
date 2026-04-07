@@ -6,6 +6,7 @@ import com.example.studycore.application.usecase.billing.GetStudentBillingUseCas
 import com.example.studycore.application.usecase.classroom.GetStudentScheduleUseCase;
 import com.example.studycore.application.usecase.student.GetMyProfileUseCase;
 import com.example.studycore.application.usecase.student.GetMyStatsUseCase;
+import com.example.studycore.application.usecase.student.GetStudentWorkspaceFoldersUseCase;
 import com.example.studycore.application.usecase.studentnote.GetMyNotesUseCase;
 import com.example.studycore.infrastructure.api.StudentSelfServiceApi;
 import com.example.studycore.infrastructure.api.controllers.student.request.ConfirmPaymentRequest;
@@ -32,6 +33,7 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
     private final GetStudentBillingUseCase getStudentBillingUseCase;
     private final GetStudentScheduleUseCase getStudentScheduleUseCase;
     private final ConfirmStudentPaymentUseCase confirmStudentPaymentUseCase;
+    private final GetStudentWorkspaceFoldersUseCase getStudentWorkspaceFoldersUseCase;
 
     @Override
     public ResponseEntity<GetMyProfileResponse> getMyProfile() {
@@ -45,6 +47,13 @@ public class StudentSelfServiceController implements StudentSelfServiceApi {
         final var studentId = getAuthenticatedUserId();
         final var output = getMyActivitiesUseCase.execute(studentId);
         return ResponseEntity.ok(MAPPER.toGetMyActivitiesResponse(output));
+    }
+
+    @Override
+    public ResponseEntity<GetStudentWorkspaceFoldersResponse> getWorkspaceFolders() {
+        final var studentId = getAuthenticatedUserId();
+        final var output = getStudentWorkspaceFoldersUseCase.execute(studentId);
+        return ResponseEntity.ok(MAPPER.toGetStudentWorkspaceFoldersResponse(output));
     }
 
     @Override

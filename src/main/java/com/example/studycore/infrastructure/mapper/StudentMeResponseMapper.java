@@ -7,6 +7,7 @@ import com.example.studycore.application.usecase.billing.output.GetStudentBillin
 import com.example.studycore.application.usecase.classroom.output.GetStudentScheduleOutput;
 import com.example.studycore.application.usecase.student.output.GetMyProfileOutput;
 import com.example.studycore.application.usecase.student.output.GetMyStatsOutput;
+import com.example.studycore.application.usecase.student.output.GetStudentWorkspaceFoldersOutput;
 import com.example.studycore.application.usecase.studentnote.output.GetMyNotesOutput;
 import com.example.studycore.infrastructure.api.controllers.student.request.ConfirmPaymentRequest;
 import com.example.studycore.infrastructure.api.controllers.student.response.ConfirmPaymentResponse;
@@ -15,6 +16,7 @@ import com.example.studycore.infrastructure.api.controllers.student.response.Get
 import com.example.studycore.infrastructure.api.controllers.student.response.GetMyStatsResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentBillingResponse;
 import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentScheduleResponse;
+import com.example.studycore.infrastructure.api.controllers.student.response.GetStudentWorkspaceFoldersResponse;
 import com.example.studycore.infrastructure.api.controllers.studentnote.response.GetMyNotesResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -48,4 +50,14 @@ public interface StudentMeResponseMapper {
     @Mapping(target = "pixKey", source = "request.pixKey")
     @Mapping(target = "amount", source = "request.amount")
     ConfirmPaymentInput toConfirmPaymentInput(ConfirmPaymentRequest request, UUID studentId);
+
+    GetStudentWorkspaceFoldersResponse toGetStudentWorkspaceFoldersResponse(GetStudentWorkspaceFoldersOutput output);
+
+    GetStudentWorkspaceFoldersResponse.LevelFolderItem toLevelFolderItem(GetStudentWorkspaceFoldersOutput.LevelFolderItem item);
+
+    GetStudentWorkspaceFoldersResponse.LevelSubfolderItem toLevelSubfolderItem(GetStudentWorkspaceFoldersOutput.LevelSubfolderItem item);
+
+    GetStudentWorkspaceFoldersResponse.TemplateItem toTemplateItem(GetStudentWorkspaceFoldersOutput.TemplateItem item);
+
+    GetStudentWorkspaceFoldersResponse.StudyMaterialItem toStudyMaterialItem(GetStudentWorkspaceFoldersOutput.StudyMaterialItem item);
 }

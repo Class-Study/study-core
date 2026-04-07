@@ -12,15 +12,17 @@ WITH basic_profile AS (
     RETURNING id
 )
 INSERT INTO level_folders (id, level_profile_id, name, position, initial_files)
-SELECT gen_random_uuid(), id, '1-TO DO', 1, 0 FROM basic_profile
+SELECT gen_random_uuid(), id, '1-TO DO', 1, 4 FROM basic_profile
 UNION ALL
 SELECT gen_random_uuid(), id, '2-IN PROGRESS', 2, 0 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '3-VOCABULARY', 3, 0 FROM basic_profile
+SELECT gen_random_uuid(), id, '3-TO BE CORRECTED', 3, 0 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '4-DONE', 4, 0 FROM basic_profile;
+SELECT gen_random_uuid(), id, '4-DONE', 4, 0 FROM basic_profile
+UNION ALL
+SELECT gen_random_uuid(), id, '5-VOCABULARY & PRES.', 5, 2 FROM basic_profile;
 
-WITH intermediate_profile AS (
+WITH basic_profile AS (
     INSERT INTO level_profiles (id, name, code, icon, description, is_system, created_by)
     VALUES (
         gen_random_uuid(),
@@ -34,15 +36,15 @@ WITH intermediate_profile AS (
     RETURNING id
 )
 INSERT INTO level_folders (id, level_profile_id, name, position, initial_files)
-SELECT gen_random_uuid(), id, '1-TO DO', 1, 4 FROM intermediate_profile
+SELECT gen_random_uuid(), id, '1-TO DO', 1, 4 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '2-IN PROGRESS', 2, 0 FROM intermediate_profile
+SELECT gen_random_uuid(), id, '2-IN PROGRESS', 2, 0 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '3-TO BE CORRECTED', 3, 0 FROM intermediate_profile
+SELECT gen_random_uuid(), id, '3-TO BE CORRECTED', 3, 0 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '4-DONE', 4, 0 FROM intermediate_profile
+SELECT gen_random_uuid(), id, '4-DONE', 4, 0 FROM basic_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '5-VOCABULARY & PRES.', 5, 2 FROM intermediate_profile;
+SELECT gen_random_uuid(), id, '5-VOCABULARY & PRES.', 5, 2 FROM basic_profile;
 
 WITH advanced_profile AS (
     INSERT INTO level_profiles (id, name, code, icon, description, is_system, created_by)
@@ -58,7 +60,7 @@ WITH advanced_profile AS (
     RETURNING id
 )
 INSERT INTO level_folders (id, level_profile_id, name, position, initial_files)
-SELECT gen_random_uuid(), id, '1-TO DO', 1, 5 FROM advanced_profile
+SELECT gen_random_uuid(), id, '1-TO DO', 1, 4 FROM advanced_profile
 UNION ALL
 SELECT gen_random_uuid(), id, '2-IN PROGRESS', 2, 0 FROM advanced_profile
 UNION ALL
@@ -66,5 +68,5 @@ SELECT gen_random_uuid(), id, '3-TO BE CORRECTED', 3, 0 FROM advanced_profile
 UNION ALL
 SELECT gen_random_uuid(), id, '4-DONE', 4, 0 FROM advanced_profile
 UNION ALL
-SELECT gen_random_uuid(), id, '5-EXAM PREPARATION', 5, 3 FROM advanced_profile;
+SELECT gen_random_uuid(), id, '5-VOCABULARY & PRES.', 5, 2 FROM advanced_profile;
 

@@ -29,6 +29,7 @@ public interface ActivityInfraMapper {
         return Activity.withYjsState(
                 entity.getId(),
                 entity.getFolderId(),
+                entity.getLevelSubfolderId(),
                 entity.getTitle(),
                 entity.getType(),
                 entity.getConvertedHtml(),
@@ -41,6 +42,7 @@ public interface ActivityInfraMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "folderId", source = "folderId")
+    @Mapping(target = "levelSubfolderId", source = "levelSubfolderId")
     @Mapping(target = "title", source = "title")
     @Mapping(target = "type", source = "type")
     @Mapping(target = "convertedHtml", source = "convertedHtml")

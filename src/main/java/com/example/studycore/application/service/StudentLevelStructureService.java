@@ -2,10 +2,14 @@ package com.example.studycore.application.service;
 
 import com.example.studycore.domain.model.Activity;
 import com.example.studycore.domain.model.Folder;
+import com.example.studycore.domain.model.LevelFolder;
+import com.example.studycore.domain.model.enums.StudyMaterialType;
 import com.example.studycore.domain.port.ActivityGateway;
 import com.example.studycore.domain.port.FolderGateway;
 import com.example.studycore.domain.port.LevelFolderTemplateGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
+import com.example.studycore.domain.port.LevelSubfolderGateway;
+import com.example.studycore.domain.port.StudyMaterialGateway;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,8 @@ public class StudentLevelStructureService {
     private final ActivityGateway activityGateway;
     private final LevelFolderTemplateGateway levelFolderTemplateGateway;
     private final LevelProfileGateway levelProfileGateway;
+    private final LevelSubfolderGateway levelSubfolderGateway;
+    private final StudyMaterialGateway studyMaterialGateway;
 
     /**
      * Cria a estrutura completa de pastas e atividades para um aluno com base no LevelProfile.
@@ -62,47 +68,78 @@ public class StudentLevelStructureService {
             return;
         }
 
-        log.info("Creating {} folders and their activities for student {} from level profile {}",
+        log.info("Creating {} folders for student {} from level profile {}",
                 folders.size(), studentId, levelProfileId);
 
         folders.stream()
-                .sorted(Comparator.comparing(com.example.studycore.domain.model.LevelFolder::getPosition))
+                .sorted(Comparator.comparing(LevelFolder::getPosition))
                 .forEach(levelFolder -> {
                     // 1. Criar a folder real para o aluno
-                    final var folder = Folder.create(
-                            studentId,
-                            levelFolder.getName(),
-                            levelFolder.getPosition()
-                    );
+                    final var folder = Folder.create(studentId, levelFolder.getName(), levelFolder.getPosition());
                     final var savedFolder = folderGateway.save(folder);
-                    log.debug("Created folder {} for student {}", levelFolder.getName(), studentId);
+                    log.debug("Created folder '{}' for student {}", levelFolder.getName(), studentId);
 
-                    // 2. Buscar templates dessa level_folder
-                    final var templates = levelFolderTemplateGateway.findAllByFolderId(levelFolder.getId());
+                    // 2. Templates direto na pasta (sem subpasta — subfolderId IS NULL)
+                    propagateRootTemplates(savedFolder.getId(), levelFolder.getId(), teacherId);
 
-                    if (templates != null && !templates.isEmpty()) {
-                        log.debug("Found {} templates for folder {}, creating activities for student {}",
-                                templates.size(), levelFolder.getName(), studentId);
-
-                        // 3. Para cada template, criar uma activity real
-                        templates.forEach(template -> {
-                            final var activity = Activity.create(
-                                    savedFolder.getId(),
-                                    template.getTitle(),
-                                    template.getType(),
-                                    template.getConvertedHtml(),
-                                    teacherId
-                            );
-                            activityGateway.save(activity);
-                            log.debug("Created activity {} from template for folder {}",
-                                    template.getTitle(), levelFolder.getName());
-                        });
-                    } else {
-                        log.debug("No templates found for folder {}", levelFolder.getName());
-                    }
+                    // 3. Para cada subpasta: propagar templates e DOCUMENT materials
+                    levelSubfolderGateway.findByLevelFolderId(levelFolder.getId())
+                            .forEach(subfolder -> {
+                                propagateSubfolderTemplates(savedFolder.getId(), subfolder.getId(), teacherId);
+                                propagateDocumentMaterials(savedFolder.getId(), subfolder.getId(), teacherId);
+                            });
                 });
 
         log.info("Folders and activities created successfully for student {}", studentId);
+    }
+
+    private void propagateRootTemplates(UUID studentFolderId, UUID levelFolderId, UUID teacherId) {
+        final var templates = levelFolderTemplateGateway.findRootByFolderId(levelFolderId);
+        templates.forEach(template -> {
+            final var activity = Activity.createWithSubfolder(
+                    studentFolderId,
+                    null, // root-level template, sem subpasta
+                    template.getTitle(),
+                    "EXERCISE",
+                    template.getConvertedHtml(),
+                    teacherId
+            );
+            activityGateway.save(activity);
+            log.debug("Created root EXERCISE activity '{}' in folder {}", template.getTitle(), studentFolderId);
+        });
+    }
+
+    private void propagateSubfolderTemplates(UUID studentFolderId, UUID subfolderId, UUID teacherId) {
+        final var templates = levelFolderTemplateGateway.findBySubfolderId(subfolderId);
+        templates.forEach(template -> {
+            final var activity = Activity.createWithSubfolder(
+                    studentFolderId,
+                    subfolderId,
+                    template.getTitle(),
+                    "EXERCISE",
+                    template.getConvertedHtml(),
+                    teacherId
+            );
+            activityGateway.save(activity);
+            log.debug("Created EXERCISE activity '{}' in subfolder {}", template.getTitle(), subfolderId);
+        });
+    }
+
+    private void propagateDocumentMaterials(UUID studentFolderId, UUID subfolderId, UUID teacherId) {
+        studyMaterialGateway.findBySubfolderId(subfolderId).stream()
+                .filter(m -> StudyMaterialType.DOCUMENT == m.getType())
+                .forEach(material -> {
+                    final var activity = Activity.createWithSubfolder(
+                            studentFolderId,
+                            subfolderId,
+                            material.getTitle(),
+                            "MATERIAL",
+                            material.getConvertedHtml(),
+                            teacherId
+                    );
+                    activityGateway.save(activity);
+                    log.debug("Created MATERIAL activity '{}' in subfolder {}", material.getTitle(), subfolderId);
+                });
     }
 
     /**
@@ -154,4 +191,3 @@ public class StudentLevelStructureService {
         log.info("Successfully deleted all folders and activities for student {}", studentId);
     }
 }
-

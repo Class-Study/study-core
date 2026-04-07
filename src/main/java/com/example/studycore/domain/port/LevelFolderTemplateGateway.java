@@ -8,8 +8,8 @@ import java.util.UUID;
 public interface LevelFolderTemplateGateway {
     LevelFolderTemplate save(LevelFolderTemplate template);
     List<LevelFolderTemplate> findAllByFolderId(UUID folderId);
+    List<LevelFolderTemplate> findRootByFolderId(UUID folderId);
     List<LevelFolderTemplate> findBySubfolderId(UUID subfolderId);
     Optional<LevelFolderTemplate> findById(UUID id);
     void delete(UUID id);
 }
-

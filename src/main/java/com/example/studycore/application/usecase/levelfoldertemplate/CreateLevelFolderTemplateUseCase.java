@@ -78,8 +78,9 @@ public class CreateLevelFolderTemplateUseCase {
 
                 if (correspondingFolder.isPresent()) {
                     // Criar Activity como cópia do template
-                    final var activity = Activity.create(
+                    final var activity = Activity.createWithSubfolder(
                             correspondingFolder.get().getId(),
+                            template.getSubfolderId(),
                             template.getTitle(),
                             template.getType(),
                             template.getConvertedHtml(),

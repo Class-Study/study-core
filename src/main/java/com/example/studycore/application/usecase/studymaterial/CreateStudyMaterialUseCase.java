@@ -82,10 +82,11 @@ public class CreateStudyMaterialUseCase {
                         .findFirst();
 
                 if (correspondingFolder.isPresent()) {
-                    final var activity = Activity.create(
+                    final var activity = Activity.createWithSubfolder(
                             correspondingFolder.get().getId(),
+                            material.getSubfolderId(),
                             material.getTitle(),
-                            "EXERCISE",
+                            "MATERIAL",
                             material.getConvertedHtml(),
                             input.createdBy()
                     );

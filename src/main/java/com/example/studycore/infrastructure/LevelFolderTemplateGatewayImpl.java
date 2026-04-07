@@ -32,6 +32,15 @@ public class LevelFolderTemplateGatewayImpl implements LevelFolderTemplateGatewa
     }
 
     @Override
+    public List<LevelFolderTemplate> findRootByFolderId(UUID folderId) {
+        return levelFolderTemplateRepository
+                .findByLevelFolderIdAndSubfolderIdIsNullOrderByCreatedAtAsc(folderId)
+                .stream()
+                .map(MAPPER::fromEntity)
+                .toList();
+    }
+
+    @Override
     public List<LevelFolderTemplate> findBySubfolderId(UUID subfolderId) {
         return levelFolderTemplateRepository.findBySubfolderIdOrderByCreatedAtAsc(subfolderId).stream()
                 .map(MAPPER::fromEntity)
