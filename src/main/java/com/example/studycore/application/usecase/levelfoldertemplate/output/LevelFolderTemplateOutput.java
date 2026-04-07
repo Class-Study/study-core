@@ -6,6 +6,7 @@ import java.util.UUID;
 public record LevelFolderTemplateOutput(
         UUID id,
         UUID levelFolderId,
+        UUID subfolderId,
         String title,
         String type,
         String originalFilename,

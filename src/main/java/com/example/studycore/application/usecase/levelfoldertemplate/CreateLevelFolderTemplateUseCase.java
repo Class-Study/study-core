@@ -44,6 +44,7 @@ public class CreateLevelFolderTemplateUseCase {
 
         final var template = LevelFolderTemplate.create(
                 input.levelFolderId(),
+                input.subfolderId(),
                 input.title(),
                 input.type(),
                 input.originalFilename(),

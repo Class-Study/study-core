@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LevelFolderTemplateRepository extends JpaRepository<LevelFolderTemplateEntity, UUID> {
     List<LevelFolderTemplateEntity> findByLevelFolderIdOrderByCreatedAtAsc(UUID levelFolderId);
+    List<LevelFolderTemplateEntity> findBySubfolderIdOrderByCreatedAtAsc(UUID subfolderId);
 }
 

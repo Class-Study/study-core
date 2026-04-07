@@ -10,6 +10,17 @@ public interface LevelFolderTemplateOutputMapper {
 
     LevelFolderTemplateOutputMapper INSTANCE = Mappers.getMapper(LevelFolderTemplateOutputMapper.class);
 
-    LevelFolderTemplateOutput toOutput(LevelFolderTemplate template);
+    default LevelFolderTemplateOutput toOutput(LevelFolderTemplate template) {
+        if (template == null) return null;
+        return new LevelFolderTemplateOutput(
+                template.getId(),
+                template.getLevelFolderId(),
+                template.getSubfolderId(),
+                template.getTitle(),
+                template.getType(),
+                template.getOriginalFilename(),
+                template.getConvertedHtml(),
+                template.getCreatedAt()
+        );
+    }
 }
-

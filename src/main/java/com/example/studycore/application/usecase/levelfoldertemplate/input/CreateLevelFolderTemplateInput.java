@@ -5,6 +5,7 @@ import java.util.UUID;
 public record CreateLevelFolderTemplateInput(
         UUID levelFolderId,
         UUID levelProfileId,
+        UUID subfolderId,
         UUID teacherId,
         String title,
         String type,

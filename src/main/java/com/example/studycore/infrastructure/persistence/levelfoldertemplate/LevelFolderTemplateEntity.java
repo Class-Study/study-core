@@ -30,6 +30,9 @@ public class LevelFolderTemplateEntity {
     @Column(name = "level_folder_id", nullable = false)
     private UUID levelFolderId;
 
+    @Column(name = "subfolder_id")
+    private UUID subfolderId;
+
     @Column(nullable = false, length = 255)
     private String title;
 

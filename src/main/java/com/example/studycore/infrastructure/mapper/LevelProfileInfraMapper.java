@@ -6,6 +6,8 @@ import com.example.studycore.application.usecase.levelprofile.input.UpdateLevelP
 import com.example.studycore.application.usecase.levelprofile.output.GetLevelProfileOutput;
 import com.example.studycore.application.usecase.levelprofile.output.LevelFolderOutput;
 import com.example.studycore.application.usecase.levelprofile.output.ListLevelProfilesOutput;
+import com.example.studycore.application.usecase.levelprofile.output.SubfolderOutput;
+import com.example.studycore.application.usecase.studymaterial.output.StudyMaterialOutput;
 import com.example.studycore.domain.model.LevelFolder;
 import com.example.studycore.domain.model.LevelProfile;
 import com.example.studycore.infrastructure.api.controllers.levelprofile.request.CreateLevelFolderRequest;
@@ -14,6 +16,8 @@ import com.example.studycore.infrastructure.api.controllers.levelprofile.request
 import com.example.studycore.infrastructure.api.controllers.levelprofile.response.GetLevelProfileResponse;
 import com.example.studycore.infrastructure.api.controllers.levelprofile.response.LevelFolderResponse;
 import com.example.studycore.infrastructure.api.controllers.levelprofile.response.ListLevelProfilesResponse;
+import com.example.studycore.infrastructure.api.controllers.levelprofile.response.SubfolderResponse;
+import com.example.studycore.infrastructure.api.controllers.studymaterial.response.StudyMaterialResponse;
 import com.example.studycore.infrastructure.persistence.levelprofile.LevelFolderEntity;
 import com.example.studycore.infrastructure.persistence.levelprofile.LevelProfileEntity;
 
@@ -102,4 +106,8 @@ public interface LevelProfileInfraMapper {
     ListLevelProfilesResponse toListLevelProfilesResponse(ListLevelProfilesOutput output);
 
     List<LevelFolderResponse> toFolderResponses(List<LevelFolderOutput> folders);
+
+    SubfolderResponse toSubfolderResponse(SubfolderOutput output);
+
+    StudyMaterialResponse toStudyMaterialResponse(StudyMaterialOutput output);
 }

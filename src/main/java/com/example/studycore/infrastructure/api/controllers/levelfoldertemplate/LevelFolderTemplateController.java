@@ -31,7 +31,8 @@ public class LevelFolderTemplateController implements LevelFolderTemplateApi {
             UUID folderId,
             CreateLevelFolderTemplateRequest request
     ) {
-        final var input = MAPPER.toCreateInput(profileId, folderId, getAuthenticatedUserId(), request);
+        // Legacy endpoint: subfolderId = null (templates without subfolder)
+        final var input = MAPPER.toCreateInput(profileId, folderId, null, getAuthenticatedUserId(), request);
         final var output = createLevelFolderTemplateUseCase.execute(input);
         return ResponseEntity.status(HttpStatus.CREATED).body(MAPPER.toResponse(output));
     }
@@ -52,4 +53,3 @@ public class LevelFolderTemplateController implements LevelFolderTemplateApi {
         return UUID.fromString((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
     }
 }
-

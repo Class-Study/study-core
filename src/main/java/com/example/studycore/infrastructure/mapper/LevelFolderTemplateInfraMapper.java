@@ -6,10 +6,11 @@ import com.example.studycore.domain.model.LevelFolderTemplate;
 import com.example.studycore.infrastructure.api.controllers.levelfoldertemplate.request.CreateLevelFolderTemplateRequest;
 import com.example.studycore.infrastructure.api.controllers.levelfoldertemplate.response.LevelFolderTemplateResponse;
 import com.example.studycore.infrastructure.persistence.levelfoldertemplate.LevelFolderTemplateEntity;
-import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+
+import java.util.UUID;
 
 @Mapper
 public interface LevelFolderTemplateInfraMapper {
@@ -19,6 +20,7 @@ public interface LevelFolderTemplateInfraMapper {
     default CreateLevelFolderTemplateInput toCreateInput(
             UUID levelProfileId,
             UUID levelFolderId,
+            UUID subfolderId,
             UUID teacherId,
             CreateLevelFolderTemplateRequest request
     ) {
@@ -26,6 +28,7 @@ public interface LevelFolderTemplateInfraMapper {
         return new CreateLevelFolderTemplateInput(
                 levelFolderId,
                 levelProfileId,
+                subfolderId,
                 teacherId,
                 request.title(),
                 request.type(),
@@ -36,12 +39,11 @@ public interface LevelFolderTemplateInfraMapper {
     }
 
     default LevelFolderTemplate fromEntity(LevelFolderTemplateEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
         return LevelFolderTemplate.with(
                 entity.getId(),
                 entity.getLevelFolderId(),
+                entity.getSubfolderId(),
                 entity.getTitle(),
                 entity.getType(),
                 entity.getOriginalFilename(),
@@ -53,6 +55,7 @@ public interface LevelFolderTemplateInfraMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "levelFolderId", source = "levelFolderId")
+    @Mapping(target = "subfolderId", source = "subfolderId")
     @Mapping(target = "title", source = "title")
     @Mapping(target = "type", source = "type")
     @Mapping(target = "originalFilename", source = "originalFilename")
@@ -63,6 +66,3 @@ public interface LevelFolderTemplateInfraMapper {
 
     LevelFolderTemplateResponse toResponse(LevelFolderTemplateOutput output);
 }
-
-
-

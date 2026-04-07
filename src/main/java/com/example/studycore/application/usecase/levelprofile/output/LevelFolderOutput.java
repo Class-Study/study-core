@@ -8,7 +8,8 @@ public record LevelFolderOutput(
         String name,
         Integer position,
         Integer initialFiles,
-        List<LevelFolderTemplateOutput> templates
+        List<LevelFolderTemplateOutput> templates,
+        List<SubfolderOutput> subfolders
 ) {
 }
 

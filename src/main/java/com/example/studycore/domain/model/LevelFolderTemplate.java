@@ -9,6 +9,7 @@ public class LevelFolderTemplate {
 
     private final UUID id;
     private final UUID levelFolderId;
+    private final UUID subfolderId; // nullable for backward compat
     private final String title;
     private final String type;
     private final String originalFilename;
@@ -19,6 +20,7 @@ public class LevelFolderTemplate {
     private LevelFolderTemplate(
             UUID id,
             UUID levelFolderId,
+            UUID subfolderId,
             String title,
             String type,
             String originalFilename,
@@ -28,6 +30,7 @@ public class LevelFolderTemplate {
     ) {
         this.id = id;
         this.levelFolderId = levelFolderId;
+        this.subfolderId = subfolderId;
         this.title = normalize(title);
         this.type = normalizeType(type);
         this.originalFilename = originalFilename;
@@ -39,6 +42,7 @@ public class LevelFolderTemplate {
 
     public static LevelFolderTemplate create(
             UUID levelFolderId,
+            UUID subfolderId,
             String title,
             String type,
             String originalFilename,
@@ -48,6 +52,7 @@ public class LevelFolderTemplate {
         return new LevelFolderTemplate(
                 UUID.randomUUID(),
                 levelFolderId,
+                subfolderId,
                 title,
                 type,
                 originalFilename,
@@ -57,9 +62,22 @@ public class LevelFolderTemplate {
         );
     }
 
+    /** Backward-compat factory without subfolderId */
+    public static LevelFolderTemplate create(
+            UUID levelFolderId,
+            String title,
+            String type,
+            String originalFilename,
+            String convertedHtml,
+            UUID createdBy
+    ) {
+        return create(levelFolderId, null, title, type, originalFilename, convertedHtml, createdBy);
+    }
+
     public static LevelFolderTemplate with(
             UUID id,
             UUID levelFolderId,
+            UUID subfolderId,
             String title,
             String type,
             String originalFilename,
@@ -70,6 +88,7 @@ public class LevelFolderTemplate {
         return new LevelFolderTemplate(
                 id,
                 levelFolderId,
+                subfolderId,
                 title,
                 type,
                 originalFilename,
@@ -77,6 +96,20 @@ public class LevelFolderTemplate {
                 createdBy,
                 createdAt
         );
+    }
+
+    /** Backward-compat factory without subfolderId */
+    public static LevelFolderTemplate with(
+            UUID id,
+            UUID levelFolderId,
+            String title,
+            String type,
+            String originalFilename,
+            String convertedHtml,
+            UUID createdBy,
+            OffsetDateTime createdAt
+    ) {
+        return with(id, levelFolderId, null, title, type, originalFilename, convertedHtml, createdBy, createdAt);
     }
 
     private void validate() {
