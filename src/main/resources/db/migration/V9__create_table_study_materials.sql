@@ -1,8 +1,9 @@
 CREATE TABLE study.study_materials
 (
-    id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    id                UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
     level_folder_id   UUID         NOT NULL REFERENCES study.level_folders (id) ON DELETE CASCADE,
-    subfolder_type    VARCHAR(20)  NOT NULL,
+    subfolder_id      UUID         NOT NULL REFERENCES study.level_subfolders (id) ON DELETE CASCADE,
+    subfolder_type    VARCHAR(20),
     title             VARCHAR(255) NOT NULL,
     material_type     VARCHAR(20)  NOT NULL,
     url               TEXT,
