@@ -1,6 +1,7 @@
 package com.example.studycore.infrastructure.api;
 
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.CreateLevelSubfolderRequest;
+import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.CreateSubfoldersBatchRequest;
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.UpdateLevelSubfolderRequest;
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.response.LevelSubfolderResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -27,6 +28,15 @@ public interface LevelSubfolderApi {
     ResponseEntity<List<LevelSubfolderResponse>> list(
             @PathVariable UUID profileId,
             @PathVariable UUID folderId
+    );
+
+    // NOTE: /batch must be declared before /{subfolderId} so Spring does not treat "batch" as a UUID
+    @PostMapping("/batch")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    ResponseEntity<Void> createBatch(
+            @PathVariable UUID profileId,
+            @PathVariable UUID folderId,
+            @Valid @RequestBody CreateSubfoldersBatchRequest request
     );
 
     @PostMapping
