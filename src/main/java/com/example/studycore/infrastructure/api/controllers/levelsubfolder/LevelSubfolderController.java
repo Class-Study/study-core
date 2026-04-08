@@ -5,12 +5,14 @@ import com.example.studycore.application.usecase.levelsubfolder.CreateSubfolders
 import com.example.studycore.application.usecase.levelsubfolder.DeleteLevelSubfolderUseCase;
 import com.example.studycore.application.usecase.levelsubfolder.ListLevelSubfoldersUseCase;
 import com.example.studycore.application.usecase.levelsubfolder.UpdateLevelSubfolderUseCase;
+import com.example.studycore.application.usecase.levelsubfolder.UpdateSubfolderWithContentsUseCase;
 import com.example.studycore.application.usecase.levelsubfolder.input.CreateLevelSubfolderInput;
 import com.example.studycore.application.usecase.levelsubfolder.input.UpdateLevelSubfolderInput;
 import com.example.studycore.infrastructure.api.LevelSubfolderApi;
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.CreateLevelSubfolderRequest;
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.CreateSubfoldersBatchRequest;
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.UpdateLevelSubfolderRequest;
+import com.example.studycore.infrastructure.api.controllers.levelsubfolder.request.UpdateSubfolderWithContentsRequest;
 import com.example.studycore.infrastructure.api.controllers.levelsubfolder.response.LevelSubfolderResponse;
 import com.example.studycore.infrastructure.mapper.LevelSubfolderInfraMapper;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class LevelSubfolderController implements LevelSubfolderApi {
     private final CreateLevelSubfolderUseCase createLevelSubfolderUseCase;
     private final CreateSubfoldersBatchUseCase createSubfoldersBatchUseCase;
     private final UpdateLevelSubfolderUseCase updateLevelSubfolderUseCase;
+    private final UpdateSubfolderWithContentsUseCase updateSubfolderWithContentsUseCase;
     private final DeleteLevelSubfolderUseCase deleteLevelSubfolderUseCase;
     private final ListLevelSubfoldersUseCase listLevelSubfoldersUseCase;
 
@@ -54,6 +57,15 @@ public class LevelSubfolderController implements LevelSubfolderApi {
                 profileId, folderId, request.name(), request.position(), getAuthenticatedUserId()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(MAPPER.toResponse(createLevelSubfolderUseCase.execute(input)));
+    }
+
+    @Override
+    public ResponseEntity<Void> updateWithContents(UUID profileId, UUID folderId, UUID subfolderId,
+                                                   UpdateSubfolderWithContentsRequest request) {
+        updateSubfolderWithContentsUseCase.execute(
+                MAPPER.toUpdateInput(profileId, folderId, subfolderId, request, getAuthenticatedUserId())
+        );
+        return ResponseEntity.noContent().build();
     }
 
     @Override
