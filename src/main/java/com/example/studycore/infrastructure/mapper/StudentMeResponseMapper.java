@@ -53,11 +53,11 @@ public interface StudentMeResponseMapper {
 
     GetStudentWorkspaceFoldersResponse toGetStudentWorkspaceFoldersResponse(GetStudentWorkspaceFoldersOutput output);
 
-    GetStudentWorkspaceFoldersResponse.LevelFolderItem toLevelFolderItem(GetStudentWorkspaceFoldersOutput.LevelFolderItem item);
+    GetStudentWorkspaceFoldersResponse.FolderItem toFolderItem(GetStudentWorkspaceFoldersOutput.FolderItem item);
 
-    GetStudentWorkspaceFoldersResponse.LevelSubfolderItem toLevelSubfolderItem(GetStudentWorkspaceFoldersOutput.LevelSubfolderItem item);
+    GetStudentWorkspaceFoldersResponse.SubfolderItem toSubfolderItem(GetStudentWorkspaceFoldersOutput.SubfolderItem item);
 
-    GetStudentWorkspaceFoldersResponse.TemplateItem toTemplateItem(GetStudentWorkspaceFoldersOutput.TemplateItem item);
+    GetStudentWorkspaceFoldersResponse.ActivityItem toActivityItem(GetStudentWorkspaceFoldersOutput.ActivityItem item);
 
     GetStudentWorkspaceFoldersResponse.StudyMaterialItem toStudyMaterialItem(GetStudentWorkspaceFoldersOutput.StudyMaterialItem item);
 }

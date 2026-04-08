@@ -9,6 +9,6 @@ public interface ActivityGateway {
     Activity save(Activity activity);
     Optional<Activity> findById(UUID id);
     List<Activity> findByFolderId(UUID folderId);
+    List<Activity> findBySubfolderId(UUID subfolderId);
     void delete(UUID id);
 }
-

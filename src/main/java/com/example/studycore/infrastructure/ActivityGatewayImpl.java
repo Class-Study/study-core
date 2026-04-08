@@ -37,6 +37,13 @@ public class ActivityGatewayImpl implements ActivityGateway {
     }
 
     @Override
+    public List<Activity> findBySubfolderId(UUID subfolderId) {
+        return activityRepository.findBySubfolderIdOrderByCreatedAtAsc(subfolderId).stream()
+                .map(ACTIVITY_INFRA_MAPPER::fromEntity)
+                .toList();
+    }
+
+    @Override
     public void delete(UUID id) {
         activityRepository.deleteById(id);
     }

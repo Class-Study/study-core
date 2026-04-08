@@ -63,10 +63,10 @@ public class ActivityController implements ActivityApi {
     }
 
     @Override
-    public ResponseEntity<GetActivityResponse> updateContent(UUID id, UpdateActivityContentRequest request) {
+    public ResponseEntity<Void> updateContent(UUID id, UpdateActivityContentRequest request) {
         final var input = ACTIVITY_INFRA_MAPPER.toUpdateActivityContentInput(getAuthenticatedUserId(), isTeacher(), id, request);
-        final var output = updateActivityContentUseCase.execute(input);
-        return ResponseEntity.ok(ACTIVITY_INFRA_MAPPER.toGetActivityResponse(output));
+        updateActivityContentUseCase.execute(input);
+        return ResponseEntity.noContent().build();
     }
 
     @Override

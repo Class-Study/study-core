@@ -14,7 +14,7 @@ public class Activity {
 
     private final UUID id;
     private final UUID folderId;
-    private UUID levelSubfolderId; // nullable — links activity to a level subfolder for grouping
+    private UUID subfolderId; // nullable — links to student_subfolders
     private String title;
     private String type;
     private String convertedHtml;
@@ -27,7 +27,7 @@ public class Activity {
     private Activity(
             UUID id,
             UUID folderId,
-            UUID levelSubfolderId,
+            UUID subfolderId,
             String title,
             String type,
             String convertedHtml,
@@ -37,7 +37,7 @@ public class Activity {
     ) {
         this.id = id;
         this.folderId = folderId;
-        this.levelSubfolderId = levelSubfolderId;
+        this.subfolderId = subfolderId;
         this.title = normalize(title);
         this.type = normalizeType(type);
         this.convertedHtml = convertedHtml == null ? "" : convertedHtml;
@@ -55,9 +55,9 @@ public class Activity {
     }
 
     /** Factory with subfolder context for template/material propagation */
-    public static Activity createWithSubfolder(UUID folderId, UUID levelSubfolderId, String title, String type, String convertedHtml, UUID createdBy) {
+    public static Activity createWithSubfolder(UUID folderId, UUID subfolderId, String title, String type, String convertedHtml, UUID createdBy) {
         final var now = OffsetDateTime.now();
-        return new Activity(UUID.randomUUID(), folderId, levelSubfolderId, title, type, convertedHtml, createdBy, now, now);
+        return new Activity(UUID.randomUUID(), folderId, subfolderId, title, type, convertedHtml, createdBy, now, now);
     }
 
     public static Activity with(
@@ -76,7 +76,7 @@ public class Activity {
     public static Activity withYjsState(
             UUID id,
             UUID folderId,
-            UUID levelSubfolderId,
+            UUID subfolderId,
             String title,
             String type,
             String convertedHtml,
@@ -85,7 +85,7 @@ public class Activity {
             OffsetDateTime updatedAt,
             String snapshot
     ) {
-        Activity activity = new Activity(id, folderId, levelSubfolderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
+        Activity activity = new Activity(id, folderId, subfolderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
         activity.snapshot = snapshot;
         return activity;
     }
@@ -117,12 +117,5 @@ public class Activity {
 
     private static String normalizeType(String value) {
         return value == null ? null : value.trim().toUpperCase();
-    }
-
-    public Activity move(UUID newFolderId) {
-        if (newFolderId == null) {
-            throw new IllegalArgumentException("Nova pasta (folderId) não pode ser nula.");
-        }
-        return new Activity(this.id, newFolderId, this.levelSubfolderId, this.title, this.type, this.convertedHtml, this.createdBy, this.createdAt, OffsetDateTime.now());
     }
 }

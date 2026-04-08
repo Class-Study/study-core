@@ -5,45 +5,42 @@ import java.util.List;
 import java.util.UUID;
 
 public record GetStudentWorkspaceFoldersOutput(
-        List<LevelFolderItem> folders,
+        List<FolderItem> folders,
         OffsetDateTime createdAt
 ) {
 
-    public record LevelFolderItem(
+    public record FolderItem(
             UUID id,
             String name,
             Integer position,
             Integer initialFiles,
-            List<TemplateItem> templates,
-            List<LevelSubfolderItem> subfolders
+            List<SubfolderItem> subfolders
     ) {}
 
-    public record LevelSubfolderItem(
+    public record SubfolderItem(
             UUID id,
             String name,
             Integer position,
-            List<TemplateItem> templates,
+            List<ActivityItem> exercises,
             List<StudyMaterialItem> studyMaterials,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt
     ) {}
 
-    public record TemplateItem(
+    public record ActivityItem(
             UUID id,
-            UUID levelFolderId,
             UUID subfolderId,
             String title,
             String type,
-            String originalFilename,
             String convertedHtml,
-            OffsetDateTime createdAt
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt
     ) {}
 
     public record StudyMaterialItem(
             UUID id,
             UUID levelFolderId,
             UUID subfolderId,
-            String subfolderType,
             String title,
             String type,
             String url,
@@ -55,4 +52,3 @@ public record GetStudentWorkspaceFoldersOutput(
             OffsetDateTime updatedAt
     ) {}
 }
-

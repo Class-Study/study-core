@@ -26,8 +26,8 @@ public class ActivityEntity {
     @Column(name = "folder_id", nullable = false)
     private UUID folderId;
 
-    @Column(name = "level_subfolder_id")
-    private UUID levelSubfolderId;
+    @Column(name = "subfolder_id")
+    private UUID subfolderId;
 
     @Column(nullable = false, length = 255)
     private String title;

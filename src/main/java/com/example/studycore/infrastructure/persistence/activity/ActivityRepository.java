@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ActivityRepository extends JpaRepository<ActivityEntity, UUID> {
     Optional<ActivityEntity> findById(UUID id);
     List<ActivityEntity> findByFolderIdOrderByCreatedAtAsc(UUID folderId);
+    List<ActivityEntity> findBySubfolderIdOrderByCreatedAtAsc(UUID subfolderId);
 }
-

@@ -3,12 +3,14 @@ package com.example.studycore.application.service;
 import com.example.studycore.domain.model.Activity;
 import com.example.studycore.domain.model.Folder;
 import com.example.studycore.domain.model.LevelFolder;
+import com.example.studycore.domain.model.StudentSubfolder;
 import com.example.studycore.domain.model.enums.StudyMaterialType;
 import com.example.studycore.domain.port.ActivityGateway;
 import com.example.studycore.domain.port.FolderGateway;
 import com.example.studycore.domain.port.LevelFolderTemplateGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
 import com.example.studycore.domain.port.LevelSubfolderGateway;
+import com.example.studycore.domain.port.StudentSubfolderGateway;
 import com.example.studycore.domain.port.StudyMaterialGateway;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -35,6 +37,7 @@ public class StudentLevelStructureService {
     private final LevelFolderTemplateGateway levelFolderTemplateGateway;
     private final LevelProfileGateway levelProfileGateway;
     private final LevelSubfolderGateway levelSubfolderGateway;
+    private final StudentSubfolderGateway studentSubfolderGateway;
     private final StudyMaterialGateway studyMaterialGateway;
 
     /**
@@ -82,64 +85,44 @@ public class StudentLevelStructureService {
                     // 2. Templates direto na pasta (sem subpasta — subfolderId IS NULL)
                     propagateRootTemplates(savedFolder.getId(), levelFolder.getId(), teacherId);
 
-                    // 3. Para cada subpasta: propagar templates e DOCUMENT materials
+                    // 3. Criar subpastas do aluno espelhando cada subpasta de nível
                     levelSubfolderGateway.findByLevelFolderId(levelFolder.getId())
-                            .forEach(subfolder -> {
-                                propagateSubfolderTemplates(savedFolder.getId(), subfolder.getId(), teacherId);
-                                propagateDocumentMaterials(savedFolder.getId(), subfolder.getId(), teacherId);
+                            .forEach(levelSub -> {
+                                final var studentSub = StudentSubfolder.create(
+                                        savedFolder.getId(),
+                                        levelSub.getId(),
+                                        levelSub.getName(),
+                                        levelSub.getPosition()
+                                );
+                                final var savedSub = studentSubfolderGateway.save(studentSub);
+                                log.debug("Created student subfolder '{}' for folder {}", levelSub.getName(), savedFolder.getId());
+
+                                propagateSubfolderTemplates(savedFolder.getId(), savedSub.getId(), levelSub.getId(), teacherId);
+                                propagateDocumentMaterials(savedFolder.getId(), savedSub.getId(), levelSub.getId(), teacherId);
                             });
                 });
 
-        log.info("Folders and activities created successfully for student {}", studentId);
+        log.info("Folders, subfolders and activities created for student {}", studentId);
     }
 
     private void propagateRootTemplates(UUID studentFolderId, UUID levelFolderId, UUID teacherId) {
-        final var templates = levelFolderTemplateGateway.findRootByFolderId(levelFolderId);
-        templates.forEach(template -> {
-            final var activity = Activity.createWithSubfolder(
-                    studentFolderId,
-                    null, // root-level template, sem subpasta
-                    template.getTitle(),
-                    "EXERCISE",
-                    template.getConvertedHtml(),
-                    teacherId
-            );
-            activityGateway.save(activity);
-            log.debug("Created root EXERCISE activity '{}' in folder {}", template.getTitle(), studentFolderId);
+        levelFolderTemplateGateway.findRootByFolderId(levelFolderId).forEach(t -> {
+            activityGateway.save(Activity.createWithSubfolder(studentFolderId, null, t.getTitle(), "EXERCISE", t.getConvertedHtml(), teacherId));
         });
     }
 
-    private void propagateSubfolderTemplates(UUID studentFolderId, UUID subfolderId, UUID teacherId) {
-        final var templates = levelFolderTemplateGateway.findBySubfolderId(subfolderId);
-        templates.forEach(template -> {
-            final var activity = Activity.createWithSubfolder(
-                    studentFolderId,
-                    subfolderId,
-                    template.getTitle(),
-                    "EXERCISE",
-                    template.getConvertedHtml(),
-                    teacherId
-            );
-            activityGateway.save(activity);
-            log.debug("Created EXERCISE activity '{}' in subfolder {}", template.getTitle(), subfolderId);
+    private void propagateSubfolderTemplates(UUID studentFolderId, UUID studentSubfolderId, UUID levelSubfolderId, UUID teacherId) {
+        levelFolderTemplateGateway.findBySubfolderId(levelSubfolderId).forEach(t -> {
+            activityGateway.save(Activity.createWithSubfolder(studentFolderId, studentSubfolderId, t.getTitle(), "EXERCISE", t.getConvertedHtml(), teacherId));
         });
     }
 
-    private void propagateDocumentMaterials(UUID studentFolderId, UUID subfolderId, UUID teacherId) {
-        studyMaterialGateway.findBySubfolderId(subfolderId).stream()
+    private void propagateDocumentMaterials(UUID studentFolderId, UUID studentSubfolderId, UUID levelSubfolderId, UUID teacherId) {
+        studyMaterialGateway.findBySubfolderId(levelSubfolderId).stream()
                 .filter(m -> StudyMaterialType.DOCUMENT == m.getType())
-                .forEach(material -> {
-                    final var activity = Activity.createWithSubfolder(
-                            studentFolderId,
-                            subfolderId,
-                            material.getTitle(),
-                            "MATERIAL",
-                            material.getConvertedHtml(),
-                            teacherId
-                    );
-                    activityGateway.save(activity);
-                    log.debug("Created MATERIAL activity '{}' in subfolder {}", material.getTitle(), subfolderId);
-                });
+                .forEach(m -> activityGateway.save(
+                        Activity.createWithSubfolder(studentFolderId, studentSubfolderId, m.getTitle(), "MATERIAL", m.getConvertedHtml(), teacherId)
+                ));
     }
 
     /**

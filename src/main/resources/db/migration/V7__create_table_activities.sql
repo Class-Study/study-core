@@ -2,7 +2,7 @@ CREATE TABLE activities
 (
     id                 UUID PRIMARY KEY,
     folder_id          UUID         NOT NULL REFERENCES folders (id),
-    level_subfolder_id UUID         REFERENCES study.level_subfolders (id) ON DELETE SET NULL,
+    subfolder_id       UUID         REFERENCES study.student_subfolders (id) ON DELETE SET NULL,
     title              VARCHAR(255) NOT NULL,
     type               VARCHAR(100) NOT NULL,
     converted_html     TEXT         NOT NULL DEFAULT '',
@@ -13,4 +13,4 @@ CREATE TABLE activities
     CONSTRAINT chk_activity_type CHECK (type IN ('EXERCISE', 'WORKSPACE', 'MATERIAL'))
 );
 
-CREATE INDEX idx_activities_level_subfolder ON activities (level_subfolder_id);
+CREATE INDEX idx_activities_subfolder ON activities (subfolder_id);

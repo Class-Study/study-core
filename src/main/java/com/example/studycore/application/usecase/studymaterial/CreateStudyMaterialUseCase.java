@@ -13,10 +13,13 @@ import com.example.studycore.domain.port.FolderGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
 import com.example.studycore.domain.port.LevelSubfolderGateway;
 import com.example.studycore.domain.port.StudentGateway;
+import com.example.studycore.domain.port.StudentSubfolderGateway;
 import com.example.studycore.domain.port.StudyMaterialGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ public class CreateStudyMaterialUseCase {
     private final StudentGateway studentGateway;
     private final FolderGateway folderGateway;
     private final ActivityGateway activityGateway;
+    private final StudentSubfolderGateway studentSubfolderGateway;
 
     @Transactional
     public StudyMaterialOutput execute(CreateStudyMaterialInput input) {
@@ -81,17 +85,24 @@ public class CreateStudyMaterialUseCase {
                         .filter(folder -> folder.getPosition().equals(levelFolderPosition))
                         .findFirst();
 
-                if (correspondingFolder.isPresent()) {
-                    final var activity = Activity.createWithSubfolder(
-                            correspondingFolder.get().getId(),
-                            material.getSubfolderId(),
-                            material.getTitle(),
-                            "MATERIAL",
-                            material.getConvertedHtml(),
-                            input.createdBy()
-                    );
-                    activityGateway.save(activity);
-                }
+                if (correspondingFolder.isEmpty()) continue;
+
+                // Resolve student subfolder from the material's level subfolder reference
+                final UUID studentSubfolderId = material.getSubfolderId() != null
+                        ? studentSubfolderGateway
+                            .findByFolderIdAndLevelSubfolderId(correspondingFolder.get().getId(), material.getSubfolderId())
+                            .map(sub -> sub.getId())
+                            .orElse(null)
+                        : null;
+
+                activityGateway.save(Activity.createWithSubfolder(
+                        correspondingFolder.get().getId(),
+                        studentSubfolderId,
+                        material.getTitle(),
+                        "MATERIAL",
+                        material.getConvertedHtml(),
+                        input.createdBy()
+                ));
             } catch (Exception e) {
                 System.err.println("Erro ao propagar material para aluno " + student.getId() + ": " + e.getMessage());
             }

@@ -12,9 +12,12 @@ import com.example.studycore.domain.port.FolderGateway;
 import com.example.studycore.domain.port.LevelFolderTemplateGateway;
 import com.example.studycore.domain.port.LevelProfileGateway;
 import com.example.studycore.domain.port.StudentGateway;
+import com.example.studycore.domain.port.StudentSubfolderGateway;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class CreateLevelFolderTemplateUseCase {
     private final StudentGateway studentGateway;
     private final FolderGateway folderGateway;
     private final ActivityGateway activityGateway;
+    private final StudentSubfolderGateway studentSubfolderGateway;
 
     @Transactional
     public LevelFolderTemplateOutput execute(CreateLevelFolderTemplateInput input) {
@@ -76,19 +80,25 @@ public class CreateLevelFolderTemplateUseCase {
                         .filter(folder -> folder.getPosition().equals(levelFolderPosition))
                         .findFirst();
 
-                if (correspondingFolder.isPresent()) {
-                    // Criar Activity como cópia do template
-                    final var activity = Activity.createWithSubfolder(
-                            correspondingFolder.get().getId(),
-                            template.getSubfolderId(),
-                            template.getTitle(),
-                            template.getType(),
-                            template.getConvertedHtml(),
-                            input.teacherId()
-                    );
+                if (correspondingFolder.isEmpty()) continue;
 
-                    activityGateway.save(activity);
+                // Resolve student subfolder from the template's level subfolder reference
+                UUID studentSubfolderId = null;
+                if (template.getSubfolderId() != null) {
+                    studentSubfolderId = studentSubfolderGateway
+                            .findByFolderIdAndLevelSubfolderId(correspondingFolder.get().getId(), template.getSubfolderId())
+                            .map(sub -> sub.getId())
+                            .orElse(null);
                 }
+
+                activityGateway.save(Activity.createWithSubfolder(
+                        correspondingFolder.get().getId(),
+                        studentSubfolderId,
+                        template.getTitle(),
+                        template.getType(),
+                        template.getConvertedHtml(),
+                        input.teacherId()
+                ));
             } catch (Exception e) {
                 // Log do erro mas não falha toda a propagação
                 // Em produção, considerar usar um logger apropriado
@@ -97,4 +107,3 @@ public class CreateLevelFolderTemplateUseCase {
         }
     }
 }
-
