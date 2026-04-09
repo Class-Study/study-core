@@ -43,15 +43,17 @@ public class UpdateActivityContentUseCase {
             throw new BusinessException("Aluno sem acesso para editar conteúdo da activity.");
         }
 
-        final var updated = Activity.with(
+        final var updated = Activity.withYjsState(
                 existing.getId(),
                 existing.getFolderId(),
+                existing.getSubfolderId(),
                 existing.getTitle(),
                 existing.getType(),
                 input.convertedHtml() == null ? "" : input.convertedHtml(),
                 existing.getCreatedBy(),
                 existing.getCreatedAt(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                existing.getSnapshot()
         );
 
         return MAPPER.toGetActivityOutput(activityGateway.save(updated));

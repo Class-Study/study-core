@@ -9,7 +9,6 @@ public record LevelFolderResponse(
         String name,
         Integer position,
         Integer initialFiles,
-        List<LevelFolderTemplateResponse> templates,
         List<SubfolderResponse> subfolders
 ) {
 }

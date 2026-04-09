@@ -46,15 +46,17 @@ public class UpdateActivityUseCase {
             throw new BusinessException("Tipo de atividade inválido. Use EXERCISE ou WORKSPACE.");
         }
 
-        final var updated = Activity.with(
+        final var updated = Activity.withYjsState(
                 existing.getId(),
                 existing.getFolderId(),
+                existing.getSubfolderId(),
                 input.title() != null ? input.title().trim() : existing.getTitle(),
                 type,
                 existing.getConvertedHtml(),
                 existing.getCreatedBy(),
                 existing.getCreatedAt(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                existing.getSnapshot()
         );
 
         return MAPPER.toGetActivityOutput(activityGateway.save(updated));

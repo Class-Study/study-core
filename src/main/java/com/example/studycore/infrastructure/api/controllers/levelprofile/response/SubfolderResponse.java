@@ -11,7 +11,7 @@ public record SubfolderResponse(
         UUID id,
         String name,
         Integer position,
-        List<LevelFolderTemplateResponse> templates,
+        List<LevelFolderTemplateResponse> exercises,
         List<StudyMaterialResponse> studyMaterials,
         OffsetDateTime createdAt,
         OffsetDateTime updatedAt

@@ -58,15 +58,18 @@ public class MoveActivityUseCase {
         }
 
         // Criar uma nova instância da atividade com o novo folderId
-        final var movedActivity = Activity.with(
+        // subfolderId é limpo: era referência a uma subpasta da pasta de origem
+        final var movedActivity = Activity.withYjsState(
                 activity.getId(),
                 input.targetFolderId(),
+                null,
                 activity.getTitle(),
                 activity.getType(),
                 activity.getConvertedHtml(),
                 activity.getCreatedBy(),
                 activity.getCreatedAt(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                activity.getSnapshot()
         );
 
         // Persistir a mudança

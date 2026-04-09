@@ -10,9 +10,9 @@ public record SubfolderOutput(
         UUID id,
         String name,
         Integer position,
-        List<LevelFolderTemplateOutput> templates,
+        List<LevelFolderTemplateOutput> exercises,
         List<StudyMaterialOutput> studyMaterials,
         OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime updatedAtexercises
 ) {}
 
