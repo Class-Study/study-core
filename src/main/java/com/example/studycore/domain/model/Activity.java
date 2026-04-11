@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 public class Activity {
 
-    private static final Set<String> ALLOWED_TYPES = Set.of("EXERCISE", "WORKSPACE", "MATERIAL");
+    private static final Set<String> ALLOWED_TYPES = Set.of("EXERCISE", "WORKSPACE", "MATERIAL", "DOCUMENT", "VIDEO", "LINK");
 
     private final UUID id;
     private final UUID folderId;
@@ -18,6 +18,7 @@ public class Activity {
     private String title;
     private String type;
     private String convertedHtml;
+    private String url;          // for VIDEO / LINK materials
     private final UUID createdBy;
     private final OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
@@ -30,6 +31,7 @@ public class Activity {
             UUID subfolderId,
             String title,
             String type,
+            String url,
             String convertedHtml,
             UUID createdBy,
             OffsetDateTime createdAt,
@@ -40,6 +42,7 @@ public class Activity {
         this.subfolderId = subfolderId;
         this.title = normalize(title);
         this.type = normalizeType(type);
+        this.url = normalize(url);
         this.convertedHtml = convertedHtml == null ? "" : convertedHtml;
         this.createdBy = createdBy;
         this.createdAt = createdAt;
@@ -48,46 +51,40 @@ public class Activity {
         validate();
     }
 
-    /** Legacy factory — no subfolder context */
+    /**
+     * Legacy factory — no subfolder context
+     */
     public static Activity create(UUID folderId, String title, String type, String convertedHtml, UUID createdBy) {
         final var now = OffsetDateTime.now();
-        return new Activity(UUID.randomUUID(), folderId, null, title, type, convertedHtml, createdBy, now, now);
+        return new Activity(UUID.randomUUID(), folderId, null, title, type, "", convertedHtml, createdBy, now, now);
     }
 
-    /** Factory with subfolder context for template/material propagation */
-    public static Activity createWithSubfolder(UUID folderId, UUID subfolderId, String title, String type, String convertedHtml, UUID createdBy) {
+    /**
+     * Factory with subfolder context for exercise / document propagation
+     */
+    public static Activity createWithSubfolder(UUID folderId, UUID subfolderId, String title, String type, String url, String convertedHtml, UUID createdBy) {
         final var now = OffsetDateTime.now();
-        return new Activity(UUID.randomUUID(), folderId, subfolderId, title, type, convertedHtml, createdBy, now, now);
+        return new Activity(UUID.randomUUID(), folderId, subfolderId, title, type, url, convertedHtml, createdBy, now, now);
     }
 
     public static Activity with(
             UUID id,
             UUID folderId,
+            UUID subfolderId,
             String title,
             String type,
+            String url,
             String convertedHtml,
             UUID createdBy,
             OffsetDateTime createdAt,
             OffsetDateTime updatedAt
     ) {
-        return new Activity(id, folderId, null, title, type, convertedHtml, createdBy, createdAt, updatedAt);
+        return new Activity(id, folderId, subfolderId, title, type, url, convertedHtml, createdBy, createdAt, updatedAt);
     }
 
-    public static Activity withYjsState(
-            UUID id,
-            UUID folderId,
-            UUID subfolderId,
-            String title,
-            String type,
-            String convertedHtml,
-            UUID createdBy,
-            OffsetDateTime createdAt,
-            OffsetDateTime updatedAt,
-            String snapshot
-    ) {
-        Activity activity = new Activity(id, folderId, subfolderId, title, type, convertedHtml, createdBy, createdAt, updatedAt);
-        activity.snapshot = snapshot;
-        return activity;
+    public Activity updateContent(String content) {
+        this.snapshot = content;
+        return this;
     }
 
     private void validate() {
@@ -101,7 +98,7 @@ public class Activity {
             throw new IllegalArgumentException("Activity title cannot be blank.");
         }
         if (type == null || !ALLOWED_TYPES.contains(type)) {
-            throw new IllegalArgumentException("Activity type must be EXERCISE, MATERIAL or WORKSPACE.");
+            throw new IllegalArgumentException("Activity type must be EXERCISE, WORKSPACE, MATERIAL, DOCUMENT, VIDEO or LINK.");
         }
         if (createdAt == null) {
             throw new IllegalArgumentException("Activity createdAt cannot be null.");

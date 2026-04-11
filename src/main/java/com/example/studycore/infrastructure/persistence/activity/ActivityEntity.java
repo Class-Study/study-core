@@ -38,6 +38,9 @@ public class ActivityEntity {
     @Column(name = "converted_html", nullable = false, columnDefinition = "TEXT")
     private String convertedHtml;
 
+    @Column(name = "url", columnDefinition = "TEXT")
+    private String url;
+
     @Column(name = "created_by")
     private UUID createdBy;
 

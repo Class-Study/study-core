@@ -4,14 +4,7 @@ import com.example.studycore.domain.model.Activity;
 import com.example.studycore.domain.model.Folder;
 import com.example.studycore.domain.model.LevelFolder;
 import com.example.studycore.domain.model.StudentSubfolder;
-import com.example.studycore.domain.model.enums.StudyMaterialType;
-import com.example.studycore.domain.port.ActivityGateway;
-import com.example.studycore.domain.port.FolderGateway;
-import com.example.studycore.domain.port.LevelFolderTemplateGateway;
-import com.example.studycore.domain.port.LevelProfileGateway;
-import com.example.studycore.domain.port.LevelSubfolderGateway;
-import com.example.studycore.domain.port.StudentSubfolderGateway;
-import com.example.studycore.domain.port.StudyMaterialGateway;
+import com.example.studycore.domain.port.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -22,7 +15,7 @@ import java.util.UUID;
 /**
  * Serviço de Domínio para gerenciar a estrutura de pastas e atividades de um aluno
  * com base no seu LevelProfile.
- *
+ * <p>
  * Responsável por:
  * - Criar pastas e atividades a partir de um nível (CreateStudentUseCase, UpdateStudentUseCase)
  * - Remover pastas e atividades antigas quando o nível muda
@@ -98,7 +91,7 @@ public class StudentLevelStructureService {
                                 log.debug("Created student subfolder '{}' for folder {}", levelSub.getName(), savedFolder.getId());
 
                                 propagateSubfolderTemplates(savedFolder.getId(), savedSub.getId(), levelSub.getId(), teacherId);
-                                propagateDocumentMaterials(savedFolder.getId(), savedSub.getId(), levelSub.getId(), teacherId);
+                                propagateSubfolderMaterials(savedFolder.getId(), savedSub.getId(), levelSub.getId(), teacherId);
                             });
                 });
 
@@ -107,27 +100,27 @@ public class StudentLevelStructureService {
 
     private void propagateRootTemplates(UUID studentFolderId, UUID levelFolderId, UUID teacherId) {
         levelFolderTemplateGateway.findRootByFolderId(levelFolderId).forEach(t -> {
-            activityGateway.save(Activity.createWithSubfolder(studentFolderId, null, t.getTitle(), "EXERCISE", t.getConvertedHtml(), teacherId));
+            activityGateway.save(Activity.createWithSubfolder(studentFolderId, null, t.getTitle(), t.getType(), "", t.getConvertedHtml(), teacherId));
         });
     }
 
     private void propagateSubfolderTemplates(UUID studentFolderId, UUID studentSubfolderId, UUID levelSubfolderId, UUID teacherId) {
         levelFolderTemplateGateway.findBySubfolderId(levelSubfolderId).forEach(t -> {
-            activityGateway.save(Activity.createWithSubfolder(studentFolderId, studentSubfolderId, t.getTitle(), "EXERCISE", t.getConvertedHtml(), teacherId));
+            activityGateway.save(Activity.createWithSubfolder(studentFolderId, studentSubfolderId, t.getTitle(), t.getType(), "", t.getConvertedHtml(), teacherId));
         });
     }
 
-    private void propagateDocumentMaterials(UUID studentFolderId, UUID studentSubfolderId, UUID levelSubfolderId, UUID teacherId) {
-        studyMaterialGateway.findBySubfolderId(levelSubfolderId).stream()
-                .filter(m -> StudyMaterialType.DOCUMENT == m.getType())
-                .forEach(m -> activityGateway.save(
-                        Activity.createWithSubfolder(studentFolderId, studentSubfolderId, m.getTitle(), "MATERIAL", m.getConvertedHtml(), teacherId)
-                ));
+    private void propagateSubfolderMaterials(UUID studentFolderId, UUID studentSubfolderId, UUID levelSubfolderId, UUID teacherId) {
+        studyMaterialGateway.findBySubfolderId(levelSubfolderId).forEach(m -> {
+            activityGateway.save(
+                    Activity.createWithSubfolder(studentFolderId, studentSubfolderId, m.getTitle(), m.getType().name(), m.getUrl(), m.getConvertedHtml(), teacherId)
+            );
+        });
     }
 
     /**
      * Remove toda a estrutura de pastas e atividades de um aluno (Hard Delete).
-     *
+     * <p>
      * IMPORTANTE: A ordem é crítica devido às constraints de chave estrangeira:
      * 1. Delete todas as Activities de cada Folder
      * 2. Delete a Folder em si

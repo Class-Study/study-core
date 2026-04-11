@@ -96,6 +96,7 @@ public class CreateLevelFolderTemplateUseCase {
                         studentSubfolderId,
                         template.getTitle(),
                         template.getType(),
+                        "",
                         template.getConvertedHtml(),
                         input.teacherId()
                 ));

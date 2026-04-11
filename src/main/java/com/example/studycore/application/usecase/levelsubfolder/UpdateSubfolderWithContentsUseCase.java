@@ -168,7 +168,8 @@ public class UpdateSubfolderWithContentsUseCase {
                             correspondingFolder.get().getId(),
                             studentSubfolderId,
                             template.getTitle(),
-                            "EXERCISE",
+                            template.getType(),
+                            "",
                             template.getConvertedHtml(),
                             input.updatedBy()
                     ));
@@ -176,16 +177,17 @@ public class UpdateSubfolderWithContentsUseCase {
 
                 // Only DOCUMENT materials produce an activity in the student workspace
                 for (final var mat : newMaterials) {
-                    if (StudyMaterialType.DOCUMENT == mat.getType()) {
-                        activityGateway.save(Activity.createWithSubfolder(
-                                correspondingFolder.get().getId(),
-                                studentSubfolderId,
-                                mat.getTitle(),
-                                "MATERIAL",
-                                mat.getConvertedHtml(),
-                                input.updatedBy()
-                        ));
-                    }
+
+                    activityGateway.save(Activity.createWithSubfolder(
+                            correspondingFolder.get().getId(),
+                            studentSubfolderId,
+                            mat.getTitle(),
+                            mat.getType().name(),
+                            mat.getUrl(),
+                            mat.getConvertedHtml(),
+                            input.updatedBy()
+                    ));
+
                 }
 
             } catch (Exception e) {

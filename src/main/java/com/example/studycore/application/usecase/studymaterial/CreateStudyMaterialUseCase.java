@@ -6,6 +6,7 @@ import com.example.studycore.application.usecase.studymaterial.output.StudyMater
 import com.example.studycore.domain.exception.BusinessException;
 import com.example.studycore.domain.exception.NotFoundException;
 import com.example.studycore.domain.model.Activity;
+import com.example.studycore.domain.model.StudentSubfolder;
 import com.example.studycore.domain.model.StudyMaterial;
 import com.example.studycore.domain.model.enums.StudyMaterialType;
 import com.example.studycore.domain.port.ActivityGateway;
@@ -67,8 +68,7 @@ public class CreateStudyMaterialUseCase {
 
         final var saved = studyMaterialGateway.save(material);
 
-        if (Boolean.TRUE.equals(input.propagateToStudents())
-                && input.type() == StudyMaterialType.DOCUMENT) {
+        if (input.propagateToStudents()) {
             propagateToStudents(input, material, levelFolder.getPosition());
         }
 
@@ -90,16 +90,18 @@ public class CreateStudyMaterialUseCase {
                 // Resolve student subfolder from the material's level subfolder reference
                 final UUID studentSubfolderId = material.getSubfolderId() != null
                         ? studentSubfolderGateway
-                            .findByFolderIdAndLevelSubfolderId(correspondingFolder.get().getId(), material.getSubfolderId())
-                            .map(sub -> sub.getId())
-                            .orElse(null)
+                        .findByFolderIdAndLevelSubfolderId(correspondingFolder.get().getId(), material.getSubfolderId())
+                        .map(StudentSubfolder::getId)
+                        .orElse(null)
                         : null;
+
 
                 activityGateway.save(Activity.createWithSubfolder(
                         correspondingFolder.get().getId(),
                         studentSubfolderId,
                         material.getTitle(),
-                        "MATERIAL",
+                        material.getType().name(),
+                        material.getUrl(),
                         material.getConvertedHtml(),
                         input.createdBy()
                 ));

@@ -14,7 +14,9 @@ import com.example.studycore.infrastructure.api.controllers.activity.request.Upd
 import com.example.studycore.infrastructure.api.controllers.activity.response.GetActivityResponse;
 import com.example.studycore.infrastructure.api.controllers.activity.response.ListActivitiesResponse;
 import com.example.studycore.infrastructure.persistence.activity.ActivityEntity;
+
 import java.util.UUID;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -24,19 +26,20 @@ public interface ActivityInfraMapper {
 
     ActivityInfraMapper INSTANCE = Mappers.getMapper(ActivityInfraMapper.class);
 
+
     default Activity fromEntity(ActivityEntity entity) {
         if (entity == null) return null;
-        return Activity.withYjsState(
+        return Activity.with(
                 entity.getId(),
                 entity.getFolderId(),
                 entity.getSubfolderId(),
                 entity.getTitle(),
                 entity.getType(),
+                entity.getUrl(),
                 entity.getConvertedHtml(),
                 entity.getCreatedBy(),
                 entity.getCreatedAt(),
-                entity.getUpdatedAt(),
-                entity.getSnapshot()
+                entity.getUpdatedAt()
         );
     }
 
@@ -46,6 +49,7 @@ public interface ActivityInfraMapper {
     @Mapping(target = "title", source = "title")
     @Mapping(target = "type", source = "type")
     @Mapping(target = "convertedHtml", source = "convertedHtml")
+    @Mapping(target = "url", source = "url")
     @Mapping(target = "createdBy", source = "createdBy")
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "updatedAt")

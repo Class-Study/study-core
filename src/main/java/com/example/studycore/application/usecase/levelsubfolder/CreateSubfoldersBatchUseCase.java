@@ -179,24 +179,26 @@ public class CreateSubfoldersBatchUseCase {
                             correspondingFolder.get().getId(),
                             savedStudentSub.getId(),
                             ex.title(),
-                            "EXERCISE",
+                            ex.type(),
+                            "",
                             ex.convertedHtml(),
                             input.createdBy()
                     ));
                 }
 
-                // Propagate DOCUMENT materials only (VIDEO/LINK are external — no activity copy needed)
+                // Propagate all material types as student activities so they survive level subfolder deletion
                 for (final var mat : created.materials()) {
-                    if ("DOCUMENT".equals(mat.type())) {
-                        activityGateway.save(Activity.createWithSubfolder(
-                                correspondingFolder.get().getId(),
-                                savedStudentSub.getId(),
-                                mat.title(),
-                                "MATERIAL",
-                                mat.convertedHtml(),
-                                input.createdBy()
-                        ));
-                    }
+
+                    activityGateway.save(Activity.createWithSubfolder(
+                            correspondingFolder.get().getId(),
+                            savedStudentSub.getId(),
+                            mat.title(),
+                            mat.type(),
+                            mat.url(),
+                            mat.convertedHtml(),
+                            input.createdBy()
+                    ));
+
                 }
 
             } catch (Exception e) {

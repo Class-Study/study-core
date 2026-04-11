@@ -9,8 +9,10 @@ import com.example.studycore.domain.model.Activity;
 import com.example.studycore.domain.port.ActivityGateway;
 import com.example.studycore.domain.port.FolderGateway;
 import com.example.studycore.domain.port.StudentGateway;
+
 import java.time.OffsetDateTime;
 import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,20 +48,22 @@ public class UpdateActivityUseCase {
             throw new BusinessException("Tipo de atividade inválido. Use EXERCISE ou WORKSPACE.");
         }
 
-        final var updated = Activity.withYjsState(
-                existing.getId(),
-                existing.getFolderId(),
-                existing.getSubfolderId(),
-                input.title() != null ? input.title().trim() : existing.getTitle(),
-                type,
-                existing.getConvertedHtml(),
-                existing.getCreatedBy(),
-                existing.getCreatedAt(),
-                OffsetDateTime.now(),
-                existing.getSnapshot()
-        );
+//        final var updated = Activity.withYjsState(
+//                existing.getId(),
+//                existing.getFolderId(),
+//                existing.getSubfolderId(),
+//                input.title() != null ? input.title().trim() : existing.getTitle(),
+//                type,
+//                existing.getConvertedHtml(),
+//                existing.getCreatedBy(),
+//                existing.getCreatedAt(),
+//                OffsetDateTime.now(),
+//                existing.getSnapshot()
+//        );
+//
+//        return MAPPER.toGetActivityOutput(activityGateway.save(updated));
 
-        return MAPPER.toGetActivityOutput(activityGateway.save(updated));
+        return null;
     }
 }
 
